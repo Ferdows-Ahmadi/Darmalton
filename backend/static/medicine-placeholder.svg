@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <rect width="640" height="480" rx="32" fill="#e8f5f0"/>
+  <g transform="translate(196 104)">
+    <rect x="0" y="80" width="248" height="112" rx="56" fill="#0f766e"/>
+    <path d="M124 80v112" stroke="#fff" stroke-width="12"/>
+    <rect x="54" y="0" width="140" height="272" rx="70" fill="none" stroke="#115e59" stroke-width="16" transform="rotate(45 124 136)"/>
+  </g>
+  <text x="320" y="420" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" fill="#115e59">Medicine image</text>
+</svg>
