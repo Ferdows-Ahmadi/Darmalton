@@ -1,0 +1,118 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+class ApiException implements Exception {
+  const ApiException(this.message, {this.fields = const {}});
+  final String message;
+  final Map<String, dynamic> fields;
+
+  @override
+  String toString() => message;
+}
+class ApiClient {
+  ApiClient({
+    Dio? dio,
+    FlutterSecureStorage? storage,
+    String? baseUrl,
+  })  : _storage = storage ?? const FlutterSecureStorage(),
+        _dio = dio ??
+            Dio(BaseOptions(
+              baseUrl: baseUrl ??
+                  const String.fromEnvironment(
+                    'API_BASE_URL',
+                    defaultValue: 'http://10.0.2.2:8000/api/v1',
+                  ),
+              connectTimeout: const Duration(seconds: 12),
+              receiveTimeout: const Duration(seconds: 20),
+              headers: {'Accept': 'application/json'},
+            )) {
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        final token = await _storage.read(key: 'access_token');
+        if (token != null) options.headers['Authorization'] = 'Bearer $token';
+        handler.next(options);
+      },
+      onError: (error, handler) async {
+        if (error.response?.statusCode == 401 && !error.requestOptions.extra.containsKey('retried')) {
+          final refresh = await _storage.read(key: 'refresh_token');
+          if (refresh != null) {
+            try {
+              final response = await _dio.post<Map<String, dynamic>>(
+                '/auth/refresh/',
+                data: {'refresh': refresh},
+                options: Options(extra: {'retried': true}),
+              );
+              await saveTokens(response.data!);
+              final request = error.requestOptions;
+              request.extra['retried'] = true;
+              request.headers['Authorization'] = 'Bearer ${response.data!['access']}';
+              return handler.resolve(await _dio.fetch(request));
+            } on DioException {
+              await clearTokens();
+            }
+          }
+        }
+        handler.next(error);
+      },
+    ));
+  }
+
+  final Dio _dio;
+  final FlutterSecureStorage _storage;
+
+  Future<Response<T>> get<T>(String path, {Map<String, dynamic>? query}) async {
+    try {
+      return await _dio.get<T>(path, queryParameters: query);
+    } on DioException catch (error) {
+      throw _mapError(error);
+    }
+  }
+
+  Future<Response<T>> post<T>(String path, {Object? data}) async {
+    try {
+      return await _dio.post<T>(path, data: data);
+    } on DioException catch (error) {
+      throw _mapError(error);
+    }
+  }
+
+  Future<Response<T>> patch<T>(String path, {Object? data}) async {
+    try {
+      return await _dio.patch<T>(path, data: data);
+    } on DioException catch (error) {
+      throw _mapError(error);
+    }
+  }
+
+  Future<void> delete(String path) async {
+    try {
+      await _dio.delete<void>(path);
+    } on DioException catch (error) {
+      throw _mapError(error);
+    }
+  }
+
+  Future<void> saveTokens(Map<String, dynamic> payload) async {
+    await _storage.write(key: 'access_token', value: payload['access'] as String);
+    final refresh = payload['refresh'] as String?;
+    if (refresh != null) await _storage.write(key: 'refresh_token', value: refresh);
+  }
+
+  Future<void> clearTokens() => _storage.deleteAll();
+
+  ApiException _mapError(DioException error) {
+    final data = error.response?.data;
+    if (data is Map<String, dynamic> && data['error'] is Map<String, dynamic>) {
+      final details = data['error'] as Map<String, dynamic>;
+      return ApiException(
+        details['message'] as String? ?? 'The request could not be completed.',
+        fields: details['fields'] as Map<String, dynamic>? ?? const {},
+      );
+    }
+    if (error.type == DioExceptionType.connectionError ||
+        error.type == DioExceptionType.connectionTimeout) {
+      return const ApiException('Cannot reach the pharmacy. Check your connection and retry.');
+    }
+    return const ApiException('Something went wrong. Please retry.');
+  }
+}
