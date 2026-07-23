@@ -9,14 +9,16 @@
 | Git | 2.55.0.windows.3 |
 | Visual Studio Code | 1.129.1 x64 |
 | Python | Anaconda 3.13.9 installed at `C:\Users\AFerd\anaconda3\python.exe` |
-| Node/npm | Not on initial PATH; setup status is recorded below |
-| Flutter/Dart | Not on initial PATH; setup status is recorded below |
-| Docker/Compose | Not on initial PATH |
+| Project Python | `.venv` created and used for Django/tests |
+| Node/npm | Node.js 24.18.0 and npm 11.16.0 installed |
+| Flutter/Dart | Not installed; standalone Dart installation also stalled before download |
+| Docker/Compose | Not installed |
 | WSL 2 | Not installed at audit time |
 | Virtualization | Firmware capability reported unavailable by WMI |
 
-This file is updated only after tools are actually installed and version-checked.
-No Xcode installation is attempted on Windows.
+No Xcode installation is attempted on Windows. Flutter stable 3.44.7 was
+identified from the official release metadata on 2026-07-24, but its 1.77 GB SDK
+archive and the Android toolchain were not installed on this constrained run.
 
 ## VS Code extensions
 
@@ -29,3 +31,9 @@ If WSL 2/Docker Desktop is blocked, run `scripts/setup-local.ps1` and
 `scripts/dev-local.ps1`. This uses SQLite only for workstation development.
 Compose remains the authoritative PostgreSQL configuration.
 
+Because the current PowerShell execution policy blocks unsigned local scripts,
+invoke them with:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\<script-name>.ps1
+```

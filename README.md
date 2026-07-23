@@ -7,12 +7,10 @@ client implementing the first complete cash-on-delivery pharmacy order flow.
 
 1. Copy `.env.example` to `.env` and replace all placeholder secrets/passwords.
 2. Run `docker compose up --build`.
-3. In another terminal run:
 
-```powershell
-docker compose exec backend python manage.py migrate
-docker compose exec backend python manage.py seed_demo
-```
+The backend container waits for PostgreSQL, migrates, seeds the idempotent demo
+data, collects static files, and then starts Gunicorn. Docker Desktop requires
+WSL 2 or another supported virtualization backend on Windows.
 
 Open:
 
@@ -24,13 +22,25 @@ Open:
 ## Windows fallback without Docker
 
 ```powershell
-./scripts/setup-local.ps1
-./scripts/dev-local.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-local.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-local.ps1
 ```
 
-The setup script creates a local ignored `.env`, installs dependencies into
-`.venv`, migrates, and seeds an SQLite development database. Use the demo
-credentials printed by the seed command; do not reuse them outside development.
+The setup script installs dependencies into `.venv`, migrates, and seeds an
+ignored SQLite development database. The development script starts the backend
+and website in hidden processes and writes ignored logs/PIDs under `tmp/dev`.
+Stop both with:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\stop-local.ps1
+```
+
+Demo-only credentials:
+
+- Customer: `customer@example.test` / `ChangeMe-Customer-123!`
+- Administrator: `admin@example.test` / `ChangeMe-Admin-123!`
+
+Never reuse these credentials outside local development.
 
 Run the Flutter app separately after installing Flutter stable:
 
@@ -46,10 +56,17 @@ and allow only the necessary private-network firewall access.
 ## Verification
 
 ```powershell
-./scripts/test-all.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-all.ps1
+.\.venv\Scripts\python.exe .\scripts\smoke_flow.py
 docker compose config
 ```
 
-More detail: `docs/ENVIRONMENT.md`, `docs/API_CONTRACT.md`,
-`docs/MILESTONE_1_PLAN.md`, `SECURITY.md`, and `docs/KNOWN_ISSUES.md`.
+The test script uses `website/.next-build` for the production build so it can run
+without corrupting an active `next dev` cache. Flutter checks and an Android debug
+APK are included automatically when `flutter` is available. See
+`docs/KNOWN_ISSUES.md` for the current workstation-specific mobile and container
+limitations.
 
+More detail: `docs/ENVIRONMENT.md`, `docs/API_CONTRACT.md`,
+`docs/MILESTONE_1_PLAN.md`, `docs/BUILD_LOG.md`, `SECURITY.md`, and
+`docs/KNOWN_ISSUES.md`.
