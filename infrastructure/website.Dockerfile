@@ -1,13 +1,20 @@
+# syntax=docker/dockerfile:1.7
+
 FROM node:24.18.0-alpine AS dependencies
 WORKDIR /app
-COPY website/package.json website/package-lock.json ./
-RUN npm ci --no-audit --no-fund
+ENV NPM_CONFIG_FETCH_RETRIES=8 \
+    NPM_CONFIG_FETCH_RETRY_FACTOR=2 \
+    NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=30000 \
+    NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=180000
+COPY package.json package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --no-audit --no-fund --prefer-offline
 
 FROM node:24.18.0-alpine AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=dependencies /app/node_modules ./node_modules
-COPY website/ ./
+COPY . ./
 RUN npm run build
 
 FROM node:24.18.0-alpine AS runtime
