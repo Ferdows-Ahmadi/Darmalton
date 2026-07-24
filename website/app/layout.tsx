@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Inter, Merriweather } from "next/font/google";
 
 import { Header } from "@/components/Header";
@@ -13,11 +14,13 @@ export const metadata: Metadata = {
   description: "A safe, clear online pharmacy demonstration."
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const authenticated = Boolean((await cookies()).get("pharmacy_refresh")?.value);
+
   return (
     <html lang="en">
       <body className={`${inter.variable} ${merriweather.variable}`}>
-        <Header />
+        <Header authenticated={authenticated} />
         <ScrollToTop />
         <main>{children}</main>
         <footer>

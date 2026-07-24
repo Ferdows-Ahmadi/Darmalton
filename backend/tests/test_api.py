@@ -60,6 +60,14 @@ def test_medicine_listing_search_and_anonymous_access(api_client, medicine):
     assert listing.data["results"][0]["brand_name"] == "TestMed"
     assert listing.data["results"][0]["price"] == "10.00"
 
+    by_slug = api_client.get(f"/api/v1/medicines/?category={medicine.category.slug}")
+    assert by_slug.status_code == 200
+    assert by_slug.data["count"] == 1
+
+    by_id = api_client.get(f"/api/v1/medicines/?category={medicine.category_id}")
+    assert by_id.status_code == 200
+    assert by_id.data["count"] == 1
+
 
 def test_cart_rejects_negative_quantity(authenticated_client, medicine):
     response = authenticated_client.post(

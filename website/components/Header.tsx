@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-export function Header() {
+export function Header({ authenticated }: { authenticated: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -32,7 +32,11 @@ export function Header() {
             {label}
           </Link>
         ))}
-        <button className="link-button" onClick={logout}>Sign out</button>
+        {authenticated ? (
+          <button className="link-button" onClick={logout}>Sign out</button>
+        ) : (
+          <Link className={pathname === "/login" ? "active" : ""} href="/login">Sign in</Link>
+        )}
       </nav>
     </header>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import type { Category, Medicine, PageResult } from "@/lib/types";
@@ -16,17 +16,22 @@ export function Catalogue({
   const params = useSearchParams();
   const router = useRouter();
   const [search, setSearch] = useState(params.get("search") || "");
-  const selected = params.get("category") || "";
+  const [category, setCategory] = useState(params.get("category") || "");
+
+  useEffect(() => {
+    setCategory(params.get("category") || "");
+  }, [params]);
 
   function apply(event: FormEvent) {
     event.preventDefault();
     const next = new URLSearchParams();
     if (search.trim()) next.set("search", search.trim());
-    if (selected) next.set("category", selected);
+    if (category) next.set("category", category);
     router.push(`/?${next}`);
   }
 
   function categoryChanged(value: string) {
+    setCategory(value);
     const next = new URLSearchParams(params);
     if (value) next.set("category", value);
     else next.delete("category");
@@ -47,7 +52,7 @@ export function Catalogue({
         </label>
         <label>
           <span>Category</span>
-          <select value={selected} onChange={(event) => categoryChanged(event.target.value)}>
+          <select value={category} onChange={(event) => categoryChanged(event.target.value)}>
             <option value="">All categories</option>
             {categories.map((category) => (
               <option key={category.id} value={category.slug}>{category.name}</option>

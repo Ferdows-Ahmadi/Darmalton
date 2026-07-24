@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from django.db.models import Q
 from rest_framework import permissions, viewsets
 
@@ -32,5 +34,10 @@ class MedicineViewSet(viewsets.ReadOnlyModelViewSet):
                 | Q(sku__icontains=search)
             )
         if category:
-            queryset = queryset.filter(Q(category_id=category) | Q(category__slug=category))
+            try:
+                category_id = UUID(category)
+            except ValueError:
+                queryset = queryset.filter(category__slug=category)
+            else:
+                queryset = queryset.filter(category_id=category_id)
         return queryset

@@ -4,7 +4,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { apiFetch } from "@/lib/api";
-import type { Address, Order } from "@/lib/types";
+import type { Address, Order, PageResult } from "@/lib/types";
 
 const emptyAddress = {
   label: "Home",
@@ -29,7 +29,7 @@ export default function CheckoutPage() {
 
   const load = useCallback(async function load() {
     try {
-      const list = await apiFetch<Address[]>("addresses/");
+      const { results: list } = await apiFetch<PageResult<Address>>("addresses/");
       setAddresses(list);
       setSelected(list.find((item) => item.is_default)?.id || list[0]?.id || "");
       setShowForm(!list.length);
