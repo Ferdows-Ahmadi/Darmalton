@@ -11,5 +11,10 @@
 - Wallets, stored payment methods, ratings/reviews, live GPS, courier chat, and
   prescription review are not Milestone 1 backend capabilities. The redesigned
   clients must label or disable these honestly rather than simulating them.
+- Medicine seed records use a neutral generated placeholder SVG until real,
+  licensed product photography is uploaded through the validated image model.
+- Historical order item and status-note snapshots preserve the text stored at
+  order time. Newly seeded catalogue display names are Dari-first, but older
+  snapshots can retain a Latin medicine name.
 - The attached PDF's master ER diagram page renders without diagram content, but
   its detailed table definitions and relationships are readable and were used.

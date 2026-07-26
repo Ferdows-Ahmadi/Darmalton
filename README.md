@@ -3,6 +3,16 @@
 A Django + PostgreSQL API, responsive Next.js website, and Flutter Android/iOS
 client implementing the first complete cash-on-delivery pharmacy order flow.
 
+## Dari-first interface
+
+Both customer clients use right-to-left `fa-AF` layouts, bundled Vazirmatn
+Regular/Medium/Bold fonts, and the supplied official Darmalton wordmark and
+Android launcher artwork. Latin medicine identifiers, email addresses, phone
+numbers, SKUs, and order numbers remain directionally isolated for readability.
+The UI references are implemented as a coherent design system; values shown for
+price, stock, carts, addresses, orders, and account data come from Django rather
+than from screenshot placeholders.
+
 ## Quick start with Docker (primary)
 
 1. Copy `.env.example` to `.env` and replace all placeholder secrets/passwords.
@@ -80,9 +90,8 @@ The test script uses `website/.next-build` for the production build so it can ru
 without corrupting an active `next dev` cache. Flutter checks and an Android debug
 APK are included when Flutter is on `PATH`, under `FLUTTER_ROOT`, or installed at
 `C:\src\flutter`. Set `MOBILE_API_BASE_URL` before running the script to build for
-a physical device instead of the emulator default. See
-`docs/KNOWN_ISSUES.md` for the current workstation-specific mobile and container
-limitations.
+a physical device instead of the emulator default. See `docs/KNOWN_ISSUES.md`
+for the current platform and intentionally unsupported capabilities.
 
 More detail: `docs/ENVIRONMENT.md`, `docs/API_CONTRACT.md`,
 `docs/MILESTONE_1_PLAN.md`, `docs/BUILD_LOG.md`, `SECURITY.md`, and

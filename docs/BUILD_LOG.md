@@ -82,3 +82,41 @@
 - A clean Docker recreate showed no recurring Gunicorn SIGKILL/OOM condition.
   Two workers used about 131 MiB total at idle; the earlier termination was
   consistent with container recreation rather than a reproducible memory leak.
+
+## 2026-07-26 - Dari-first redesign and final device QA
+
+- Added optional Dari catalogue fields for categories, dosage forms, medicine
+  names, and descriptions while retaining canonical Latin fields and search
+  fallback. The migration, serializers, seed data, and tests were updated.
+- Bundled Vazirmatn Regular/Medium/Bold under the OFL, applied `fa_AF`/RTL
+  defaults in Flutter and `lang="fa-AF" dir="rtl"` in Next.js, and directionally
+  isolated Latin identifiers.
+- Added the supplied Darmalton wordmark and generated adaptive/legacy Android
+  plus iOS launcher assets from the supplied launcher artwork.
+- Rebuilt the Flutter home, categories/search, detail, cart, COD checkout,
+  orders/tracking, prescription explanation, profile, login, registration, and
+  splash experiences. Unsupported wallet/card/GPS/chat/prescription-review
+  actions are labeled or disabled instead of fabricated.
+- Rebuilt all customer website routes with the same responsive Dari design
+  language. Added a same-origin asset proxy so Docker-internal image hosts never
+  leak into browser image URLs.
+- Enforced the prescription boundary on the server: a prescription-required
+  medicine cannot enter the normal cart or checkout flow until a pharmacist
+  review workflow exists.
+- Browser QA passed at 1280x720 and 390x844. Verified RTL/font metadata, no
+  horizontal overflow, Dari search, product image loading, authenticated
+  product-to-cart flow, checkout summary, orders/tracking, profile, and
+  route/query scroll reset to `0`.
+- Built and installed the USB-configured debug APK on the Pixel 10 (Android API
+  37). Physical screenshots verified home, categories, cart, orders, tracking,
+  and profile. Two text-scale-only overflows were found and fixed in the home
+  banner and long category names; the final log contained no Flutter rendering
+  exception, fatal exception, cleartext-network, or socket error.
+- Final verification passed 11 backend tests, 5 Flutter tests, and all 15 route
+  entries listed by the Next.js production build, including the same-origin
+  asset route.
+- The final PostgreSQL integrated smoke passed registration, catalogue, cart,
+  address, checkout, admin transition, and customer status refresh for order
+  `OP-20260726-0E15FFC5`. The production backend image intentionally excludes
+  `pytest`; backend unit tests run from the project test environment, while this
+  smoke validates the containerized PostgreSQL path.
