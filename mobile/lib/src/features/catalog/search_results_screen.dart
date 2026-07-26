@@ -404,6 +404,16 @@ class _SearchMedicineCard extends StatelessWidget {
                           fontSize: 12,
                         ),
                       ),
+                      if (medicine.prescriptionRequired) ...[
+                        const SizedBox(width: 6),
+                        const Text(
+                          '· نسخه‌ای',
+                          style: TextStyle(
+                            color: DarmaltonColors.warning,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                       const Spacer(),
                       Text(
                         medicine.price == null
@@ -418,7 +428,10 @@ class _SearchMedicineCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       IconButton.filledTonal(
                         tooltip: DariStrings.addToCart,
-                        onPressed: medicine.inStock ? onAdd : null,
+                        onPressed:
+                            medicine.inStock && !medicine.prescriptionRequired
+                            ? onAdd
+                            : null,
                         icon: const Icon(Icons.add_shopping_cart_rounded),
                       ),
                     ],

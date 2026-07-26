@@ -16,6 +16,7 @@ import 'features/catalog/search_results_screen.dart';
 import 'features/checkout/checkout_screen.dart';
 import 'features/orders/order_detail_screen.dart';
 import 'features/orders/order_history_screen.dart';
+import 'features/prescription/prescription_screen.dart';
 import 'features/profile/profile_screen.dart';
 
 final routerProvider = Provider<GoRouter>(
@@ -40,6 +41,10 @@ final routerProvider = Provider<GoRouter>(
       ),
       GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
       GoRoute(path: '/checkout', builder: (_, _) => const CheckoutScreen()),
+      GoRoute(
+        path: '/prescription',
+        builder: (_, _) => const PrescriptionScreen(),
+      ),
       GoRoute(path: '/orders', builder: (_, _) => const OrderHistoryScreen()),
       GoRoute(
         path: '/orders/:id',

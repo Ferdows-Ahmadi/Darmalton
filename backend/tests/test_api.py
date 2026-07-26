@@ -4,6 +4,7 @@ from decimal import Decimal
 import pytest
 from django.urls import reverse
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 from accounts.models import User
 from catalog.models import InventoryBatch, Medicine
@@ -100,6 +101,26 @@ def test_cart_addition_cannot_exceed_stock(authenticated_client, medicine):
         format="json",
     )
     assert second.status_code == 400
+
+
+def test_prescription_medicine_requires_review(authenticated_client, user, branch, medicine):
+    medicine.prescription_required = True
+    medicine.save(update_fields=["prescription_required"])
+
+    response = authenticated_client.post(
+        "/api/v1/cart/items/",
+        {"medicine_id": str(medicine.id), "quantity": 1},
+        format="json",
+    )
+    assert response.status_code == 400
+    assert "pharmacist review" in str(response.data["error"]["fields"])
+
+    cart = Cart.objects.get(customer=user, status=Cart.Status.ACTIVE)
+    CartItem.objects.create(cart=cart, medicine=medicine, quantity=1)
+    address = make_address(user)
+    with pytest.raises(ValidationError, match="prescription review"):
+        create_order(customer=user, address=address)
+    assert cart.status == Cart.Status.ACTIVE
 
 
 def test_address_and_order_ownership(authenticated_client, other_user):

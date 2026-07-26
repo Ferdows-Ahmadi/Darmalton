@@ -192,8 +192,10 @@ class CatalogueScreen extends ConsumerWidget {
                                 const SizedBox(width: 12),
                             itemBuilder: (_, index) => CompactMedicineCard(
                               medicine: items[index],
-                              onAdd: () =>
-                                  _addToCart(context, ref, items[index]),
+                              onAdd: items[index].prescriptionRequired
+                                  ? null
+                                  : () =>
+                                        _addToCart(context, ref, items[index]),
                             ),
                           ),
                   ),

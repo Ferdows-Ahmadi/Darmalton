@@ -120,10 +120,10 @@ class CartController extends AsyncNotifier<Cart> {
 
   Future<void> refresh() async => state = await AsyncValue.guard(_load);
 
-  Future<void> add(String medicineId) async {
+  Future<void> add(String medicineId, {int quantity = 1}) async {
     await _api.post(
       '/cart/items/',
-      data: {'medicine_id': medicineId, 'quantity': 1},
+      data: {'medicine_id': medicineId, 'quantity': quantity},
     );
     await refresh();
   }

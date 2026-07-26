@@ -90,6 +90,15 @@ class CartItemSerializer(serializers.ModelSerializer):
         cart = self._cart()
         if medicine and medicine.status != Medicine.Status.ACTIVE:
             raise serializers.ValidationError({"medicine_id": "This medicine is inactive."})
+        if medicine and medicine.prescription_required:
+            raise serializers.ValidationError(
+                {
+                    "medicine_id": (
+                        "Prescription medicines require pharmacist review, "
+                        "which is not available in this milestone."
+                    )
+                }
+            )
         if medicine and cart:
             available = medicine_stock(medicine, cart.branch)
             if attrs.get("quantity", getattr(self.instance, "quantity", 0)) > available:

@@ -81,6 +81,8 @@ def create_order(*, customer, address):
         medicine = cart_item.medicine
         if medicine.status != Medicine.Status.ACTIVE:
             raise ValidationError(f"{medicine.brand_name} is no longer available.")
+        if medicine.prescription_required:
+            raise ValidationError(f"{medicine.brand_name} requires pharmacist prescription review.")
 
         batches = list(
             InventoryBatch.objects.select_for_update()
