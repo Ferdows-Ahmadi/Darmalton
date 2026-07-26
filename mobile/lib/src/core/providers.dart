@@ -142,8 +142,8 @@ class CartController extends AsyncNotifier<Cart> {
 final addressesProvider = FutureProvider<List<Address>>((ref) async {
   final response = await ref
       .read(apiClientProvider)
-      .get<List<dynamic>>('/addresses/');
-  return response.data!
+      .get<Map<String, dynamic>>('/addresses/');
+  return (response.data!['results'] as List<dynamic>)
       .map((item) => Address.fromJson(item as Map<String, dynamic>))
       .toList();
 });

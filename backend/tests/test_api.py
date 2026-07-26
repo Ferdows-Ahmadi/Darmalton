@@ -62,6 +62,12 @@ def test_medicine_listing_search_and_anonymous_access(api_client, medicine):
     assert "description_dari" in listing.data["results"][0]
     assert listing.data["results"][0]["price"] == "10.00"
 
+    medicine.brand_name_dari = "داروی آزمایشی"
+    medicine.save(update_fields=["brand_name_dari"])
+    by_dari_name = api_client.get("/api/v1/medicines/?search=آزمایشی")
+    assert by_dari_name.status_code == 200
+    assert by_dari_name.data["count"] == 1
+
     by_slug = api_client.get(f"/api/v1/medicines/?category={medicine.category.slug}")
     assert by_slug.status_code == 200
     assert by_slug.data["count"] == 1

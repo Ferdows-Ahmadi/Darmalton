@@ -9,8 +9,10 @@ import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
 import 'features/auth/splash_screen.dart';
 import 'features/cart/cart_screen.dart';
+import 'features/catalog/categories_screen.dart';
 import 'features/catalog/catalogue_screen.dart';
 import 'features/catalog/medicine_detail_screen.dart';
+import 'features/catalog/search_results_screen.dart';
 import 'features/checkout/checkout_screen.dart';
 import 'features/orders/order_detail_screen.dart';
 import 'features/orders/order_history_screen.dart';
@@ -24,6 +26,13 @@ final routerProvider = Provider<GoRouter>(
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
       GoRoute(path: '/catalogue', builder: (_, _) => const CatalogueScreen()),
+      GoRoute(path: '/categories', builder: (_, _) => const CategoriesScreen()),
+      GoRoute(
+        path: '/search',
+        builder: (_, state) => SearchResultsScreen(
+          initialCategory: state.uri.queryParameters['category'] ?? '',
+        ),
+      ),
       GoRoute(
         path: '/medicines/:id',
         builder: (_, state) =>

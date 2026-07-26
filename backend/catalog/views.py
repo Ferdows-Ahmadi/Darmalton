@@ -30,6 +30,7 @@ class MedicineViewSet(viewsets.ReadOnlyModelViewSet):
         if search:
             queryset = queryset.filter(
                 Q(brand_name__icontains=search)
+                | Q(brand_name_dari__icontains=search)
                 | Q(generic_name__icontains=search)
                 | Q(sku__icontains=search)
             )
