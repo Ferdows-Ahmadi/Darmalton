@@ -16,26 +16,109 @@ from catalog.models import (
     Pharmacy,
     PharmacyBranch,
 )
+from commerce.models import CustomerAddress
 
 MEDICINES = [
-    ("Paracetamol", "Acetaminophen", "500 mg", "Tablet", "Pain Relief", "HealthPlus", False),
-    ("Ibuprofen", "Ibuprofen", "400 mg", "Tablet", "Pain Relief", "MediCore", False),
-    ("Amoxicillin", "Amoxicillin", "500 mg", "Capsule", "Antibiotics", "PharmaTrust", True),
-    ("Azithromycin", "Azithromycin", "250 mg", "Tablet", "Antibiotics", "PharmaTrust", True),
-    ("Cetirizine", "Cetirizine HCl", "10 mg", "Tablet", "Allergy", "HealthPlus", False),
-    ("Loratadine", "Loratadine", "10 mg", "Tablet", "Allergy", "MediCore", False),
-    ("Omeprazole", "Omeprazole", "20 mg", "Capsule", "Digestive Health", "WellLife", False),
-    ("Metformin", "Metformin HCl", "500 mg", "Tablet", "Diabetes", "HealthPlus", True),
-    ("Amlodipine", "Amlodipine", "5 mg", "Tablet", "Heart Health", "WellLife", True),
-    ("Losartan", "Losartan Potassium", "50 mg", "Tablet", "Heart Health", "MediCore", True),
-    ("Salbutamol", "Salbutamol", "100 mcg", "Inhaler", "Respiratory", "PharmaTrust", True),
-    ("Vitamin C", "Ascorbic Acid", "500 mg", "Tablet", "Vitamins", "WellLife", False),
-    ("Vitamin D3", "Cholecalciferol", "1000 IU", "Capsule", "Vitamins", "HealthPlus", False),
-    ("ORS", "Oral Rehydration Salts", "20.5 g", "Sachet", "Digestive Health", "MediCore", False),
-    ("Hydrocortisone", "Hydrocortisone", "1%", "Cream", "Skin Care", "PharmaTrust", False),
-    ("Clotrimazole", "Clotrimazole", "1%", "Cream", "Skin Care", "WellLife", False),
+    (
+        "Paracetamol",
+        "پاراستامول",
+        "Acetaminophen",
+        "500 mg",
+        "Tablet",
+        "Pain Relief",
+        "HealthPlus",
+        False,
+    ),
+    ("Ibuprofen", "ایبوپروفین", "Ibuprofen", "400 mg", "Tablet", "Pain Relief", "MediCore", False),
+    (
+        "Amoxicillin",
+        "آموکسی‌سیلین",
+        "Amoxicillin",
+        "500 mg",
+        "Capsule",
+        "Antibiotics",
+        "PharmaTrust",
+        True,
+    ),
+    (
+        "Azithromycin",
+        "آزیترومایسین",
+        "Azithromycin",
+        "250 mg",
+        "Tablet",
+        "Antibiotics",
+        "PharmaTrust",
+        True,
+    ),
+    ("Cetirizine", "سیتریزین", "Cetirizine HCl", "10 mg", "Tablet", "Allergy", "HealthPlus", False),
+    ("Loratadine", "لوراتادین", "Loratadine", "10 mg", "Tablet", "Allergy", "MediCore", False),
+    (
+        "Omeprazole",
+        "اومپرازول",
+        "Omeprazole",
+        "20 mg",
+        "Capsule",
+        "Digestive Health",
+        "WellLife",
+        False,
+    ),
+    ("Metformin", "متفورمین", "Metformin HCl", "500 mg", "Tablet", "Diabetes", "HealthPlus", True),
+    ("Amlodipine", "املودیپین", "Amlodipine", "5 mg", "Tablet", "Heart Health", "WellLife", True),
+    (
+        "Losartan",
+        "لوزارتان",
+        "Losartan Potassium",
+        "50 mg",
+        "Tablet",
+        "Heart Health",
+        "MediCore",
+        True,
+    ),
+    (
+        "Salbutamol",
+        "سالبوتامول",
+        "Salbutamol",
+        "100 mcg",
+        "Inhaler",
+        "Respiratory",
+        "PharmaTrust",
+        True,
+    ),
+    ("Vitamin C", "ویتامین سی", "Ascorbic Acid", "500 mg", "Tablet", "Vitamins", "WellLife", False),
+    (
+        "Vitamin D3",
+        "ویتامین دی ۳",
+        "Cholecalciferol",
+        "1000 IU",
+        "Capsule",
+        "Vitamins",
+        "HealthPlus",
+        False,
+    ),
+    (
+        "ORS",
+        "محلول خوراکی جبران آب",
+        "Oral Rehydration Salts",
+        "20.5 g",
+        "Sachet",
+        "Digestive Health",
+        "MediCore",
+        False,
+    ),
+    (
+        "Hydrocortisone",
+        "هایدروکورتیزون",
+        "Hydrocortisone",
+        "1%",
+        "Cream",
+        "Skin Care",
+        "PharmaTrust",
+        False,
+    ),
+    ("Clotrimazole", "کلوتریمازول", "Clotrimazole", "1%", "Cream", "Skin Care", "WellLife", False),
     (
         "Dextromethorphan",
+        "دکسترومتورفان",
         "Dextromethorphan",
         "15 mg/5 ml",
         "Syrup",
@@ -43,10 +126,51 @@ MEDICINES = [
         "HealthPlus",
         False,
     ),
-    ("Iron Plus", "Ferrous Sulfate", "200 mg", "Tablet", "Vitamins", "MediCore", False),
-    ("Diclofenac Gel", "Diclofenac Sodium", "1%", "Gel", "Pain Relief", "WellLife", False),
-    ("Insulin Regular", "Human Insulin", "100 IU/ml", "Injection", "Diabetes", "PharmaTrust", True),
+    ("Iron Plus", "مکمل آهن", "Ferrous Sulfate", "200 mg", "Tablet", "Vitamins", "MediCore", False),
+    (
+        "Diclofenac Gel",
+        "ژل دیکلوفناک",
+        "Diclofenac Sodium",
+        "1%",
+        "Gel",
+        "Pain Relief",
+        "WellLife",
+        False,
+    ),
+    (
+        "Insulin Regular",
+        "انسولین رگولر",
+        "Human Insulin",
+        "100 IU/ml",
+        "Injection",
+        "Diabetes",
+        "PharmaTrust",
+        True,
+    ),
 ]
+
+CATEGORY_DARI = {
+    "Allergy": "حساسیت",
+    "Antibiotics": "آنتی‌بیوتیک‌ها",
+    "Diabetes": "دیابت",
+    "Digestive Health": "سلامت گوارش",
+    "Heart Health": "سلامت قلب",
+    "Pain Relief": "تسکین درد",
+    "Respiratory": "تنفسی",
+    "Skin Care": "مراقبت پوست",
+    "Vitamins": "ویتامین‌ها و مکمل‌ها",
+}
+
+DOSAGE_FORM_DARI = {
+    "Capsule": "کپسول",
+    "Cream": "کریم",
+    "Gel": "ژل",
+    "Inhaler": "اسپری تنفسی",
+    "Injection": "تزریق",
+    "Sachet": "ساشه",
+    "Syrup": "شربت",
+    "Tablet": "قرص",
+}
 
 
 class Command(BaseCommand):
@@ -76,11 +200,28 @@ class Command(BaseCommand):
 
         customer, _ = User.objects.get_or_create(
             email=customer_email,
-            defaults={"first_name": "Demo", "last_name": "Customer"},
+            defaults={"first_name": "امین", "last_name": "احمدی"},
         )
+        customer.first_name = "امین"
+        customer.last_name = "احمدی"
         customer.set_password(customer_password)
         customer.save()
         CustomerProfile.objects.get_or_create(user=customer)
+        CustomerAddress.objects.update_or_create(
+            user=customer,
+            label="خانه",
+            defaults={
+                "recipient_name": "امین احمدی",
+                "recipient_phone": "+93 700 123 456",
+                "country_code": "AF",
+                "province": "کابل",
+                "city": "کابل",
+                "district": "کارته چهار",
+                "street_address": "سرک پنجم، کوچه گل سرخ، خانه ۱۲",
+                "landmark": "مقابل مکتب نور",
+                "is_default": True,
+            },
+        )
 
         pharmacy, _ = Pharmacy.objects.get_or_create(
             license_number="DEMO-PHARMACY-001",
@@ -97,27 +238,37 @@ class Command(BaseCommand):
         )
 
         categories = {}
-        for name in sorted({row[4] for row in MEDICINES}):
-            categories[name], _ = Category.objects.get_or_create(
-                slug=slugify(name), defaults={"name": name}
+        for name in sorted({row[5] for row in MEDICINES}):
+            categories[name], _ = Category.objects.update_or_create(
+                slug=slugify(name),
+                defaults={"name": name, "name_dari": CATEGORY_DARI[name]},
             )
         manufacturers = {}
-        for name in sorted({row[5] for row in MEDICINES}):
+        for name in sorted({row[6] for row in MEDICINES}):
             manufacturers[name], _ = Manufacturer.objects.get_or_create(name=name)
         dosage_forms = {}
-        for name in sorted({row[3] for row in MEDICINES}):
-            dosage_forms[name], _ = DosageForm.objects.get_or_create(
-                code=name.upper().replace(" ", "_"), defaults={"name": name}
+        for name in sorted({row[4] for row in MEDICINES}):
+            dosage_forms[name], _ = DosageForm.objects.update_or_create(
+                code=name.upper().replace(" ", "_"),
+                defaults={"name": name, "name_dari": DOSAGE_FORM_DARI[name]},
             )
 
         today = timezone.localdate()
-        for index, (brand, generic, strength, form, category, manufacturer, rx) in enumerate(
-            MEDICINES, start=1
-        ):
+        for index, (
+            brand,
+            brand_dari,
+            generic,
+            strength,
+            form,
+            category,
+            manufacturer,
+            rx,
+        ) in enumerate(MEDICINES, start=1):
             medicine, _ = Medicine.objects.update_or_create(
                 sku=f"DEMO-{index:03}",
                 defaults={
                     "brand_name": brand,
+                    "brand_name_dari": brand_dari,
                     "generic_name": generic,
                     "strength": strength,
                     "pack_size": "1 retail pack",
@@ -125,7 +276,14 @@ class Command(BaseCommand):
                     "category": categories[category],
                     "manufacturer": manufacturers[manufacturer],
                     "prescription_required": rx,
-                    "description": f"{brand} demonstration catalogue item. Use only as directed.",
+                    "description": (
+                        f"{brand} is a demonstration catalogue item. "
+                        "Its information does not replace advice from a doctor or pharmacist."
+                    ),
+                    "description_dari": (
+                        "این یک محصول نمایشی کاتالوگ درملتون است. معلومات آن "
+                        "جایگزین مشوره داکتر یا فارمسست نیست."
+                    ),
                     "status": Medicine.Status.ACTIVE,
                 },
             )

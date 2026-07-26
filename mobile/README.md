@@ -21,6 +21,13 @@ The API client accepts a host URL, `/api`, or `/api/v1` form and normalizes it t
 one trailing-slash-free `/api/v1` base. Debug builds permit local cleartext HTTP;
 release builds do not opt into cleartext and must use HTTPS.
 
+## Brand assets and typography
+
+The supplied Darmalton wordmark and launcher artwork live under
+`assets/branding/`. The app uses the bundled Vazirmatn 33.003 Regular, Medium,
+and Bold fonts for clear Dari text. Vazirmatn is distributed under the SIL Open
+Font License 1.1; its license is preserved at `assets/fonts/OFL.txt`.
+
 ## iOS
 
 The iOS runner is committed for source compatibility. Compilation, CocoaPods,

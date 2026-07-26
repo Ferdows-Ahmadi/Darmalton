@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/design_system.dart';
+import 'core/strings.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
 import 'features/auth/splash_screen.dart';
@@ -44,25 +47,19 @@ class PharmacyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => MaterialApp.router(
-    title: 'Darmalton Pharmacy',
+    title: DariStrings.appName,
     debugShowCheckedModeBanner: false,
-    theme: ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xff0e6f66),
-        primary: const Color(0xff0e6f66),
-        surface: const Color(0xfff7f5ee),
-      ),
-      scaffoldBackgroundColor: const Color(0xfff7f5ee),
-      useMaterial3: true,
-      inputDecorationTheme: const InputDecorationTheme(
-        border: OutlineInputBorder(),
-        filled: true,
-        fillColor: Colors.white,
-      ),
-      cardTheme: const CardThemeData(
-        color: Colors.white,
-        margin: EdgeInsets.zero,
-      ),
+    locale: const Locale('fa', 'AF'),
+    supportedLocales: const [Locale('fa', 'AF')],
+    localizationsDelegates: const [
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    theme: buildDarmaltonTheme(),
+    builder: (context, child) => Directionality(
+      textDirection: TextDirection.rtl,
+      child: child ?? const SizedBox.shrink(),
     ),
     routerConfig: ref.watch(routerProvider),
   );

@@ -35,10 +35,12 @@ Errors use:
 | GET | `/medicines/?search=&category=&page=` | Active medicines, paginated |
 | GET | `/medicines/{id}/` | Medicine detail |
 
-`Medicine`: `id`, `sku`, `brand_name`, `generic_name`, `manufacturer{name}`,
-`category{id,name,slug}`, `dosage_form{code,name}`, `strength`, `pack_size`,
-`description`, `prescription_required`, `image_url`, `price`, `available_quantity`,
-`in_stock`.
+`Medicine`: `id`, `sku`, `brand_name`, optional `brand_name_dari`,
+`generic_name`, `manufacturer{name}`, `category{id,name,name_dari,slug}`,
+`dosage_form{code,name,name_dari}`, `strength`, `pack_size`, `description`,
+optional `description_dari`, `prescription_required`, `image_url`, `price`,
+`available_quantity`, `in_stock`. English/Latin fields remain the fallback;
+clients prefer populated Dari display fields.
 
 ## Cart
 
@@ -81,4 +83,3 @@ Address fields: `label`, `recipient_name`, `recipient_phone`, `country_code`,
 Order items snapshot `medicine_id`, `medicine_name`, `strength`, `dosage_form`,
 `quantity`, `unit_price`, and `line_total`. Clients never submit any monetary,
 inventory, ownership, payment-status, or order-status field.
-

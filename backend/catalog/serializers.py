@@ -7,7 +7,7 @@ from .models import Category, DosageForm, Manufacturer, Medicine
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ("id", "name", "slug", "parent_id")
+        fields = ("id", "name", "name_dari", "slug", "parent_id")
 
 
 class NamedSerializer(serializers.ModelSerializer):
@@ -23,7 +23,7 @@ class ManufacturerSerializer(NamedSerializer):
 class DosageFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = DosageForm
-        fields = ("id", "code", "name")
+        fields = ("id", "code", "name", "name_dari")
 
 
 class MedicineSerializer(serializers.ModelSerializer):
@@ -41,6 +41,7 @@ class MedicineSerializer(serializers.ModelSerializer):
             "id",
             "sku",
             "brand_name",
+            "brand_name_dari",
             "generic_name",
             "manufacturer",
             "category",
@@ -48,6 +49,7 @@ class MedicineSerializer(serializers.ModelSerializer):
             "strength",
             "pack_size",
             "description",
+            "description_dari",
             "prescription_required",
             "image_url",
             "price",

@@ -31,28 +31,43 @@ class User {
 }
 
 class Category {
-  const Category({required this.id, required this.name, required this.slug});
+  const Category({
+    required this.id,
+    required this.name,
+    required this.nameDari,
+    required this.slug,
+  });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
     id: json['id'] as String,
     name: json['name'] as String,
+    nameDari: json['name_dari'] as String? ?? '',
     slug: json['slug'] as String,
   );
 
   final String id;
   final String name;
+  final String nameDari;
   final String slug;
+
+  String get displayName => nameDari.isEmpty ? name : nameDari;
 }
 
 class Medicine {
   const Medicine({
     required this.id,
     required this.brandName,
+    required this.brandNameDari,
     required this.genericName,
     required this.strength,
     required this.dosageForm,
+    required this.dosageFormDari,
+    required this.packSize,
+    required this.categoryName,
+    required this.categoryNameDari,
     required this.manufacturer,
     required this.description,
+    required this.descriptionDari,
     required this.imageUrl,
     required this.prescriptionRequired,
     required this.availableQuantity,
@@ -62,15 +77,27 @@ class Medicine {
   factory Medicine.fromJson(Map<String, dynamic> json) => Medicine(
     id: json['id'] as String,
     brandName: json['brand_name'] as String,
+    brandNameDari: json['brand_name_dari'] as String? ?? '',
     genericName: json['generic_name'] as String? ?? '',
     strength: json['strength'] as String? ?? '',
     dosageForm:
         (json['dosage_form'] as Map<String, dynamic>?)?['name'] as String? ??
         '',
+    dosageFormDari:
+        (json['dosage_form'] as Map<String, dynamic>?)?['name_dari']
+            as String? ??
+        '',
+    packSize: json['pack_size'] as String? ?? '',
+    categoryName:
+        (json['category'] as Map<String, dynamic>?)?['name'] as String? ?? '',
+    categoryNameDari:
+        (json['category'] as Map<String, dynamic>?)?['name_dari'] as String? ??
+        '',
     manufacturer:
         (json['manufacturer'] as Map<String, dynamic>?)?['name'] as String? ??
         'Not listed',
     description: json['description'] as String? ?? '',
+    descriptionDari: json['description_dari'] as String? ?? '',
     imageUrl: json['image_url'] as String? ?? '',
     prescriptionRequired: json['prescription_required'] as bool? ?? false,
     availableQuantity: json['available_quantity'] as int? ?? 0,
@@ -79,17 +106,30 @@ class Medicine {
 
   final String id;
   final String brandName;
+  final String brandNameDari;
   final String genericName;
   final String strength;
   final String dosageForm;
+  final String dosageFormDari;
+  final String packSize;
+  final String categoryName;
+  final String categoryNameDari;
   final String manufacturer;
   final String description;
+  final String descriptionDari;
   final String imageUrl;
   final bool prescriptionRequired;
   final int availableQuantity;
   final String? price;
 
   bool get inStock => availableQuantity > 0 && price != null;
+  String get displayName => brandNameDari.isEmpty ? brandName : brandNameDari;
+  String get displayDescription =>
+      descriptionDari.isEmpty ? description : descriptionDari;
+  String get displayDosageForm =>
+      dosageFormDari.isEmpty ? dosageForm : dosageFormDari;
+  String get displayCategory =>
+      categoryNameDari.isEmpty ? categoryName : categoryNameDari;
 }
 
 class CartItem {
@@ -98,6 +138,7 @@ class CartItem {
     required this.medicine,
     required this.quantity,
     required this.availableQuantity,
+    required this.unitPrice,
     required this.lineTotal,
   });
 
@@ -106,6 +147,7 @@ class CartItem {
     medicine: Medicine.fromJson(json['medicine'] as Map<String, dynamic>),
     quantity: json['quantity'] as int,
     availableQuantity: json['available_quantity'] as int? ?? 0,
+    unitPrice: json['unit_price'] as String?,
     lineTotal: json['line_total'] as String?,
   );
 
@@ -113,6 +155,7 @@ class CartItem {
   final Medicine medicine;
   final int quantity;
   final int availableQuantity;
+  final String? unitPrice;
   final String? lineTotal;
 }
 
@@ -218,8 +261,12 @@ class Order {
     required this.id,
     required this.orderNumber,
     required this.status,
+    required this.paymentMethod,
     required this.paymentStatus,
     required this.currencyCode,
+    required this.subtotal,
+    required this.deliveryFee,
+    required this.discountTotal,
     required this.grandTotal,
     required this.deliveryAddress,
     required this.items,
@@ -231,8 +278,12 @@ class Order {
     id: json['id'] as String,
     orderNumber: json['order_number'] as String,
     status: json['status'] as String,
+    paymentMethod: json['payment_method'] as String? ?? 'CASH_ON_DELIVERY',
     paymentStatus: json['payment_status'] as String? ?? 'UNPAID',
     currencyCode: json['currency_code'] as String? ?? 'AFN',
+    subtotal: json['subtotal'] as String? ?? '0.00',
+    deliveryFee: json['delivery_fee'] as String? ?? '0.00',
+    discountTotal: json['discount_total'] as String? ?? '0.00',
     grandTotal: json['grand_total'] as String,
     deliveryAddress: Map<String, String>.from(
       (json['delivery_address'] as Map<String, dynamic>? ?? const {}).map(
@@ -251,8 +302,12 @@ class Order {
   final String id;
   final String orderNumber;
   final String status;
+  final String paymentMethod;
   final String paymentStatus;
   final String currencyCode;
+  final String subtotal;
+  final String deliveryFee;
+  final String discountTotal;
   final String grandTotal;
   final Map<String, String> deliveryAddress;
   final List<OrderItem> items;

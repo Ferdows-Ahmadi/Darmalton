@@ -49,6 +49,7 @@ class Category(TimeStampedUUIDModel):
         "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="children"
     )
     name = models.CharField(max_length=120)
+    name_dari = models.CharField(max_length=120, blank=True)
     slug = models.SlugField(max_length=140, unique=True)
     status = models.CharField(
         max_length=16, choices=RecordStatus.choices, default=RecordStatus.ACTIVE
@@ -81,6 +82,7 @@ class Manufacturer(TimeStampedUUIDModel):
 class DosageForm(TimeStampedUUIDModel):
     code = models.CharField(max_length=40, unique=True)
     name = models.CharField(max_length=80, unique=True)
+    name_dari = models.CharField(max_length=80, blank=True)
 
     def __str__(self):
         return self.name
@@ -95,6 +97,7 @@ class Medicine(TimeStampedUUIDModel):
 
     sku = models.CharField(max_length=64, unique=True)
     brand_name = models.CharField(max_length=180)
+    brand_name_dari = models.CharField(max_length=180, blank=True)
     generic_name = models.CharField(max_length=180, blank=True)
     manufacturer = models.ForeignKey(
         Manufacturer, null=True, on_delete=models.SET_NULL, related_name="medicines"
@@ -107,6 +110,7 @@ class Medicine(TimeStampedUUIDModel):
     pack_size = models.CharField(max_length=100, blank=True)
     barcode = models.CharField(max_length=64, unique=True, null=True, blank=True)
     description = models.TextField(blank=True)
+    description_dari = models.TextField(blank=True)
     prescription_required = models.BooleanField(default=False)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.ACTIVE)
 
