@@ -82,7 +82,7 @@ class CategoriesScreen extends ConsumerWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
-                    mainAxisExtent: 150,
+                    mainAxisExtent: 170,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
                   ),
@@ -196,12 +196,12 @@ class _CategorySkeleton extends StatelessWidget {
     physics: const NeverScrollableScrollPhysics(),
     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
       crossAxisCount: 3,
-      mainAxisExtent: 150,
+      mainAxisExtent: 170,
       crossAxisSpacing: 10,
       mainAxisSpacing: 10,
     ),
     itemCount: 9,
-    itemBuilder: (_, _) => const SkeletonBox(height: 150),
+    itemBuilder: (_, _) => const SkeletonBox(height: 170),
   );
 }
 

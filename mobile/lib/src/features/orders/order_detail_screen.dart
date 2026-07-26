@@ -307,7 +307,7 @@ class _Timeline extends StatelessWidget {
             return _TimelineStep(
               status: status,
               date: history?.createdAt,
-              note: history?.note ?? '',
+              note: _localizedHistoryNote(history?.note ?? ''),
               isActual: isActual,
               isCurrent: isCurrent,
               showLine: index != statuses.length - 1,
@@ -423,6 +423,11 @@ class _TimelineStep extends StatelessWidget {
       ),
     );
   }
+}
+
+String _localizedHistoryNote(String note) {
+  if (note == 'Order placed') return 'سفارش ثبت شد';
+  return note;
 }
 
 class _CourierUnavailable extends StatelessWidget {

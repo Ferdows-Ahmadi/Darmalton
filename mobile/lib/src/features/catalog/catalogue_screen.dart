@@ -260,7 +260,7 @@ class _PromotionBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    height: 190,
+    height: 244,
     padding: const EdgeInsets.all(22),
     decoration: BoxDecoration(
       gradient: const LinearGradient(
