@@ -10,6 +10,7 @@ class LoginScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
+
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
@@ -24,7 +25,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    await ref.read(authProvider.notifier).login(_email.text.trim(), _password.text);
+    await ref
+        .read(authProvider.notifier)
+        .login(_email.text.trim(), _password.text);
     if (!mounted) return;
     final state = ref.read(authProvider);
     if (state.hasValue && state.value != null) context.go('/catalogue');
@@ -47,16 +50,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   children: [
                     const Icon(Icons.local_pharmacy, size: 58),
                     const SizedBox(height: 20),
-                    Text('Welcome back', style: Theme.of(context).textTheme.headlineMedium),
+                    Text(
+                      'Welcome back',
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
                     const SizedBox(height: 8),
-                    const Text('Sign in to browse medicines and track your orders.'),
+                    const Text(
+                      'Sign in to browse medicines and track your orders.',
+                    ),
                     const SizedBox(height: 28),
                     TextFormField(
                       controller: _email,
                       keyboardType: TextInputType.emailAddress,
                       autofillHints: const [AutofillHints.email],
                       decoration: const InputDecoration(labelText: 'Email'),
-                      validator: (value) => value != null && value.contains('@') ? null : 'Enter a valid email.',
+                      validator: (value) => value != null && value.contains('@')
+                          ? null
+                          : 'Enter a valid email.',
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
@@ -64,11 +74,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       obscureText: true,
                       autofillHints: const [AutofillHints.password],
                       decoration: const InputDecoration(labelText: 'Password'),
-                      validator: (value) => (value?.length ?? 0) >= 8 ? null : 'Use at least 8 characters.',
+                      validator: (value) => (value?.length ?? 0) >= 8
+                          ? null
+                          : 'Use at least 8 characters.',
                     ),
                     if (state.hasError) ...[
                       const SizedBox(height: 14),
-                      Text('${state.error}', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                      Text(
+                        '${state.error}',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
                     ],
                     const SizedBox(height: 20),
                     FilledButton(

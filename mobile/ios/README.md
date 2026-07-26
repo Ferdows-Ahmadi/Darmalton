@@ -1,10 +1,10 @@
-# iOS platform generation and validation
+# iOS runner and validation
 
-The shared Flutter/Dart source is iOS-compatible. On macOS with Flutter 3.44.7,
-current stable Xcode, CocoaPods, and an Apple development team:
+The generated iOS runner is committed with bundle identifier
+`com.darmalton.pharmacy`. On macOS with Flutter 3.44.7, current stable Xcode,
+CocoaPods, and an Apple development team:
 
 ```bash
-flutter create --platforms=ios .
 flutter pub get
 cd ios && pod install && cd ..
 flutter test

@@ -10,6 +10,7 @@ class RegisterScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
+
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _first = TextEditingController();
@@ -35,7 +36,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       'phone': _phone.text.trim().isEmpty ? null : _phone.text.trim(),
       'password': _password.text,
     });
-    if (mounted && ref.read(authProvider).value != null) context.go('/catalogue');
+    if (mounted && ref.read(authProvider).value != null) {
+      context.go('/catalogue');
+    }
   }
 
   @override
@@ -54,20 +57,73 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: TextFormField(controller: _first, decoration: const InputDecoration(labelText: 'First name'), validator: _required)),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _first,
+                          decoration: const InputDecoration(
+                            labelText: 'First name',
+                          ),
+                          validator: _required,
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: TextFormField(controller: _last, decoration: const InputDecoration(labelText: 'Last name'), validator: _required)),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _last,
+                          decoration: const InputDecoration(
+                            labelText: 'Last name',
+                          ),
+                          validator: _required,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 14),
-                  TextFormField(controller: _email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email'), validator: (value) => value != null && value.contains('@') ? null : 'Enter a valid email.'),
+                  TextFormField(
+                    controller: _email,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(labelText: 'Email'),
+                    validator: (value) => value != null && value.contains('@')
+                        ? null
+                        : 'Enter a valid email.',
+                  ),
                   const SizedBox(height: 14),
-                  TextFormField(controller: _phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone (optional)')),
+                  TextFormField(
+                    controller: _phone,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      labelText: 'Phone (optional)',
+                    ),
+                  ),
                   const SizedBox(height: 14),
-                  TextFormField(controller: _password, obscureText: true, decoration: const InputDecoration(labelText: 'Password'), validator: (value) => (value?.length ?? 0) >= 8 ? null : 'Use at least 8 characters.'),
-                  if (state.hasError) Padding(padding: const EdgeInsets.only(top: 12), child: Text('${state.error}', style: TextStyle(color: Theme.of(context).colorScheme.error))),
+                  TextFormField(
+                    controller: _password,
+                    obscureText: true,
+                    decoration: const InputDecoration(labelText: 'Password'),
+                    validator: (value) => (value?.length ?? 0) >= 8
+                        ? null
+                        : 'Use at least 8 characters.',
+                  ),
+                  if (state.hasError)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Text(
+                        '${state.error}',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 20),
-                  SizedBox(width: double.infinity, child: FilledButton(onPressed: state.isLoading ? null : _submit, child: Text(state.isLoading ? 'Creating…' : 'Create account'))),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: state.isLoading ? null : _submit,
+                      child: Text(
+                        state.isLoading ? 'Creating…' : 'Create account',
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -77,5 +133,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  static String? _required(String? value) => value == null || value.trim().isEmpty ? 'Required.' : null;
+  static String? _required(String? value) =>
+      value == null || value.trim().isEmpty ? 'Required.' : null;
 }

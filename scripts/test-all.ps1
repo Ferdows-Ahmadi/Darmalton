@@ -59,16 +59,32 @@ try {
     $env:NEXT_DIST_DIR = $previousDistDir
 }
 
-if (Get-Command flutter -ErrorAction SilentlyContinue) {
+$flutterCandidates = @()
+if ($env:FLUTTER_ROOT) {
+    $flutterCandidates += Join-Path $env:FLUTTER_ROOT "bin\flutter.bat"
+}
+$flutterCandidates += "C:\src\flutter\bin\flutter.bat"
+$flutterCommand = Get-Command flutter -ErrorAction SilentlyContinue
+if ($flutterCommand) {
+    $flutterCandidates += $flutterCommand.Source
+}
+$flutter = $flutterCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+
+if ($flutter) {
+    $mobileApiBaseUrl = if ($env:MOBILE_API_BASE_URL) {
+        $env:MOBILE_API_BASE_URL
+    } else {
+        "http://10.0.2.2:8000/api/v1"
+    }
     Push-Location (Join-Path $repo "mobile")
     try {
-        Invoke-Checked "flutter" pub get
-        Invoke-Checked "flutter" analyze
-        Invoke-Checked "flutter" test
-        Invoke-Checked "flutter" build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
+        Invoke-Checked $flutter pub get
+        Invoke-Checked $flutter analyze
+        Invoke-Checked $flutter test
+        Invoke-Checked $flutter build apk --debug "--dart-define=API_BASE_URL=$mobileApiBaseUrl"
     } finally {
         Pop-Location
     }
 } else {
-    Write-Warning "Flutter is not installed; mobile verification was not run."
+    Write-Warning "Flutter was not found on PATH, under FLUTTER_ROOT, or at C:\src\flutter; mobile verification was not run."
 }

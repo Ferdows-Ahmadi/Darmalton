@@ -11,14 +11,15 @@
 | Python | Anaconda 3.13.9 installed at `C:\Users\AFerd\anaconda3\python.exe` |
 | Project Python | `.venv` created and used for Django/tests |
 | Node/npm | Node.js 24.18.0 and npm 11.16.0 installed |
-| Flutter/Dart | Not installed; standalone Dart installation also stalled before download |
-| Docker/Compose | Not installed |
+| Flutter/Dart | Flutter 3.44.7 stable / Dart 3.12.2 at `C:\src\flutter` |
+| Android toolchain | Android Studio JDK 21.0.10 and SDK under `%LOCALAPPDATA%\Android\Sdk` |
+| Docker/Compose | Docker 29.6.2 / Compose 5.3.1 |
+| Physical Android | Pixel 10, Android API 37, authorized through ADB |
 | WSL 2 | Not installed at audit time |
 | Virtualization | Firmware capability reported unavailable by WMI |
 
-No Xcode installation is attempted on Windows. Flutter stable 3.44.7 was
-identified from the official release metadata on 2026-07-24, but its 1.77 GB SDK
-archive and the Android toolchain were not installed on this constrained run.
+No Xcode installation is attempted on Windows. iOS compilation and signing
+remain a macOS-only validation step.
 
 ## VS Code extensions
 
@@ -37,3 +38,8 @@ invoke them with:
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\<script-name>.ps1
 ```
+
+The verified device path uses `adb reverse tcp:8000 tcp:8000` and a debug APK
+built with `API_BASE_URL=http://127.0.0.1:8000/api/v1`. Wi-Fi testing uses the
+active non-VPN private address and the Private-profile `Darmalton Django 8000`
+firewall rule.

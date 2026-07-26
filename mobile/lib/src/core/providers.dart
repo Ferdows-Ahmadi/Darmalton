@@ -5,7 +5,9 @@ import 'models.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
 
-final authProvider = AsyncNotifierProvider<AuthController, User?>(AuthController.new);
+final authProvider = AsyncNotifierProvider<AuthController, User?>(
+  AuthController.new,
+);
 
 class AuthController extends AsyncNotifier<User?> {
   ApiClient get _api => ref.read(apiClientProvider);
@@ -35,7 +37,10 @@ class AuthController extends AsyncNotifier<User?> {
   Future<void> register(Map<String, dynamic> data) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      final response = await _api.post<Map<String, dynamic>>('/auth/register/', data: data);
+      final response = await _api.post<Map<String, dynamic>>(
+        '/auth/register/',
+        data: data,
+      );
       await _api.saveTokens(response.data!);
       return User.fromJson(response.data!['user'] as Map<String, dynamic>);
     });
@@ -54,40 +59,53 @@ class CatalogueQuery {
 
   @override
   bool operator ==(Object other) =>
-      other is CatalogueQuery && other.search == search && other.category == category;
+      other is CatalogueQuery &&
+      other.search == search &&
+      other.category == category;
 
   @override
   int get hashCode => Object.hash(search, category);
 }
 
 final categoriesProvider = FutureProvider<List<Category>>((ref) async {
-  final response = await ref.read(apiClientProvider).get<List<dynamic>>('/categories/');
+  final response = await ref
+      .read(apiClientProvider)
+      .get<List<dynamic>>('/categories/');
   return response.data!
       .map((item) => Category.fromJson(item as Map<String, dynamic>))
       .toList();
 });
 
-final medicinesProvider =
-    FutureProvider.family<List<Medicine>, CatalogueQuery>((ref, query) async {
-  final response = await ref.read(apiClientProvider).get<Map<String, dynamic>>(
-    '/medicines/',
-    query: {
-      if (query.search.isNotEmpty) 'search': query.search,
-      if (query.category.isNotEmpty) 'category': query.category,
-    },
-  );
-  return (response.data!['results'] as List<dynamic>)
-      .map((item) => Medicine.fromJson(item as Map<String, dynamic>))
-      .toList();
-});
+final medicinesProvider = FutureProvider.family<List<Medicine>, CatalogueQuery>(
+  (ref, query) async {
+    final response = await ref
+        .read(apiClientProvider)
+        .get<Map<String, dynamic>>(
+          '/medicines/',
+          query: {
+            if (query.search.isNotEmpty) 'search': query.search,
+            if (query.category.isNotEmpty) 'category': query.category,
+          },
+        );
+    return (response.data!['results'] as List<dynamic>)
+        .map((item) => Medicine.fromJson(item as Map<String, dynamic>))
+        .toList();
+  },
+);
 
-final medicineProvider = FutureProvider.family<Medicine, String>((ref, id) async {
-  final response =
-      await ref.read(apiClientProvider).get<Map<String, dynamic>>('/medicines/$id/');
+final medicineProvider = FutureProvider.family<Medicine, String>((
+  ref,
+  id,
+) async {
+  final response = await ref
+      .read(apiClientProvider)
+      .get<Map<String, dynamic>>('/medicines/$id/');
   return Medicine.fromJson(response.data!);
 });
 
-final cartProvider = AsyncNotifierProvider<CartController, Cart>(CartController.new);
+final cartProvider = AsyncNotifierProvider<CartController, Cart>(
+  CartController.new,
+);
 
 class CartController extends AsyncNotifier<Cart> {
   ApiClient get _api => ref.read(apiClientProvider);
@@ -103,11 +121,14 @@ class CartController extends AsyncNotifier<Cart> {
   Future<void> refresh() async => state = await AsyncValue.guard(_load);
 
   Future<void> add(String medicineId) async {
-    await _api.post('/cart/items/', data: {'medicine_id': medicineId, 'quantity': 1});
+    await _api.post(
+      '/cart/items/',
+      data: {'medicine_id': medicineId, 'quantity': 1},
+    );
     await refresh();
   }
 
-  Future<void> update(CartItem item, int quantity) async {
+  Future<void> updateQuantity(CartItem item, int quantity) async {
     await _api.patch('/cart/items/${item.id}/', data: {'quantity': quantity});
     await refresh();
   }
@@ -119,20 +140,26 @@ class CartController extends AsyncNotifier<Cart> {
 }
 
 final addressesProvider = FutureProvider<List<Address>>((ref) async {
-  final response = await ref.read(apiClientProvider).get<List<dynamic>>('/addresses/');
+  final response = await ref
+      .read(apiClientProvider)
+      .get<List<dynamic>>('/addresses/');
   return response.data!
       .map((item) => Address.fromJson(item as Map<String, dynamic>))
       .toList();
 });
 
 final ordersProvider = FutureProvider<List<Order>>((ref) async {
-  final response = await ref.read(apiClientProvider).get<Map<String, dynamic>>('/orders/');
+  final response = await ref
+      .read(apiClientProvider)
+      .get<Map<String, dynamic>>('/orders/');
   return (response.data!['results'] as List<dynamic>)
       .map((item) => Order.fromJson(item as Map<String, dynamic>))
       .toList();
 });
 
 final orderProvider = FutureProvider.family<Order, String>((ref, id) async {
-  final response = await ref.read(apiClientProvider).get<Map<String, dynamic>>('/orders/$id/');
+  final response = await ref
+      .read(apiClientProvider)
+      .get<Map<String, dynamic>>('/orders/$id/');
   return Order.fromJson(response.data!);
 });

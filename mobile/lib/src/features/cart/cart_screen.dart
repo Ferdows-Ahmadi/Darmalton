@@ -17,16 +17,22 @@ class CartScreen extends ConsumerWidget {
         appBar: AppBar(title: const Text('Your cart')),
         body: cart.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => AsyncMessage(message: '$error', onRetry: ref.read(cartProvider.notifier).refresh),
+          error: (error, _) => AsyncMessage(
+            message: '$error',
+            onRetry: ref.read(cartProvider.notifier).refresh,
+          ),
           data: (value) => value.items.isEmpty
-              ? const EmptyMessage('Your cart is empty', 'Add an available medicine to continue.')
+              ? const EmptyMessage(
+                  'Your cart is empty',
+                  'Add an available medicine to continue.',
+                )
               : Column(
                   children: [
                     Expanded(
                       child: ListView.separated(
                         padding: const EdgeInsets.all(16),
                         itemCount: value.items.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
+                        separatorBuilder: (_, _) => const SizedBox(height: 10),
                         itemBuilder: (_, index) {
                           final item = value.items[index];
                           return Card(
@@ -34,13 +40,58 @@ class CartScreen extends ConsumerWidget {
                               padding: const EdgeInsets.all(14),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.medication_outlined, size: 36),
+                                  const Icon(
+                                    Icons.medication_outlined,
+                                    size: 36,
+                                  ),
                                   const SizedBox(width: 12),
-                                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(item.medicine.brandName, style: const TextStyle(fontWeight: FontWeight.bold)), Text('${item.medicine.strength} · ${item.lineTotal ?? 'Unavailable'} AFN')])),
-                                  IconButton(onPressed: item.quantity <= 1 ? null : () => ref.read(cartProvider.notifier).update(item, item.quantity - 1), icon: const Icon(Icons.remove)),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.medicine.brandName,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          '${item.medicine.strength} · ${item.lineTotal ?? 'Unavailable'} AFN',
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: item.quantity <= 1
+                                        ? null
+                                        : () => ref
+                                              .read(cartProvider.notifier)
+                                              .updateQuantity(
+                                                item,
+                                                item.quantity - 1,
+                                              ),
+                                    icon: const Icon(Icons.remove),
+                                  ),
                                   Text('${item.quantity}'),
-                                  IconButton(onPressed: item.quantity >= item.availableQuantity ? null : () => ref.read(cartProvider.notifier).update(item, item.quantity + 1), icon: const Icon(Icons.add)),
-                                  IconButton(onPressed: () => ref.read(cartProvider.notifier).remove(item.id), icon: const Icon(Icons.delete_outline)),
+                                  IconButton(
+                                    onPressed:
+                                        item.quantity >= item.availableQuantity
+                                        ? null
+                                        : () => ref
+                                              .read(cartProvider.notifier)
+                                              .updateQuantity(
+                                                item,
+                                                item.quantity + 1,
+                                              ),
+                                    icon: const Icon(Icons.add),
+                                  ),
+                                  IconButton(
+                                    onPressed: () => ref
+                                        .read(cartProvider.notifier)
+                                        .remove(item.id),
+                                    icon: const Icon(Icons.delete_outline),
+                                  ),
                                 ],
                               ),
                             ),
@@ -55,10 +106,18 @@ class CartScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text('Subtotal: ${value.subtotal} AFN', style: Theme.of(context).textTheme.titleLarge),
-                            const Text('Final prices and stock are verified at checkout.'),
+                            Text(
+                              'Subtotal: ${value.subtotal} AFN',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const Text(
+                              'Final prices and stock are verified at checkout.',
+                            ),
                             const SizedBox(height: 12),
-                            FilledButton(onPressed: () => context.push('/checkout'), child: const Text('Continue to checkout')),
+                            FilledButton(
+                              onPressed: () => context.push('/checkout'),
+                              child: const Text('Continue to checkout'),
+                            ),
                           ],
                         ),
                       ),

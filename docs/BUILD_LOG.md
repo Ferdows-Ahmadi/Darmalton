@@ -46,6 +46,39 @@
 - Integrated live smoke passed registration, catalogue, cart, address, checkout,
   admin transition, and customer refresh; verified order
   `OP-20260724-DA14CFC3`.
-- Flutter/Android and live Docker/PostgreSQL verification are honestly blocked by
-  the unavailable SDK/toolchain and firmware virtualization state; see
-  `docs/KNOWN_ISSUES.md`.
+- Generated and reviewed complete Android/iOS Flutter runners with package/bundle
+  identifier `com.darmalton.pharmacy`. Flutter 3.44.7 analysis is clean and all
+  four Flutter tests pass.
+- Fixed the Riverpod `Notifier.update` override collision by renaming the cart
+  operation to `updateQuantity`, and updated all callers.
+- Narrowed Docker build contexts from the monorepo to each service. A cached
+  website rebuild transferred 4.45 kB instead of hundreds of megabytes; npm uses
+  a BuildKit cache plus bounded retry/timeouts.
+- Built and ran the complete Docker Compose stack against PostgreSQL 17.6.
+  Django checks/migrations passed, all 10 tests passed against PostgreSQL, and
+  medicine data survived a database-container restart.
+- Re-ran the integrated PostgreSQL smoke flow successfully through authentication,
+  catalogue, cart, checkout, admin transition, and customer refresh; verified
+  order `OP-20260724-698805E1`.
+- Completed browser QA at 1280 px desktop and a live 328 px mobile viewport.
+  Verified combined search/category filtering, cart quantity, address creation,
+  checkout, order history, logout, and scroll reset to `0` on both viewports.
+- Fixed three integration defects found by visual smoke: category slug filtering
+  caused a PostgreSQL UUID cast error, checkout treated paginated addresses as an
+  array, and the public header retained the authenticated sign-out affordance.
+- Corrected the stale local `DJANGO_ALLOWED_HOSTS` entry from
+  `192.168.0.202` to the active private Wi-Fi address `192.168.0.102`.
+  Both localhost and LAN schema requests return HTTP 200.
+- Added a repeatable Android helper supporting stable USB/`adb reverse` and
+  dynamic private-LAN builds without embedding a developer IP in source.
+- Re-ran the full verification suite on 2026-07-26: 10 backend tests passed,
+  website typecheck/lint/13-route production build passed, Flutter analysis was
+  clean, all 5 Flutter tests passed, and the cached debug APK built in 112.5s.
+- Installed the USB-configured APK on the authorized Pixel 10. Verified seeded
+  customer login, authenticated catalogue loading, product detail, add to cart,
+  and server subtotal rendering with no app crash or cleartext/network error.
+- Re-ran the PostgreSQL integrated smoke successfully through checkout and
+  status transition; verified order `OP-20260726-E790928F`.
+- A clean Docker recreate showed no recurring Gunicorn SIGKILL/OOM condition.
+  Two workers used about 131 MiB total at idle; the earlier termination was
+  consistent with container recreation rather than a reproducible memory leak.

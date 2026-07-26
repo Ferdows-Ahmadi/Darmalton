@@ -9,56 +9,77 @@ class ApiException implements Exception {
   @override
   String toString() => message;
 }
+
 class ApiClient {
-  ApiClient({
-    Dio? dio,
-    FlutterSecureStorage? storage,
-    String? baseUrl,
-  })  : _storage = storage ?? const FlutterSecureStorage(),
-        _dio = dio ??
-            Dio(BaseOptions(
-              baseUrl: baseUrl ??
-                  const String.fromEnvironment(
-                    'API_BASE_URL',
-                    defaultValue: 'http://10.0.2.2:8000/api/v1',
-                  ),
+  ApiClient({Dio? dio, FlutterSecureStorage? storage, String? baseUrl})
+    : _storage = storage ?? const FlutterSecureStorage(),
+      _dio =
+          dio ??
+          Dio(
+            BaseOptions(
+              baseUrl: normalizeApiBaseUrl(
+                baseUrl ??
+                    const String.fromEnvironment(
+                      'API_BASE_URL',
+                      defaultValue: 'http://10.0.2.2:8000/api/v1',
+                    ),
+              ),
               connectTimeout: const Duration(seconds: 12),
               receiveTimeout: const Duration(seconds: 20),
               headers: {'Accept': 'application/json'},
-            )) {
-    _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        final token = await _storage.read(key: 'access_token');
-        if (token != null) options.headers['Authorization'] = 'Bearer $token';
-        handler.next(options);
-      },
-      onError: (error, handler) async {
-        if (error.response?.statusCode == 401 && !error.requestOptions.extra.containsKey('retried')) {
-          final refresh = await _storage.read(key: 'refresh_token');
-          if (refresh != null) {
-            try {
-              final response = await _dio.post<Map<String, dynamic>>(
-                '/auth/refresh/',
-                data: {'refresh': refresh},
-                options: Options(extra: {'retried': true}),
-              );
-              await saveTokens(response.data!);
-              final request = error.requestOptions;
-              request.extra['retried'] = true;
-              request.headers['Authorization'] = 'Bearer ${response.data!['access']}';
-              return handler.resolve(await _dio.fetch(request));
-            } on DioException {
-              await clearTokens();
+            ),
+          ) {
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final token = await _storage.read(key: 'access_token');
+          if (token != null) options.headers['Authorization'] = 'Bearer $token';
+          handler.next(options);
+        },
+        onError: (error, handler) async {
+          if (error.response?.statusCode == 401 &&
+              !error.requestOptions.extra.containsKey('retried')) {
+            final refresh = await _storage.read(key: 'refresh_token');
+            if (refresh != null) {
+              try {
+                final response = await _dio.post<Map<String, dynamic>>(
+                  '/auth/refresh/',
+                  data: {'refresh': refresh},
+                  options: Options(extra: {'retried': true}),
+                );
+                await saveTokens(response.data!);
+                final request = error.requestOptions;
+                request.extra['retried'] = true;
+                request.headers['Authorization'] =
+                    'Bearer ${response.data!['access']}';
+                return handler.resolve(await _dio.fetch(request));
+              } on DioException {
+                await clearTokens();
+              }
             }
           }
-        }
-        handler.next(error);
-      },
-    ));
+          handler.next(error);
+        },
+      ),
+    );
   }
 
   final Dio _dio;
   final FlutterSecureStorage _storage;
+
+  static String normalizeApiBaseUrl(String value) {
+    final trimmed = value.trim().replaceAll(RegExp(r'/+$'), '');
+    if (trimmed.isEmpty) {
+      throw ArgumentError.value(value, 'baseUrl', 'must not be empty');
+    }
+    final uri = Uri.tryParse(trimmed);
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      throw ArgumentError.value(value, 'baseUrl', 'must be an absolute URL');
+    }
+    if (trimmed.endsWith('/api/v1')) return trimmed;
+    if (trimmed.endsWith('/api')) return '$trimmed/v1';
+    return '$trimmed/api/v1';
+  }
 
   Future<Response<T>> get<T>(String path, {Map<String, dynamic>? query}) async {
     try {
@@ -93,9 +114,14 @@ class ApiClient {
   }
 
   Future<void> saveTokens(Map<String, dynamic> payload) async {
-    await _storage.write(key: 'access_token', value: payload['access'] as String);
+    await _storage.write(
+      key: 'access_token',
+      value: payload['access'] as String,
+    );
     final refresh = payload['refresh'] as String?;
-    if (refresh != null) await _storage.write(key: 'refresh_token', value: refresh);
+    if (refresh != null) {
+      await _storage.write(key: 'refresh_token', value: refresh);
+    }
   }
 
   Future<void> clearTokens() => _storage.deleteAll();
@@ -111,7 +137,9 @@ class ApiClient {
     }
     if (error.type == DioExceptionType.connectionError ||
         error.type == DioExceptionType.connectionTimeout) {
-      return const ApiException('Cannot reach the pharmacy. Check your connection and retry.');
+      return const ApiException(
+        'Cannot reach the pharmacy. Check your connection and retry.',
+      );
     }
     return const ApiException('Something went wrong. Please retry.');
   }
