@@ -6,7 +6,11 @@ import { money } from "@/lib/api";
 import { publicApi } from "@/lib/server-api";
 import type { Medicine } from "@/lib/types";
 
-export default async function MedicinePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function MedicinePage({
+  params
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   let medicine: Medicine;
   try {
@@ -15,25 +19,82 @@ export default async function MedicinePage({ params }: { params: Promise<{ id: s
     notFound();
   }
 
+  const name = medicine.brand_name_dari || medicine.brand_name;
   return (
     <section className="page-section detail-layout">
-      <div className="detail-image">
-        <Image src={medicine.image_url} alt="" width={640} height={480} unoptimized priority />
+      <div>
+        <div className="detail-image">
+          <Image
+            src={medicine.image_url}
+            alt={name}
+            width={640}
+            height={480}
+            unoptimized
+            priority
+          />
+        </div>
+        <div className="pharmacist-note">
+          <span aria-hidden="true">⚕</span>
+          <p>
+            <strong>یادداشت فارمسست</strong>
+            دوا را مطابق روش توصیه‌شده مصرف کنید. در صورت ادامه علایم، با داکتر
+            مشورت کنید.
+          </p>
+        </div>
       </div>
       <div className="detail-copy">
-        <p className="eyebrow">{medicine.category?.name || "Medicine"} · {medicine.sku}</p>
-        <h1>{medicine.brand_name}</h1>
-        <p className="generic">{medicine.generic_name} · {medicine.strength}</p>
-        <p>{medicine.description}</p>
+        <p className="eyebrow">
+          {medicine.category?.name_dari ||
+            medicine.category?.name ||
+            "دوا"}{" "}
+          · <bdi dir="ltr">{medicine.sku}</bdi>
+        </p>
+        <h1>{name}</h1>
+        <p className="generic" dir="ltr">
+          {medicine.brand_name} · {medicine.generic_name} ·{" "}
+          {medicine.strength}
+        </p>
+        <span className={medicine.in_stock ? "availability good" : "availability"}>
+          {medicine.in_stock ? "✓ موجود در انبار" : "ناموجود"}
+        </span>
+        <p className="description">
+          {medicine.description_dari ||
+            medicine.description ||
+            "توضیحات این محصول هنوز ثبت نشده است."}
+        </p>
         <dl className="facts">
-          <div><dt>Manufacturer</dt><dd>{medicine.manufacturer?.name || "Not listed"}</dd></div>
-          <div><dt>Dosage form</dt><dd>{medicine.dosage_form.name}</dd></div>
-          <div><dt>Pack size</dt><dd>{medicine.pack_size || "Not listed"}</dd></div>
-          <div><dt>Prescription</dt><dd>{medicine.prescription_required ? "Required" : "Not required"}</dd></div>
+          <div>
+            <dt>تولیدکننده</dt>
+            <dd>{medicine.manufacturer?.name || "ثبت نشده"}</dd>
+          </div>
+          <div>
+            <dt>نوع محصول</dt>
+            <dd>
+              {medicine.dosage_form.name_dari || medicine.dosage_form.name}
+            </dd>
+          </div>
+          <div>
+            <dt>اندازه بسته</dt>
+            <dd>{medicine.pack_size || "ثبت نشده"}</dd>
+          </div>
+          <div>
+            <dt>نسخه داکتر</dt>
+            <dd>{medicine.prescription_required ? "الزامی است" : "لازم نیست"}</dd>
+          </div>
         </dl>
         <div className="purchase-panel">
-          <div><span>Current price</span><strong>{money(medicine.price)}</strong><small>{medicine.available_quantity} units available</small></div>
-          <AddToCart medicineId={medicine.id} disabled={!medicine.in_stock} />
+          <div>
+            <span>قیمت فعلی</span>
+            <strong>{money(medicine.price)}</strong>
+            <small>
+              {medicine.available_quantity.toLocaleString("fa-AF")} عدد موجود
+            </small>
+          </div>
+          <AddToCart
+            medicineId={medicine.id}
+            disabled={!medicine.in_stock}
+            prescriptionRequired={medicine.prescription_required}
+          />
         </div>
       </div>
     </section>

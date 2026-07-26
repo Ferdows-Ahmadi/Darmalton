@@ -8,16 +8,22 @@ import type { CartItem } from "@/lib/types";
 
 export function AddToCart({
   medicineId,
-  disabled
+  disabled,
+  prescriptionRequired = false
 }: {
   medicineId: string;
   disabled: boolean;
+  prescriptionRequired?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const router = useRouter();
 
   async function add() {
+    if (prescriptionRequired) {
+      setMessage("خرید این دوا پس از بررسی نسخه توسط فارمسست فعال می‌شود.");
+      return;
+    }
     setBusy(true);
     setMessage("");
     try {
@@ -27,8 +33,15 @@ export function AddToCart({
       });
       router.push("/cart");
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) router.push("/login");
-      else setMessage(error instanceof Error ? error.message : "Could not add this medicine.");
+      if (error instanceof ApiError && error.status === 401) {
+        router.push("/login");
+      } else {
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : "این محصول به سبد افزوده نشد."
+        );
+      }
     } finally {
       setBusy(false);
     }
@@ -36,10 +49,24 @@ export function AddToCart({
 
   return (
     <div>
-      <button className="primary wide" onClick={add} disabled={disabled || busy}>
-        {busy ? "Adding…" : disabled ? "Out of stock" : "Add to cart"}
+      <button
+        className="primary wide"
+        onClick={add}
+        disabled={disabled || busy}
+      >
+        {busy
+          ? "در حال افزودن..."
+          : disabled
+            ? "ناموجود"
+            : prescriptionRequired
+              ? "ارسال نسخه برای بررسی"
+              : "افزودن به سبد"}
       </button>
-      {message && <p className="form-error" role="alert">{message}</p>}
+      {message && (
+        <p className="form-error" role="alert">
+          {message}
+        </p>
+      )}
     </div>
   );
 }

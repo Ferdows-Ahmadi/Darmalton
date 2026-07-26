@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { normalizeBackendPayload } from "@/lib/normalize-backend-payload";
 
 const apiBase = process.env.API_INTERNAL_URL || "http://localhost:8000/api/v1";
 
@@ -35,11 +36,16 @@ async function forward(request: NextRequest, context: RouteContext) {
     }
   }
 
-  const payload = await backend.text();
+  const contentType = backend.headers.get("content-type") || "application/json";
+  let payload = await backend.text();
+  if (payload && contentType.includes("application/json")) {
+    const parsed = JSON.parse(payload);
+    payload = JSON.stringify(normalizeBackendPayload(parsed));
+  }
   const response = new NextResponse(payload || null, {
     status: backend.status,
     headers: {
-      "Content-Type": backend.headers.get("content-type") || "application/json"
+      "Content-Type": contentType
     }
   });
   if (access && access !== request.cookies.get("pharmacy_access")?.value) {

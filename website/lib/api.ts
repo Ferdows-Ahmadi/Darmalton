@@ -11,7 +11,7 @@ export class ApiError extends Error {
   fields: Record<string, string[] | string>;
 
   constructor(status: number, body: ApiErrorBody) {
-    super(body.error?.message || "The request could not be completed.");
+    super(body.error?.message || "درخواست انجام نشد. دوباره کوشش کنید.");
     this.status = status;
     this.fields = body.error?.fields || {};
   }
@@ -39,10 +39,20 @@ export async function apiFetch<T>(
 }
 
 export function money(value: string | null, currency = "AFN") {
-  if (value === null) return "Unavailable";
-  return `${Number(value).toLocaleString()} ${currency}`;
+  if (value === null) return "ناموجود";
+  const label = currency === "AFN" ? "افغانی" : currency;
+  return `${Number(value).toLocaleString("fa-AF")} ${label}`;
 }
 
 export function readableStatus(status: string) {
-  return status.replaceAll("_", " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+  const labels: Record<string, string> = {
+    PENDING: "در انتظار بررسی",
+    CONFIRMED: "تأیید شده",
+    PREPARING: "در حال آماده‌سازی",
+    READY: "آماده تحویل",
+    OUT_FOR_DELIVERY: "در حال ارسال",
+    DELIVERED: "تحویل شده",
+    CANCELLED: "لغو شده"
+  };
+  return labels[status] || status.replaceAll("_", " ");
 }

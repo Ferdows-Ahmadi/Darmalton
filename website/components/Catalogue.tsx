@@ -43,25 +43,32 @@ export function Catalogue({
     <>
       <form className="catalogue-tools" onSubmit={apply} role="search">
         <label>
-          <span>Search medicines</span>
+          <span>جستجوی دوا و محصول</span>
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Brand, generic name, or SKU"
+            placeholder="نام دوا، نام علمی یا کُد محصول..."
           />
         </label>
         <label>
-          <span>Category</span>
-          <select value={category} onChange={(event) => categoryChanged(event.target.value)}>
-            <option value="">All categories</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.slug}>{category.name}</option>
+          <span>دسته‌بندی</span>
+          <select
+            value={category}
+            onChange={(event) => categoryChanged(event.target.value)}
+          >
+            <option value="">همه دسته‌ها</option>
+            {categories.map((item) => (
+              <option key={item.id} value={item.slug}>
+                {item.name_dari || item.name}
+              </option>
             ))}
           </select>
         </label>
-        <button type="submit">Search</button>
+        <button type="submit">جستجو</button>
       </form>
-      <p className="results-count">{medicines.count} medicine{medicines.count === 1 ? "" : "s"}</p>
+      <p className="results-count">
+        <strong>{medicines.count.toLocaleString("fa-AF")}</strong> محصول پیدا شد
+      </p>
       {medicines.results.length ? (
         <div className="medicine-grid">
           {medicines.results.map((medicine) => (
@@ -70,8 +77,8 @@ export function Catalogue({
         </div>
       ) : (
         <div className="empty-state">
-          <h2>No medicines found</h2>
-          <p>Try a broader search or choose another category.</p>
+          <h2>محصولی پیدا نشد</h2>
+          <p>عبارت کوتاه‌تری بنویسید یا دسته دیگری را انتخاب کنید.</p>
         </div>
       )}
     </>

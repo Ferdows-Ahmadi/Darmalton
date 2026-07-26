@@ -1,3 +1,5 @@
+import { normalizeBackendPayload } from "./normalize-backend-payload";
+
 const apiBase = process.env.API_INTERNAL_URL || "http://localhost:8000/api/v1";
 
 export async function publicApi<T>(path: string): Promise<T> {
@@ -7,5 +9,5 @@ export async function publicApi<T>(path: string): Promise<T> {
   if (!response.ok) {
     throw new Error(`Backend returned ${response.status}`);
   }
-  return response.json() as Promise<T>;
+  return normalizeBackendPayload((await response.json()) as T);
 }

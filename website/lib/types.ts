@@ -10,6 +10,7 @@ export type User = {
 export type Category = {
   id: string;
   name: string;
+  name_dari: string;
   slug: string;
 };
 
@@ -17,13 +18,15 @@ export type Medicine = {
   id: string;
   sku: string;
   brand_name: string;
+  brand_name_dari: string;
   generic_name: string;
   manufacturer: { id: string; name: string } | null;
   category: Category | null;
-  dosage_form: { id: string; code: string; name: string };
+  dosage_form: { id: string; code: string; name: string; name_dari: string };
   strength: string;
   pack_size: string;
   description: string;
+  description_dari: string;
   prescription_required: boolean;
   image_url: string;
   price: string | null;
