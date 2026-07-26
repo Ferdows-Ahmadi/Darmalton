@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design_system.dart';
 import '../../core/providers.dart';
+import '../../core/widgets.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -18,6 +20,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _email = TextEditingController();
   final _phone = TextEditingController();
   final _password = TextEditingController();
+  bool _obscure = true;
 
   @override
   void dispose() {
@@ -45,7 +48,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(authProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
+      appBar: AppBar(title: const Text('ایجاد حساب')),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -54,14 +57,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             child: Form(
               key: _formKey,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const Center(child: DarmaltonWordmark(height: 52)),
+                  const SizedBox(height: 18),
+                  Text(
+                    'حساب کاربری خود را بسازید',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'برای ثبت سفارش، آدرس و شماره تماس معتبر وارد کنید.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: DarmaltonColors.muted),
+                  ),
+                  const SizedBox(height: 22),
                   Row(
                     children: [
                       Expanded(
                         child: TextFormField(
                           controller: _first,
                           decoration: const InputDecoration(
-                            labelText: 'First name',
+                            labelText: 'نام',
+                            prefixIcon: Icon(Icons.person_outline_rounded),
                           ),
                           validator: _required,
                         ),
@@ -71,7 +90,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         child: TextFormField(
                           controller: _last,
                           decoration: const InputDecoration(
-                            labelText: 'Last name',
+                            labelText: 'نام خانوادگی',
                           ),
                           validator: _required,
                         ),
@@ -81,48 +100,65 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 14),
                   TextFormField(
                     controller: _email,
+                    textDirection: TextDirection.ltr,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(labelText: 'Email'),
+                    decoration: const InputDecoration(
+                      labelText: 'ایمیل',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
                     validator: (value) => value != null && value.contains('@')
                         ? null
-                        : 'Enter a valid email.',
+                        : 'یک ایمیل معتبر وارد کنید.',
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
                     controller: _phone,
+                    textDirection: TextDirection.ltr,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(
-                      labelText: 'Phone (optional)',
+                      labelText: 'شماره تماس (اختیاری)',
+                      prefixIcon: Icon(Icons.phone_outlined),
                     ),
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
                     controller: _password,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Password'),
+                    textDirection: TextDirection.ltr,
+                    obscureText: _obscure,
+                    decoration: InputDecoration(
+                      labelText: 'رمز عبور',
+                      prefixIcon: const Icon(Icons.lock_outline_rounded),
+                      suffixIcon: IconButton(
+                        tooltip: _obscure ? 'نمایش رمز' : 'پنهان کردن رمز',
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                        icon: Icon(
+                          _obscure
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                        ),
+                      ),
+                    ),
                     validator: (value) => (value?.length ?? 0) >= 8
                         ? null
-                        : 'Use at least 8 characters.',
+                        : 'رمز عبور حداقل ۸ نویسه باشد.',
                   ),
                   if (state.hasError)
                     Padding(
                       padding: const EdgeInsets.only(top: 12),
                       child: Text(
                         '${state.error}',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: DarmaltonColors.danger),
                       ),
                     ),
                   const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: state.isLoading ? null : _submit,
-                      child: Text(
-                        state.isLoading ? 'Creating…' : 'Create account',
-                      ),
-                    ),
+                  GradientButton(
+                    label: state.isLoading
+                        ? 'در حال ایجاد حساب...'
+                        : 'ایجاد حساب',
+                    icon: Icons.person_add_alt_1_rounded,
+                    onPressed: state.isLoading ? null : _submit,
+                    loading: state.isLoading,
                   ),
                 ],
               ),
@@ -134,5 +170,5 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   static String? _required(String? value) =>
-      value == null || value.trim().isEmpty ? 'Required.' : null;
+      value == null || value.trim().isEmpty ? 'این بخش الزامی است.' : null;
 }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design_system.dart';
 import '../../core/providers.dart';
+import '../../core/widgets.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +17,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  bool _obscure = true;
 
   @override
   void dispose() {
@@ -42,59 +45,133 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
+              constraints: const BoxConstraints(maxWidth: 460),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(Icons.local_pharmacy, size: 58),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Welcome back',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Sign in to browse medicines and track your orders.',
-                    ),
+                    const Center(child: DarmaltonWordmark(height: 58)),
                     const SizedBox(height: 28),
-                    TextFormField(
-                      controller: _email,
-                      keyboardType: TextInputType.emailAddress,
-                      autofillHints: const [AutofillHints.email],
-                      decoration: const InputDecoration(labelText: 'Email'),
-                      validator: (value) => value != null && value.contains('@')
-                          ? null
-                          : 'Enter a valid email.',
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: _password,
-                      obscureText: true,
-                      autofillHints: const [AutofillHints.password],
-                      decoration: const InputDecoration(labelText: 'Password'),
-                      validator: (value) => (value?.length ?? 0) >= 8
-                          ? null
-                          : 'Use at least 8 characters.',
-                    ),
-                    if (state.hasError) ...[
-                      const SizedBox(height: 14),
-                      Text(
-                        '${state.error}',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
+                    Container(
+                      padding: const EdgeInsets.all(22),
+                      decoration: BoxDecoration(
+                        color: DarmaltonColors.mint,
+                        borderRadius: BorderRadius.circular(
+                          DarmaltonRadius.large,
                         ),
                       ),
-                    ],
-                    const SizedBox(height: 20),
-                    FilledButton(
-                      onPressed: state.isLoading ? null : _submit,
-                      child: Text(state.isLoading ? 'Signing in…' : 'Sign in'),
+                      child: Column(
+                        children: [
+                          const CircleAvatar(
+                            radius: 34,
+                            backgroundColor: Colors.white,
+                            foregroundColor: DarmaltonColors.teal,
+                            child: Icon(Icons.lock_open_rounded, size: 34),
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            'خوش آمدید',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'برای خرید دوا و پیگیری سفارش‌های خود وارد شوید.',
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
-                    TextButton(
-                      onPressed: () => context.push('/register'),
-                      child: const Text('Create a customer account'),
+                    const SizedBox(height: 22),
+                    TextFormField(
+                      controller: _email,
+                      textDirection: TextDirection.ltr,
+                      keyboardType: TextInputType.emailAddress,
+                      autofillHints: const [AutofillHints.email],
+                      decoration: const InputDecoration(
+                        labelText: 'ایمیل',
+                        prefixIcon: Icon(Icons.email_outlined),
+                      ),
+                      validator: (value) => value != null && value.contains('@')
+                          ? null
+                          : 'یک ایمیل معتبر وارد کنید.',
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _password,
+                      textDirection: TextDirection.ltr,
+                      obscureText: _obscure,
+                      autofillHints: const [AutofillHints.password],
+                      onFieldSubmitted: (_) => _submit(),
+                      decoration: InputDecoration(
+                        labelText: 'رمز عبور',
+                        prefixIcon: const Icon(Icons.lock_outline_rounded),
+                        suffixIcon: IconButton(
+                          tooltip: _obscure ? 'نمایش رمز' : 'پنهان کردن رمز',
+                          onPressed: () => setState(() => _obscure = !_obscure),
+                          icon: Icon(
+                            _obscure
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                        ),
+                      ),
+                      validator: (value) => (value?.length ?? 0) >= 8
+                          ? null
+                          : 'رمز عبور حداقل ۸ نویسه باشد.',
+                    ),
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton(
+                        onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'بازیابی رمز پس از افزوده‌شدن پشتیبانی سرور فعال می‌شود.',
+                            ),
+                          ),
+                        ),
+                        child: const Text('رمز عبور را فراموش کرده‌اید؟'),
+                      ),
+                    ),
+                    if (state.hasError) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: DarmaltonColors.danger.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(
+                            DarmaltonRadius.small,
+                          ),
+                        ),
+                        child: Text(
+                          '${state.error}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: DarmaltonColors.danger),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    GradientButton(
+                      label: state.isLoading ? 'در حال ورود...' : 'ورود',
+                      icon: Icons.login_rounded,
+                      onPressed: state.isLoading ? null : _submit,
+                      loading: state.isLoading,
+                    ),
+                    const SizedBox(height: 10),
+                    OutlinedButton(
+                      onPressed: state.isLoading
+                          ? null
+                          : () => context.push('/register'),
+                      child: const Text('ایجاد حساب کاربری'),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'با ورود، استفاده از معلومات شخصی صرفاً برای انجام سفارش پذیرفته می‌شود.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: DarmaltonColors.muted,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),

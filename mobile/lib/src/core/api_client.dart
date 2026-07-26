@@ -131,16 +131,16 @@ class ApiClient {
     if (data is Map<String, dynamic> && data['error'] is Map<String, dynamic>) {
       final details = data['error'] as Map<String, dynamic>;
       return ApiException(
-        details['message'] as String? ?? 'The request could not be completed.',
+        details['message'] as String? ?? 'درخواست انجام نشد. دوباره کوشش کنید.',
         fields: details['fields'] as Map<String, dynamic>? ?? const {},
       );
     }
     if (error.type == DioExceptionType.connectionError ||
         error.type == DioExceptionType.connectionTimeout) {
       return const ApiException(
-        'Cannot reach the pharmacy. Check your connection and retry.',
+        'ارتباط با داروخانه برقرار نشد. اینترنت خود را بررسی و دوباره کوشش کنید.',
       );
     }
-    return const ApiException('Something went wrong. Please retry.');
+    return const ApiException('مشکلی رخ داد. دوباره کوشش کنید.');
   }
 }
