@@ -8,3 +8,4 @@ psycopg[binary]==3.2.13
 Pillow==11.3.0
 gunicorn==23.0.0
 whitenoise==6.9.0
+google-auth[requests]==2.56.0

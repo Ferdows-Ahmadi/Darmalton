@@ -58,3 +58,32 @@ class CustomerProfile(models.Model):
 
     def __str__(self):
         return self.user.email
+
+
+class SocialIdentity(models.Model):
+    class Provider(models.TextChoices):
+        GOOGLE = "GOOGLE", "Google"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="social_identities")
+    provider = models.CharField(max_length=16, choices=Provider.choices)
+    subject = models.CharField(max_length=255)
+    email_at_link = models.EmailField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_login_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=("provider", "subject"),
+                name="unique_social_provider_subject",
+            ),
+            models.UniqueConstraint(
+                fields=("provider", "user"),
+                name="unique_social_provider_user",
+            ),
+        ]
+        ordering = ("provider", "created_at")
+
+    def __str__(self):
+        return f"{self.get_provider_display()}: {self.user.email}"

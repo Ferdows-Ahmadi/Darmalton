@@ -1,7 +1,20 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import CustomerProfile, User
+from .models import CustomerProfile, SocialIdentity, User
+
+
+class SocialIdentityInline(admin.TabularInline):
+    model = SocialIdentity
+    extra = 0
+    can_delete = False
+    readonly_fields = (
+        "provider",
+        "subject",
+        "email_at_link",
+        "created_at",
+        "last_login_at",
+    )
 
 
 @admin.register(User)
@@ -37,6 +50,22 @@ class CustomUserAdmin(UserAdmin):
             },
         ),
     )
+    inlines = (SocialIdentityInline,)
 
 
 admin.site.register(CustomerProfile)
+
+
+@admin.register(SocialIdentity)
+class SocialIdentityAdmin(admin.ModelAdmin):
+    list_display = ("provider", "email_at_link", "user", "created_at", "last_login_at")
+    list_filter = ("provider", "created_at")
+    search_fields = ("email_at_link", "subject", "user__email")
+    readonly_fields = (
+        "user",
+        "provider",
+        "subject",
+        "email_at_link",
+        "created_at",
+        "last_login_at",
+    )
