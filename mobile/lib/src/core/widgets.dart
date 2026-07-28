@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -181,17 +182,29 @@ class MedicineImage extends StatelessWidget {
   final BoxFit fit;
   final EdgeInsetsGeometry padding;
 
+  bool get _usesFallback {
+    if (medicine.imageUrl.isEmpty) return true;
+    final uri = Uri.tryParse(medicine.imageUrl);
+    return uri?.path.endsWith('/static/medicine-fallback.svg') ?? false;
+  }
+
   @override
   Widget build(BuildContext context) => Container(
     color: DarmaltonColors.mint,
     padding: padding,
     alignment: Alignment.center,
-    child: medicine.imageUrl.isEmpty
+    child: _usesFallback
         ? const _MedicineFallback()
-        : Image.network(
-            medicine.imageUrl,
+        : CachedNetworkImage(
+            imageUrl: medicine.imageUrl,
+            width: double.infinity,
+            height: double.infinity,
             fit: fit,
-            errorBuilder: (_, _, _) => const _MedicineFallback(),
+            fadeInDuration: const Duration(milliseconds: 180),
+            memCacheWidth: 800,
+            maxWidthDiskCache: 1600,
+            placeholder: (_, _) => const SkeletonBox(),
+            errorWidget: (_, _, _) => const _MedicineFallback(),
           ),
   );
 }
@@ -201,7 +214,7 @@ class _MedicineFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Icon(
-    Icons.medication_rounded,
+    Icons.image_not_supported_outlined,
     size: 64,
     color: DarmaltonColors.teal,
   );

@@ -15,6 +15,7 @@ from .models import (
 class MedicineImageInline(admin.TabularInline):
     model = MedicineImage
     extra = 0
+    fields = ("image", "alt_text", "is_primary")
 
 
 @admin.register(Medicine)
@@ -24,6 +25,14 @@ class MedicineAdmin(admin.ModelAdmin):
     search_fields = ("sku", "brand_name", "generic_name", "barcode")
     autocomplete_fields = ("category", "manufacturer", "dosage_form")
     inlines = (MedicineImageInline,)
+
+
+@admin.register(MedicineImage)
+class MedicineImageAdmin(admin.ModelAdmin):
+    list_display = ("medicine", "is_primary", "alt_text", "updated_at")
+    list_filter = ("is_primary",)
+    search_fields = ("medicine__sku", "medicine__brand_name", "alt_text")
+    autocomplete_fields = ("medicine",)
 
 
 @admin.register(InventoryBatch)

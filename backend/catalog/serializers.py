@@ -1,7 +1,9 @@
+from django.db import transaction
+from django.urls import reverse
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import Category, DosageForm, Manufacturer, Medicine
+from .models import Category, DosageForm, Manufacturer, Medicine, MedicineImage
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -26,11 +28,85 @@ class DosageFormSerializer(serializers.ModelSerializer):
         fields = ("id", "code", "name", "name_dari")
 
 
+class MedicineImageSerializer(serializers.ModelSerializer):
+    medicine_id = serializers.PrimaryKeyRelatedField(
+        source="medicine",
+        queryset=Medicine.objects.all(),
+    )
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MedicineImage
+        fields = (
+            "id",
+            "medicine_id",
+            "image",
+            "image_url",
+            "alt_text",
+            "is_primary",
+            "created_at",
+            "updated_at",
+        )
+        extra_kwargs = {"image": {"write_only": True}}
+        read_only_fields = ("id", "image_url", "created_at", "updated_at")
+
+    def get_image_url(self, obj) -> str:
+        path = reverse("medicine-image-content", kwargs={"pk": obj.pk})
+        request = self.context.get("request")
+        return request.build_absolute_uri(path) if request else path
+
+    def validate_image(self, value):
+        if getattr(value, "content_type", "") not in {
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+        }:
+            raise serializers.ValidationError("Upload a JPEG, PNG, or WebP image.")
+        return value
+
+    def validate(self, attrs):
+        if self.instance is None and not attrs.get("image"):
+            raise serializers.ValidationError({"image": "A medicine image is required."})
+        if (
+            self.instance is not None
+            and self.instance.is_primary
+            and attrs.get("is_primary") is False
+        ):
+            raise serializers.ValidationError(
+                {"is_primary": "Select another primary image before unsetting this one."}
+            )
+        return attrs
+
+    @transaction.atomic
+    def create(self, validated_data):
+        medicine = Medicine.objects.select_for_update().get(pk=validated_data["medicine"].pk)
+        validated_data["medicine"] = medicine
+        if validated_data.get("is_primary") or not medicine.images.exists():
+            medicine.images.filter(is_primary=True).update(is_primary=False)
+            validated_data["is_primary"] = True
+        return super().create(validated_data)
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        Medicine.objects.select_for_update().get(pk=instance.medicine_id)
+        old_image = instance.image
+        replacing_image = "image" in validated_data
+        if validated_data.get("is_primary"):
+            instance.medicine.images.exclude(pk=instance.pk).filter(is_primary=True).update(
+                is_primary=False
+            )
+        updated = super().update(instance, validated_data)
+        if replacing_image and old_image and old_image.name != updated.image.name:
+            old_image.storage.delete(old_image.name)
+        return updated
+
+
 class MedicineSerializer(serializers.ModelSerializer):
     manufacturer = ManufacturerSerializer(read_only=True)
     category = CategorySerializer(read_only=True)
     dosage_form = DosageFormSerializer(read_only=True)
     image_url = serializers.SerializerMethodField()
+    images = MedicineImageSerializer(many=True, read_only=True)
     price = serializers.SerializerMethodField()
     available_quantity = serializers.SerializerMethodField()
     in_stock = serializers.SerializerMethodField()
@@ -52,6 +128,7 @@ class MedicineSerializer(serializers.ModelSerializer):
             "description_dari",
             "prescription_required",
             "image_url",
+            "images",
             "price",
             "available_quantity",
             "in_stock",
@@ -84,8 +161,7 @@ class MedicineSerializer(serializers.ModelSerializer):
     def get_image_url(self, obj) -> str:
         primary = obj.images.first()
         if primary and primary.image:
-            request = self.context.get("request")
-            return request.build_absolute_uri(primary.image.url) if request else primary.image.url
+            return MedicineImageSerializer(primary, context=self.context).data["image_url"]
         request = self.context.get("request")
-        path = "/static/medicine-placeholder.svg"
+        path = "/static/medicine-fallback.svg"
         return request.build_absolute_uri(path) if request else path

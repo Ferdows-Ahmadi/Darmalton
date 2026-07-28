@@ -1,10 +1,19 @@
 function proxiedAssetUrl(value: string) {
   try {
     const url = new URL(value);
-    if (url.pathname.startsWith("/media/") || url.pathname.startsWith("/static/")) {
+    if (/^\/api\/v1\/medicine-images\/[^/]+\/content\/?$/.test(url.pathname)) {
+      return `/api/assets${url.pathname.replace(/\/$/, "")}`;
+    }
+    if (
+      url.pathname.startsWith("/media/") ||
+      url.pathname.startsWith("/static/")
+    ) {
       return `/api/assets${url.pathname}`;
     }
   } catch {
+    if (/^\/api\/v1\/medicine-images\/[^/]+\/content\/?$/.test(value)) {
+      return `/api/assets${value.replace(/\/$/, "")}`;
+    }
     if (value.startsWith("/media/") || value.startsWith("/static/")) {
       return `/api/assets${value}`;
     }

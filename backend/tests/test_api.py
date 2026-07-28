@@ -1,17 +1,27 @@
 from datetime import timedelta
 from decimal import Decimal
+from io import BytesIO
+from urllib.parse import urlparse
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 from rest_framework.exceptions import ValidationError
 
 from accounts.models import User
-from catalog.models import InventoryBatch, Medicine
+from catalog.models import InventoryBatch, Medicine, MedicineImage
 from commerce.models import Cart, CartItem, CustomerAddress, Order
 from commerce.services import create_order, transition_order_status
 
 pytestmark = pytest.mark.django_db
+
+
+def uploaded_png(name="medicine.png", size=(320, 320), color=(17, 159, 154)):
+    content = BytesIO()
+    Image.new("RGB", size, color).save(content, format="PNG")
+    return SimpleUploadedFile(name, content.getvalue(), content_type="image/png")
 
 
 def make_address(user):
@@ -76,6 +86,100 @@ def test_medicine_listing_search_and_anonymous_access(api_client, medicine):
     by_id = api_client.get(f"/api/v1/medicines/?category={medicine.category_id}")
     assert by_id.status_code == 200
     assert by_id.data["count"] == 1
+
+
+def test_staff_can_manage_and_public_can_read_medicine_images(
+    api_client, medicine, settings, tmp_path
+):
+    settings.MEDIA_ROOT = tmp_path
+    staff = User.objects.create_user(
+        email="staff@example.test",
+        password="Strong-Test-Password-123!",
+        role=User.Role.STAFF,
+    )
+    api_client.force_authenticate(staff)
+
+    first = api_client.post(
+        "/api/v1/medicine-images/",
+        {
+            "medicine_id": str(medicine.id),
+            "image": uploaded_png(),
+            "alt_text": "Front of TestMed package",
+        },
+        format="multipart",
+    )
+    assert first.status_code == 201
+    assert first.data["is_primary"] is True
+    assert first.data["image_url"].endswith(f"/api/v1/medicine-images/{first.data['id']}/content/")
+
+    second = api_client.post(
+        "/api/v1/medicine-images/",
+        {
+            "medicine_id": str(medicine.id),
+            "image": uploaded_png("side.png", color=(10, 80, 120)),
+            "is_primary": "true",
+        },
+        format="multipart",
+    )
+    assert second.status_code == 201
+    assert MedicineImage.objects.get(pk=second.data["id"]).is_primary
+    assert not MedicineImage.objects.get(pk=first.data["id"]).is_primary
+
+    listing = api_client.get(f"/api/v1/medicines/{medicine.id}/")
+    assert listing.status_code == 200
+    assert len(listing.data["images"]) == 2
+    assert listing.data["image_url"] == second.data["image_url"]
+
+    api_client.force_authenticate(user=None)
+    content_path = urlparse(second.data["image_url"]).path
+    content = api_client.get(content_path)
+    assert content.status_code == 200
+    assert content["Content-Type"] == "image/png"
+    assert content["Cache-Control"].startswith("public")
+    assert content["ETag"]
+    content.close()
+
+    api_client.force_authenticate(staff)
+    deleted = api_client.delete(f"/api/v1/medicine-images/{second.data['id']}/")
+    assert deleted.status_code == 204
+    assert MedicineImage.objects.get(pk=first.data["id"]).is_primary
+
+
+def test_medicine_image_upload_validation_and_permissions(
+    api_client, user, medicine, settings, tmp_path
+):
+    settings.MEDIA_ROOT = tmp_path
+    api_client.force_authenticate(user)
+    forbidden = api_client.post(
+        "/api/v1/medicine-images/",
+        {"medicine_id": str(medicine.id), "image": uploaded_png()},
+        format="multipart",
+    )
+    assert forbidden.status_code == 403
+
+    admin = User.objects.create_superuser(
+        email="admin@example.test", password="Strong-Test-Password-123!"
+    )
+    api_client.force_authenticate(admin)
+    invalid = SimpleUploadedFile("medicine.png", b"not an image", content_type="image/png")
+    rejected = api_client.post(
+        "/api/v1/medicine-images/",
+        {"medicine_id": str(medicine.id), "image": invalid},
+        format="multipart",
+    )
+    assert rejected.status_code == 400
+    assert rejected.data["error"]["fields"]["image"]
+
+    too_small = api_client.post(
+        "/api/v1/medicine-images/",
+        {
+            "medicine_id": str(medicine.id),
+            "image": uploaded_png("tiny.png", size=(64, 64)),
+        },
+        format="multipart",
+    )
+    assert too_small.status_code == 400
+    assert too_small.data["error"]["fields"]["image"]
 
 
 def test_cart_rejects_negative_quantity(authenticated_client, medicine):

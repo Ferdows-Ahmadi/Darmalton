@@ -29,6 +29,15 @@ export type Medicine = {
   description_dari: string;
   prescription_required: boolean;
   image_url: string;
+  images: {
+    id: string;
+    medicine_id: string;
+    image_url: string;
+    alt_text: string;
+    is_primary: boolean;
+    created_at: string;
+    updated_at: string;
+  }[];
   price: string | null;
   available_quantity: number;
   in_stock: boolean;

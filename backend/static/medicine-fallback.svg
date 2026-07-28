@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Medicine image unavailable</title>
+  <desc id="desc">A neutral medical image symbol</desc>
+  <rect width="640" height="480" rx="32" fill="#edf8f7"/>
+  <rect x="188" y="104" width="264" height="264" rx="44" fill="#ffffff" stroke="#b9ddda" stroke-width="8"/>
+  <path d="M290 154h60v72h72v60h-72v72h-60v-72h-72v-60h72z" fill="#119f9a"/>
+  <circle cx="514" cy="90" r="24" fill="#d7efed"/>
+  <circle cx="126" cy="390" r="34" fill="#d7efed"/>
+</svg>

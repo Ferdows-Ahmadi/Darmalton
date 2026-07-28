@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
+from PIL import Image, UnidentifiedImageError
 
 from common.models import TimeStampedUUIDModel
 
@@ -131,6 +132,30 @@ def validate_image_size(value):
         raise ValidationError("Medicine images must be 5 MB or smaller.")
 
 
+def validate_medicine_image(value):
+    position = value.tell() if hasattr(value, "tell") else 0
+    try:
+        value.seek(0)
+        with Image.open(value) as image:
+            image.verify()
+        value.seek(0)
+        with Image.open(value) as image:
+            image_format = (image.format or "").upper()
+            width, height = image.size
+    except (UnidentifiedImageError, OSError, ValueError) as exc:
+        raise ValidationError("Upload a valid JPEG, PNG, or WebP image.") from exc
+    finally:
+        if hasattr(value, "seek"):
+            value.seek(position)
+
+    if image_format not in {"JPEG", "PNG", "WEBP"}:
+        raise ValidationError("Upload a JPEG, PNG, or WebP image.")
+    if width < 128 or height < 128:
+        raise ValidationError("Medicine images must be at least 128 by 128 pixels.")
+    if width > 6000 or height > 6000:
+        raise ValidationError("Medicine images must not exceed 6000 pixels per side.")
+
+
 class MedicineImage(TimeStampedUUIDModel):
     medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(
@@ -139,6 +164,7 @@ class MedicineImage(TimeStampedUUIDModel):
         validators=[
             FileExtensionValidator(["jpg", "jpeg", "png", "webp"]),
             validate_image_size,
+            validate_medicine_image,
         ],
     )
     alt_text = models.CharField(max_length=180, blank=True)
@@ -146,6 +172,13 @@ class MedicineImage(TimeStampedUUIDModel):
 
     class Meta:
         ordering = ("-is_primary", "created_at")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("medicine",),
+                condition=Q(is_primary=True),
+                name="unique_primary_image_per_medicine",
+            )
+        ]
 
     def clean(self):
         if self.image and Path(self.image.name).suffix.lower() not in {
@@ -155,6 +188,15 @@ class MedicineImage(TimeStampedUUIDModel):
             ".webp",
         }:
             raise ValidationError({"image": "Unsupported image type."})
+
+    def save(self, *args, **kwargs):
+        if self.is_primary:
+            self.medicine.images.exclude(pk=self.pk).filter(is_primary=True).update(
+                is_primary=False
+            )
+        elif not self.medicine.images.exclude(pk=self.pk).exists():
+            self.is_primary = True
+        super().save(*args, **kwargs)
 
 
 class InventoryBatch(TimeStampedUUIDModel):

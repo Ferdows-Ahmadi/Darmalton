@@ -1,4 +1,5 @@
 import 'package:darmalton_pharmacy/src/core/api_client.dart';
+import 'package:darmalton_pharmacy/src/core/models.dart';
 import 'package:darmalton_pharmacy/src/core/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,5 +34,37 @@ void main() {
 
     expect(find.text('Your cart is empty'), findsOneWidget);
     expect(find.textContaining('available medicine'), findsOneWidget);
+  });
+
+  testWidgets('Server fallback URL uses the local neutral image state', (
+    tester,
+  ) async {
+    const medicine = Medicine(
+      id: 'medicine-id',
+      brandName: 'Medicine',
+      brandNameDari: 'دوا',
+      genericName: '',
+      strength: '',
+      dosageForm: 'Tablet',
+      dosageFormDari: 'قرص',
+      packSize: '',
+      categoryName: '',
+      categoryNameDari: '',
+      manufacturer: '',
+      description: '',
+      descriptionDari: '',
+      imageUrl: 'http://127.0.0.1:8000/static/medicine-fallback.svg',
+      prescriptionRequired: false,
+      availableQuantity: 1,
+      price: '10.00',
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: MedicineImage(medicine: medicine)),
+      ),
+    );
+
+    expect(find.byIcon(Icons.image_not_supported_outlined), findsOneWidget);
   });
 }

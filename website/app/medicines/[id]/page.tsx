@@ -1,7 +1,7 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import { AddToCart } from "@/components/AddToCart";
+import { MedicineMedia } from "@/components/MedicineMedia";
 import { money } from "@/lib/api";
 import { publicApi } from "@/lib/server-api";
 import type { Medicine } from "@/lib/types";
@@ -24,12 +24,12 @@ export default async function MedicinePage({
     <section className="page-section detail-layout">
       <div>
         <div className="detail-image">
-          <Image
-            src={medicine.image_url}
+          <MedicineMedia
+            imageUrl={medicine.image_url}
             alt={name}
             width={640}
             height={480}
-            unoptimized
+            sizes="(max-width: 900px) 100vw, 50vw"
             priority
           />
         </div>

@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { ApiError, apiFetch, money } from "@/lib/api";
+import { MedicineMedia } from "@/components/MedicineMedia";
 import type { Cart } from "@/lib/types";
 
 export default function CartPage() {
@@ -81,12 +81,12 @@ export default function CartPage() {
                 item.medicine.brand_name_dari || item.medicine.brand_name;
               return (
                 <article key={item.id} className="cart-row">
-                  <Image
-                    src={item.medicine.image_url}
+                  <MedicineMedia
+                    imageUrl={item.medicine.image_url}
                     alt={name}
                     width={92}
                     height={92}
-                    unoptimized
+                    sizes="92px"
                   />
                   <div>
                     <h2>{name}</h2>

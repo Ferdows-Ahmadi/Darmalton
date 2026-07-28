@@ -8,15 +8,33 @@ type RouteContext = { params: Promise<{ path: string[] }> };
 
 export async function GET(_request: Request, context: RouteContext) {
   const { path } = await context.params;
+  const isStoredAsset =
+    path.length >= 2 && ["media", "static"].includes(path[0]);
+  const isMedicineContent =
+    path.length === 6 &&
+    path[0] === "api" &&
+    path[1] === "v1" &&
+    path[2] === "medicine-images" &&
+    path[4] === "content" &&
+    path[5] === "";
+  const normalizedPath =
+    path.at(-1) === "" ? path.slice(0, -1) : path;
+  const isNormalizedMedicineContent =
+    normalizedPath.length === 5 &&
+    normalizedPath[0] === "api" &&
+    normalizedPath[1] === "v1" &&
+    normalizedPath[2] === "medicine-images" &&
+    normalizedPath[4] === "content";
+
   if (
-    path.length < 2 ||
-    !["media", "static"].includes(path[0]) ||
-    path.some((segment) => segment === "..")
+    path.some((segment) => segment === "..") ||
+    (!isStoredAsset && !isMedicineContent && !isNormalizedMedicineContent)
   ) {
     return new NextResponse(null, { status: 404 });
   }
 
-  const backend = await fetch(`${backendOrigin}/${path.join("/")}`, {
+  const backendPath = normalizedPath.join("/");
+  const backend = await fetch(`${backendOrigin}/${backendPath}`, {
     cache: "force-cache"
   });
   if (!backend.ok || !backend.body) {
@@ -27,7 +45,8 @@ export async function GET(_request: Request, context: RouteContext) {
     headers: {
       "Content-Type":
         backend.headers.get("content-type") || "application/octet-stream",
-      "Cache-Control": "public, max-age=3600"
+      "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+      ETag: backend.headers.get("etag") || ""
     }
   });
 }

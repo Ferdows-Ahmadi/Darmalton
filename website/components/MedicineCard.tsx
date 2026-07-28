@@ -1,20 +1,19 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import { money } from "@/lib/api";
 import type { Medicine } from "@/lib/types";
+import { MedicineMedia } from "./MedicineMedia";
 
 export function MedicineCard({ medicine }: { medicine: Medicine }) {
   const name = medicine.brand_name_dari || medicine.brand_name;
   return (
     <article className="medicine-card">
       <Link href={`/medicines/${medicine.id}`} className="medicine-image">
-        <Image
-          src={medicine.image_url}
+        <MedicineMedia
+          imageUrl={medicine.image_url}
           alt={name}
-          width={320}
-          height={240}
-          unoptimized
+          fill
+          sizes="(max-width: 680px) 100vw, (max-width: 900px) 50vw, 33vw"
         />
         {medicine.prescription_required && (
           <span className="rx-badge">نیازمند نسخه</span>
