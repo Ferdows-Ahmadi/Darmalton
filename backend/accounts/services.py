@@ -51,9 +51,7 @@ class GoogleClaims:
 
 def verify_google_id_token(encoded_token: str) -> dict:
     if not settings.GOOGLE_CLIENT_ID:
-        raise GoogleIdentityUnavailable(
-            "Google sign-in is not configured on this environment."
-        )
+        raise GoogleIdentityUnavailable("Google sign-in is not configured on this environment.")
     try:
         return google_id_token.verify_oauth2_token(
             encoded_token,

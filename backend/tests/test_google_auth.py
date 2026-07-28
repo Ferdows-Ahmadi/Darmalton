@@ -30,9 +30,7 @@ def google_claims(
 
 
 @patch("accounts.services.verify_google_id_token")
-def test_google_sign_in_creates_customer_and_reuses_identity(
-    verify_token, api_client
-):
+def test_google_sign_in_creates_customer_and_reuses_identity(verify_token, api_client):
     verify_token.return_value = google_claims()
 
     first = api_client.post(
@@ -47,10 +45,13 @@ def test_google_sign_in_creates_customer_and_reuses_identity(
     assert not user.has_usable_password()
     assert user.first_name == "Google"
     assert user.customer_profile
-    assert SocialIdentity.objects.get(
-        provider=SocialIdentity.Provider.GOOGLE,
-        subject="google-subject-1",
-    ).user == user
+    assert (
+        SocialIdentity.objects.get(
+            provider=SocialIdentity.Provider.GOOGLE,
+            subject="google-subject-1",
+        ).user
+        == user
+    )
 
     second = api_client.post(
         reverse("google-login"),
@@ -80,9 +81,7 @@ def test_google_sign_in_links_authoritative_email(verify_token, api_client, user
 
 
 @patch("accounts.services.verify_google_id_token")
-def test_google_sign_in_does_not_auto_link_third_party_email(
-    verify_token, api_client, user
-):
+def test_google_sign_in_does_not_auto_link_third_party_email(verify_token, api_client, user):
     verify_token.return_value = google_claims(email=user.email)
 
     result = api_client.post(
@@ -104,9 +103,7 @@ def test_google_sign_in_does_not_auto_link_third_party_email(
     ],
 )
 @patch("accounts.services.verify_google_id_token")
-def test_google_sign_in_rejects_untrusted_claims(
-    verify_token, api_client, claims, expected_code
-):
+def test_google_sign_in_rejects_untrusted_claims(verify_token, api_client, claims, expected_code):
     verify_token.return_value = claims
     result = api_client.post(
         reverse("google-login"),
