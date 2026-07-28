@@ -29,6 +29,7 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     class Role(models.TextChoices):
         CUSTOMER = "CUSTOMER", "Customer"
+        PHARMACIST = "PHARMACIST", "Pharmacist"
         STAFF = "STAFF", "Staff"
         ADMIN = "ADMIN", "Administrator"
 

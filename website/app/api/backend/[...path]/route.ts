@@ -10,10 +10,14 @@ async function forward(request: NextRequest, context: RouteContext) {
   const target = new URL(`${apiBase}/${path.join("/")}/`);
   request.nextUrl.searchParams.forEach((value, key) => target.searchParams.append(key, value));
   const method = request.method;
-  const body = method === "GET" || method === "HEAD" ? undefined : await request.text();
+  const body =
+    method === "GET" || method === "HEAD" ? undefined : await request.arrayBuffer();
   let access = request.cookies.get("pharmacy_access")?.value;
   const headers: Record<string, string> = { Accept: "application/json" };
-  if (body) headers["Content-Type"] = request.headers.get("content-type") || "application/json";
+  if (body?.byteLength) {
+    headers["Content-Type"] =
+      request.headers.get("content-type") || "application/json";
+  }
   if (access) headers.Authorization = `Bearer ${access}`;
 
   let backend = await fetch(target, { method, headers, body, cache: "no-store" });
@@ -37,16 +41,20 @@ async function forward(request: NextRequest, context: RouteContext) {
   }
 
   const contentType = backend.headers.get("content-type") || "application/json";
-  let payload = await backend.text();
-  if (payload && contentType.includes("application/json")) {
-    const parsed = JSON.parse(payload);
+  const rawPayload = await backend.arrayBuffer();
+  let payload: BodyInit | null = rawPayload.byteLength ? rawPayload : null;
+  if (rawPayload.byteLength && contentType.includes("application/json")) {
+    const parsed = JSON.parse(new TextDecoder().decode(rawPayload));
     payload = JSON.stringify(normalizeBackendPayload(parsed));
   }
-  const response = new NextResponse(payload || null, {
+  const responseHeaders: Record<string, string> = {
+    "Content-Type": contentType
+  };
+  const disposition = backend.headers.get("content-disposition");
+  if (disposition) responseHeaders["Content-Disposition"] = disposition;
+  const response = new NextResponse(payload, {
     status: backend.status,
-    headers: {
-      "Content-Type": contentType
-    }
+    headers: responseHeaders
   });
   if (access && access !== request.cookies.get("pharmacy_access")?.value) {
     response.cookies.set("pharmacy_access", access, {

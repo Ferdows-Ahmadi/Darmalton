@@ -77,10 +77,10 @@ export default function AccountPage() {
               <span>سبد خرید</span>
               <b aria-hidden="true">‹</b>
             </Link>
-            <div aria-disabled="true">
-              <span>نسخه‌ها و روش‌های پرداخت؛ به‌زودی</span>
-              <b aria-hidden="true">—</b>
-            </div>
+            <Link href="/prescriptions">
+              <span>نسخه‌های من</span>
+              <b aria-hidden="true">‹</b>
+            </Link>
           </div>
         </>
       )}

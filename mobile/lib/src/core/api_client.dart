@@ -98,6 +98,39 @@ class ApiClient {
     }
   }
 
+  Future<Response<T>> postFile<T>(
+    String path, {
+    required String filePath,
+    required String filename,
+    required Map<String, String> fields,
+    ProgressCallback? onSendProgress,
+  }) async {
+    final extension = filename.toLowerCase().split('.').last;
+    final contentType = switch (extension) {
+      'jpg' || 'jpeg' => DioMediaType('image', 'jpeg'),
+      'png' => DioMediaType('image', 'png'),
+      'pdf' => DioMediaType('application', 'pdf'),
+      _ => DioMediaType('application', 'octet-stream'),
+    };
+    try {
+      final form = FormData.fromMap({
+        ...fields,
+        'document': await MultipartFile.fromFile(
+          filePath,
+          filename: filename,
+          contentType: contentType,
+        ),
+      });
+      return await _dio.post<T>(
+        path,
+        data: form,
+        onSendProgress: onSendProgress,
+      );
+    } on DioException catch (error) {
+      throw _mapError(error);
+    }
+  }
+
   Future<Response<T>> patch<T>(String path, {Object? data}) async {
     try {
       return await _dio.patch<T>(path, data: data);

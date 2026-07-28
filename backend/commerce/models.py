@@ -55,6 +55,13 @@ class Cart(TimeStampedUUIDModel):
 class CartItem(TimeStampedUUIDModel):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="items")
     medicine = models.ForeignKey(Medicine, on_delete=models.RESTRICT, related_name="cart_items")
+    prescription = models.ForeignKey(
+        "prescriptions.Prescription",
+        null=True,
+        blank=True,
+        on_delete=models.RESTRICT,
+        related_name="cart_items",
+    )
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
 
     class Meta:
@@ -103,6 +110,15 @@ class Order(TimeStampedUUIDModel):
     discount_total = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     grand_total = models.DecimalField(max_digits=14, decimal_places=2)
     delivery_address = models.JSONField()
+    prescription = models.OneToOneField(
+        "prescriptions.Prescription",
+        null=True,
+        blank=True,
+        on_delete=models.RESTRICT,
+        related_name="authorization_order",
+    )
+    prescription_status_snapshot = models.CharField(max_length=32, blank=True)
+    prescription_expires_at_snapshot = models.DateTimeField(null=True, blank=True)
     placed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

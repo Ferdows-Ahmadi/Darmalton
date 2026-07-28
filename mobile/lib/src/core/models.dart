@@ -337,3 +337,120 @@ String readableStatus(String status) => status
     .split('_')
     .map((word) => '${word[0]}${word.substring(1).toLowerCase()}')
     .join(' ');
+
+class AuthorizedMedicine {
+  const AuthorizedMedicine({
+    required this.id,
+    required this.medicineId,
+    required this.medicineName,
+    required this.maxQuantity,
+    required this.instructions,
+  });
+
+  factory AuthorizedMedicine.fromJson(Map<String, dynamic> json) =>
+      AuthorizedMedicine(
+        id: json['id'] as String,
+        medicineId: json['medicine_id'] as String,
+        medicineName: json['medicine_name'] as String,
+        maxQuantity: json['max_quantity'] as int,
+        instructions: json['instructions'] as String? ?? '',
+      );
+
+  final String id;
+  final String medicineId;
+  final String medicineName;
+  final int maxQuantity;
+  final String instructions;
+}
+
+class PrescriptionHistory {
+  const PrescriptionHistory({
+    required this.status,
+    required this.action,
+    required this.note,
+    required this.createdAt,
+  });
+
+  factory PrescriptionHistory.fromJson(Map<String, dynamic> json) =>
+      PrescriptionHistory(
+        status: json['to_status'] as String,
+        action: json['action'] as String,
+        note: json['customer_visible_note'] as String? ?? '',
+        createdAt: DateTime.parse(json['created_at'] as String),
+      );
+
+  final String status;
+  final String action;
+  final String note;
+  final DateTime createdAt;
+}
+
+class Prescription {
+  const Prescription({
+    required this.id,
+    required this.patientName,
+    required this.status,
+    required this.customerVisibleNote,
+    required this.clarificationRequest,
+    required this.customerResponse,
+    required this.createdAt,
+    required this.canCancel,
+    required this.canRespond,
+    required this.authorizedMedicines,
+    required this.history,
+    this.expiresAt,
+  });
+
+  factory Prescription.fromJson(Map<String, dynamic> json) => Prescription(
+    id: json['id'] as String,
+    patientName: json['patient_name'] as String? ?? '',
+    status: json['status'] as String,
+    customerVisibleNote: json['customer_visible_note'] as String? ?? '',
+    clarificationRequest: json['clarification_request'] as String? ?? '',
+    customerResponse: json['customer_response'] as String? ?? '',
+    createdAt: DateTime.parse(json['created_at'] as String),
+    canCancel: json['can_cancel'] as bool? ?? false,
+    canRespond: json['can_respond'] as bool? ?? false,
+    expiresAt: json['expires_at'] == null
+        ? null
+        : DateTime.parse(json['expires_at'] as String),
+    authorizedMedicines:
+        (json['authorized_medicines'] as List<dynamic>? ?? [])
+            .map(
+              (item) => AuthorizedMedicine.fromJson(
+                item as Map<String, dynamic>,
+              ),
+            )
+            .toList(),
+    history: (json['history'] as List<dynamic>? ?? [])
+        .map(
+          (item) =>
+              PrescriptionHistory.fromJson(item as Map<String, dynamic>),
+        )
+        .toList(),
+  );
+
+  final String id;
+  final String patientName;
+  final String status;
+  final String customerVisibleNote;
+  final String clarificationRequest;
+  final String customerResponse;
+  final DateTime createdAt;
+  final DateTime? expiresAt;
+  final bool canCancel;
+  final bool canRespond;
+  final List<AuthorizedMedicine> authorizedMedicines;
+  final List<PrescriptionHistory> history;
+}
+
+String prescriptionStatusLabel(String status) => switch (status) {
+  'SUBMITTED' => 'ارسال‌شده',
+  'UNDER_REVIEW' => 'در حال بررسی',
+  'CLARIFICATION_REQUESTED' => 'نیازمند توضیح',
+  'APPROVED' => 'تأییدشده',
+  'REJECTED' => 'ردشده',
+  'EXPIRED' => 'منقضی‌شده',
+  'CANCELLED' => 'لغوشده',
+  _ => readableStatus(status),
+};

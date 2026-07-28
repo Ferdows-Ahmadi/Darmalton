@@ -18,6 +18,7 @@ export function Header({ authenticated }: { authenticated: boolean }) {
   const links = [
     ["/", "خانه"],
     ["/cart", "سبد خرید"],
+    ["/prescriptions", "نسخه‌ها"],
     ["/orders", "سفارش‌های من"],
     ["/account", "حساب کاربری"]
   ];

@@ -217,12 +217,12 @@ def test_prescription_medicine_requires_review(authenticated_client, user, branc
         format="json",
     )
     assert response.status_code == 400
-    assert "pharmacist review" in str(response.data["error"]["fields"])
+    assert "نسخه تأییدشده" in str(response.data["error"]["fields"])
 
     cart = Cart.objects.get(customer=user, status=Cart.Status.ACTIVE)
     CartItem.objects.create(cart=cart, medicine=medicine, quantity=1)
     address = make_address(user)
-    with pytest.raises(ValidationError, match="prescription review"):
+    with pytest.raises(ValidationError, match="approved prescription"):
         create_order(customer=user, address=address)
     assert cart.status == Cart.Status.ACTIVE
 

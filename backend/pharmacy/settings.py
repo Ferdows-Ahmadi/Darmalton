@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "accounts",
     "catalog",
     "commerce",
+    "prescriptions",
 ]
 
 MIDDLEWARE = [
@@ -91,6 +92,10 @@ STORAGES = {
 }
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"
+PRESCRIPTION_MAX_UPLOAD_BYTES = int(
+    os.getenv("PRESCRIPTION_MAX_UPLOAD_BYTES", str(10 * 1024 * 1024))
+)
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOWED_ORIGINS = [
@@ -123,10 +128,13 @@ SIMPLE_JWT = {
 }
 SPECTACULAR_SETTINGS = {
     "TITLE": "Online Pharmacy API",
-    "DESCRIPTION": "Milestone 1 customer commerce API",
-    "VERSION": "1.0.0",
+    "DESCRIPTION": "Darmalton customer commerce and prescription review API",
+    "VERSION": "2.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    "ENUM_NAME_OVERRIDES": {"OrderStatusEnum": "commerce.models.Order.Status"},
+    "ENUM_NAME_OVERRIDES": {
+        "OrderStatusEnum": "commerce.models.Order.Status",
+        "PrescriptionStatusEnum": "prescriptions.models.Prescription.Status",
+    },
 }
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

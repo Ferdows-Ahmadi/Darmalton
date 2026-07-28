@@ -1298,6 +1298,183 @@ button:disabled {
   background: var(--mist);
 }
 
+.prescription-page {
+  max-width: 980px;
+}
+
+.prescription-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.prescription-heading > span {
+  width: 92px;
+  height: 92px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  color: var(--teal);
+  background: var(--mint);
+  border-radius: 28px;
+  font: 700 32px Arial, sans-serif;
+}
+
+.prescription-form {
+  margin-top: 30px;
+}
+
+.file-drop {
+  margin: 18px 0;
+  padding: 25px;
+  align-items: center;
+  text-align: center;
+  border: 2px dashed #86cfcd;
+  border-radius: 18px;
+  background: var(--mist);
+}
+
+.file-drop input {
+  max-width: 440px;
+  min-height: auto;
+}
+
+.file-drop small {
+  color: var(--muted);
+}
+
+.prescription-preview {
+  display: block;
+  width: min(320px, 100%);
+  max-height: 260px;
+  margin: 0 auto 20px;
+  object-fit: contain;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.upload-progress {
+  position: relative;
+  height: 34px;
+  margin: 16px 0;
+  overflow: hidden;
+  background: var(--mint);
+  border-radius: 10px;
+}
+
+.upload-progress > span {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  background: rgba(7, 157, 155, 0.25);
+  transition: width 0.2s ease;
+}
+
+.upload-progress small {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--teal-dark);
+}
+
+.prescription-list {
+  display: grid;
+  gap: 16px;
+}
+
+.prescription-card {
+  padding: 22px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 19px;
+  box-shadow: 0 7px 24px rgba(15, 66, 71, 0.04);
+}
+
+.prescription-card-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.prescription-card h3 {
+  margin: 10px 0 2px;
+}
+
+.prescription-card small {
+  color: var(--muted);
+}
+
+.status {
+  display: inline-flex;
+  padding: 5px 10px;
+  color: var(--teal-dark);
+  background: var(--mint);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.status-rejected,
+.status-cancelled,
+.status-expired {
+  color: #9e2633;
+  background: #fff1f3;
+}
+
+.status-approved {
+  color: #126d49;
+  background: #e5f8ed;
+}
+
+.status-clarification_requested {
+  color: #8c5800;
+  background: #fff4d8;
+}
+
+.clarification-box,
+.authorized-list {
+  margin-top: 15px;
+  padding: 14px;
+  background: var(--mist);
+  border-radius: 13px;
+}
+
+.clarification-box p,
+.authorized-list p {
+  margin: 5px 0;
+}
+
+.authorized-row {
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.authorized-row:first-of-type {
+  margin-top: 8px;
+}
+
+.authorized-row button {
+  min-height: 38px;
+  padding: 7px 12px;
+  font-size: 11px;
+}
+
+.clarification-response {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 12px;
+}
+
 @media (max-width: 900px) {
   .site-header {
     gap: 18px;
@@ -1539,6 +1716,32 @@ button:disabled {
 
   .account-stats > *:first-child {
     border-top: 0;
+  }
+
+  .prescription-heading {
+    align-items: flex-start;
+  }
+
+  .prescription-heading > span {
+    width: 68px;
+    height: 68px;
+    border-radius: 20px;
+    font-size: 24px;
+  }
+
+  .prescription-card-title,
+  .clarification-response {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .prescription-card-title .button {
+    width: 100%;
+  }
+
+  .authorized-row {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 

@@ -5,6 +5,8 @@ from rest_framework import serializers
 
 from catalog.models import InventoryBatch, Medicine
 from catalog.serializers import MedicineSerializer
+from prescriptions.models import Prescription
+from prescriptions.services import validate_prescription_authorization
 
 from .models import Cart, CartItem, CustomerAddress, Order, OrderItem, OrderStatusHistory
 from .services import create_order
@@ -60,6 +62,14 @@ class CartItemSerializer(serializers.ModelSerializer):
     medicine_id = serializers.PrimaryKeyRelatedField(
         source="medicine", queryset=Medicine.objects.all(), write_only=True
     )
+    prescription = serializers.UUIDField(source="prescription.id", allow_null=True, read_only=True)
+    prescription_id = serializers.PrimaryKeyRelatedField(
+        source="prescription",
+        queryset=Prescription.objects.all(),
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
     unit_price = serializers.SerializerMethodField()
     line_total = serializers.SerializerMethodField()
     available_quantity = serializers.SerializerMethodField()
@@ -70,6 +80,8 @@ class CartItemSerializer(serializers.ModelSerializer):
             "id",
             "medicine",
             "medicine_id",
+            "prescription",
+            "prescription_id",
             "quantity",
             "unit_price",
             "line_total",
@@ -87,17 +99,27 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         medicine = attrs.get("medicine") or getattr(self.instance, "medicine", None)
+        prescription = attrs.get("prescription", getattr(self.instance, "prescription", None))
         cart = self._cart()
         if medicine and medicine.status != Medicine.Status.ACTIVE:
             raise serializers.ValidationError({"medicine_id": "This medicine is inactive."})
         if medicine and medicine.prescription_required:
+            if not prescription:
+                raise serializers.ValidationError(
+                    {"prescription_id": "برای این دوا نسخه تأییدشده لازم است."}
+                )
+            if cart:
+                validate_prescription_authorization(
+                    prescription=prescription,
+                    customer=cart.customer,
+                    medicine=medicine,
+                    quantity=attrs.get(
+                        "quantity", getattr(self.instance, "quantity", 0)
+                    ),
+                )
+        elif prescription:
             raise serializers.ValidationError(
-                {
-                    "medicine_id": (
-                        "Prescription medicines require pharmacist review, "
-                        "which is not available in this milestone."
-                    )
-                }
+                {"prescription_id": "این دوا به نسخه نیاز ندارد."}
             )
         if medicine and cart:
             available = medicine_stock(medicine, cart.branch)
@@ -170,6 +192,9 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     status_history = OrderStatusHistorySerializer(many=True, read_only=True)
+    prescription_id = serializers.UUIDField(
+        source="prescription.id", allow_null=True, read_only=True
+    )
 
     class Meta:
         model = Order
@@ -185,6 +210,9 @@ class OrderSerializer(serializers.ModelSerializer):
             "discount_total",
             "grand_total",
             "delivery_address",
+            "prescription_id",
+            "prescription_status_snapshot",
+            "prescription_expires_at_snapshot",
             "items",
             "status_history",
             "placed_at",

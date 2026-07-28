@@ -145,3 +145,36 @@
 - Live Google consent remains operator-gated because the repository correctly
   contains no OAuth credentials. Platform credential/registration requirements
   are recorded in `README.md` and `docs/KNOWN_ISSUES.md`.
+
+## 2026-07-28 - Milestone 2 Phase 3 prescription checkpoint
+
+- Added a persistent prescription lifecycle covering submitted, under review,
+  clarification requested, approved, rejected, expired, and cancelled states.
+  Database-row locks and validated transitions prevent conflicting or invalid
+  review actions.
+- Added authorization-controlled private JPEG/PNG/PDF storage with generated
+  filenames, extension/MIME/magic validation, a 10 MiB limit, customer-safe
+  serializers, secure customer/staff download endpoints, immutable audit
+  history, and persistent in-app notification records.
+- Added pharmacist/admin review APIs and guarded Django Admin review controls.
+  Internal staff notes never appear in customer responses. Approval records the
+  exact prescription medicines and maximum quantities.
+- Linked approved, unexpired, unused prescriptions to prescription-required cart
+  items and orders. The server rejects missing, rejected, expired, unrelated,
+  over-quantity, or already-consumed authorizations and stores an order-time
+  status/expiry snapshot.
+- Added Dari-first website and Flutter customer flows for upload progress,
+  retry, history, clarification response, cancellation, and adding approved
+  medicines to the cart. The website proxy now preserves binary multipart and
+  private-file responses.
+- PostgreSQL has applied `accounts.0003`, `prescriptions.0001`, and
+  `commerce.0002`. Checkpoint verification passed changed-file Ruff, Django
+  system checks, five targeted prescription permission/transition/upload tests,
+  Flutter analysis, and website TypeScript checking.
+- At the requested checkpoint, no fresh full backend suite, website lint/build,
+  Flutter tests/APK build, Docker rebuild, integrated prescription smoke, or
+  completed responsive/device QA was run after the final admin changes.
+- Exact restart point: run the authenticated PostgreSQL flow
+  upload -> pharmacist review -> clarification/approval -> authorized Rx cart
+  and order through the website and Pixel, then address any discovered Phase 3
+  UI/operational issues before starting Phase 4.

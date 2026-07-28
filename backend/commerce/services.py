@@ -6,6 +6,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from catalog.models import InventoryBatch, Medicine, PharmacyBranch
+from prescriptions.services import validate_prescription_authorization
 
 from .models import Cart, Order, OrderItem, OrderItemAllocation, OrderStatusHistory
 
@@ -69,20 +70,40 @@ def create_order(*, customer, address):
     if cart.branch.status != PharmacyBranch.Status.ACTIVE:
         raise ValidationError("The fulfillment branch is not currently active.")
 
-    cart_items = list(cart.items.select_related("medicine__dosage_form").order_by("created_at"))
+    cart_items = list(
+        cart.items.select_related("medicine__dosage_form", "prescription").order_by(
+            "created_at"
+        )
+    )
     if not cart_items:
         raise ValidationError("Your cart is empty.")
 
     prepared = []
     subtotal = Decimal("0.00")
     today = timezone.localdate()
+    authorized_prescription = None
 
     for cart_item in cart_items:
         medicine = cart_item.medicine
         if medicine.status != Medicine.Status.ACTIVE:
             raise ValidationError(f"{medicine.brand_name} is no longer available.")
         if medicine.prescription_required:
-            raise ValidationError(f"{medicine.brand_name} requires pharmacist prescription review.")
+            if not cart_item.prescription:
+                raise ValidationError(
+                    f"{medicine.brand_name} requires an approved prescription."
+                )
+            validated = validate_prescription_authorization(
+                prescription=cart_item.prescription,
+                customer=customer,
+                medicine=medicine,
+                quantity=cart_item.quantity,
+                lock=True,
+            )
+            if authorized_prescription and authorized_prescription.pk != validated.pk:
+                raise ValidationError(
+                    "One order cannot use more than one prescription authorization."
+                )
+            authorized_prescription = validated
 
         batches = list(
             InventoryBatch.objects.select_for_update()
@@ -122,6 +143,13 @@ def create_order(*, customer, address):
         discount_total=Decimal("0.00"),
         grand_total=subtotal,
         delivery_address=address_snapshot(address),
+        prescription=authorized_prescription,
+        prescription_status_snapshot=(
+            authorized_prescription.status if authorized_prescription else ""
+        ),
+        prescription_expires_at_snapshot=(
+            authorized_prescription.expires_at if authorized_prescription else None
+        ),
     )
 
     for cart_item, unit_price, line_total, allocations in prepared:

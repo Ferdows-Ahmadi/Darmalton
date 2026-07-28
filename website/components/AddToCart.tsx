@@ -22,7 +22,7 @@ export function AddToCart({
 
   async function add() {
     if (prescriptionRequired) {
-      setMessage("خرید این دوا پس از بررسی نسخه توسط فارمسست فعال می‌شود.");
+      router.push(`/prescriptions?medicineId=${encodeURIComponent(medicine.id)}`);
       return;
     }
     setBusy(true);

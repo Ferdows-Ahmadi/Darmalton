@@ -58,9 +58,11 @@ final routerProvider = Provider<GoRouter>(
       ),
       GoRoute(
         path: '/prescription',
-        builder: (_, _) => const ProtectedRoute(
+        builder: (_, state) => ProtectedRoute(
           destination: '/prescription',
-          child: PrescriptionScreen(),
+          child: PrescriptionScreen(
+            requestedMedicineId: state.uri.queryParameters['medicineId'],
+          ),
         ),
       ),
       GoRoute(

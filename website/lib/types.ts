@@ -50,6 +50,7 @@ export type CartItem = {
   unit_price: string | null;
   line_total: string | null;
   available_quantity: number;
+  prescription?: string | null;
 };
 
 export type Cart = {
@@ -105,9 +106,52 @@ export type Order = {
   discount_total: string;
   grand_total: string;
   delivery_address: Record<string, string>;
+  prescription_id: string | null;
+  prescription_status_snapshot: string;
+  prescription_expires_at_snapshot: string | null;
   items: OrderItem[];
   status_history: StatusHistory[];
   placed_at: string;
+};
+
+export type PrescriptionHistory = {
+  id: number;
+  from_status: string;
+  to_status: string;
+  action: string;
+  customer_visible_note: string;
+  created_at: string;
+};
+
+export type AuthorizedMedicine = {
+  id: string;
+  medicine_id: string;
+  medicine_name: string;
+  max_quantity: number;
+  instructions: string;
+};
+
+export type Prescription = {
+  id: string;
+  document_url: string;
+  original_filename: string;
+  patient_name: string;
+  contact_phone: string;
+  delivery_preference: string;
+  customer_note: string;
+  status: string;
+  customer_visible_note: string;
+  clarification_request: string;
+  customer_response: string;
+  expires_at: string | null;
+  review_started_at: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  can_cancel: boolean;
+  can_respond: boolean;
+  authorized_medicines: AuthorizedMedicine[];
+  history: PrescriptionHistory[];
 };
 
 export type PageResult<T> = {

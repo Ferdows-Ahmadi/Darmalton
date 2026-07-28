@@ -55,7 +55,7 @@ class CartItemDetailView(generics.GenericAPIView):
 
     def get_object(self, request, pk):
         return get_object_or_404(
-            CartItem.objects.select_related("cart", "medicine"),
+            CartItem.objects.select_related("cart", "medicine", "prescription"),
             pk=pk,
             cart__customer=request.user,
             cart__status="ACTIVE",
@@ -101,7 +101,7 @@ class OrderViewSet(
     def get_queryset(self):
         return (
             Order.objects.filter(customer=self.request.user)
-            .select_related("branch")
+            .select_related("branch", "prescription")
             .prefetch_related("items", "status_history")
         )
 

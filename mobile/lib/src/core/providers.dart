@@ -204,7 +204,11 @@ class CartController extends AsyncNotifier<Cart> {
     state = await AsyncValue.guard(user == null ? _loadGuest : _loadServer);
   }
 
-  Future<void> add(Medicine medicine, {int quantity = 1}) async {
+  Future<void> add(
+    Medicine medicine, {
+    int quantity = 1,
+    String? prescriptionId,
+  }) async {
     final user = ref.read(authProvider).value;
     if (user == null) {
       final entries = [...await _guestStore.loadCart()];
@@ -221,9 +225,16 @@ class CartController extends AsyncNotifier<Cart> {
       }
       await _guestStore.saveCart(entries);
     } else {
+      final payload = <String, dynamic>{
+        'medicine_id': medicine.id,
+        'quantity': quantity,
+      };
+      if (prescriptionId != null) {
+        payload['prescription_id'] = prescriptionId;
+      }
       await _api.post(
         '/cart/items/',
-        data: {'medicine_id': medicine.id, 'quantity': quantity},
+        data: payload,
       );
     }
     await refresh();
@@ -326,3 +337,55 @@ final orderProvider = FutureProvider.family<Order, String>((ref, id) async {
     rethrow;
   }
 });
+
+final prescriptionsProvider = FutureProvider<List<Prescription>>((ref) async {
+  try {
+    final response = await ref
+        .read(apiClientProvider)
+        .get<Map<String, dynamic>>('/prescriptions/');
+    return (response.data!['results'] as List<dynamic>)
+        .map((item) => Prescription.fromJson(item as Map<String, dynamic>))
+        .toList();
+  } on ApiException catch (error) {
+    if (error.statusCode == 401) {
+      await ref.read(authProvider.notifier).sessionExpired();
+    }
+    rethrow;
+  }
+});
+
+final prescriptionRepositoryProvider = Provider<PrescriptionRepository>(
+  (ref) => PrescriptionRepository(ref.read(apiClientProvider)),
+);
+
+class PrescriptionRepository {
+  const PrescriptionRepository(this._api);
+  final ApiClient _api;
+
+  Future<Prescription> upload({
+    required String filePath,
+    required String filename,
+    required Map<String, String> fields,
+    void Function(int sent, int total)? onProgress,
+  }) async {
+    final response = await _api.postFile<Map<String, dynamic>>(
+      '/prescriptions/',
+      filePath: filePath,
+      filename: filename,
+      fields: fields,
+      onSendProgress: onProgress,
+    );
+    return Prescription.fromJson(response.data!);
+  }
+
+  Future<void> cancel(String id) async {
+    await _api.post('/prescriptions/$id/cancel/', data: const {});
+  }
+
+  Future<void> respond(String id, String message) async {
+    await _api.post(
+      '/prescriptions/$id/respond/',
+      data: {'response': message},
+    );
+  }
+}

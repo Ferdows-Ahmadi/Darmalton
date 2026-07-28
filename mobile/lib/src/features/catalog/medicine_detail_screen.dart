@@ -87,7 +87,7 @@ class _MedicineDetailState extends ConsumerState<_MedicineDetail> {
   Future<void> _add({bool checkout = false}) async {
     if (!canOrder) {
       if (medicine.prescriptionRequired) {
-        context.push('/prescription');
+        context.push('/prescription?medicineId=${medicine.id}');
       }
       return;
     }
@@ -248,7 +248,8 @@ class _MedicineDetailState extends ConsumerState<_MedicineDetail> {
           ? GradientButton(
               label: 'ارسال نسخه برای بررسی',
               icon: Icons.upload_file_rounded,
-              onPressed: () => context.push('/prescription'),
+            onPressed: () =>
+                context.push('/prescription?medicineId=${medicine.id}'),
             )
           : Row(
               children: [
