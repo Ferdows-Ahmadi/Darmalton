@@ -1,9 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'api_client.dart';
+import 'google_identity_service.dart';
 import 'models.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
+final googleIdentityProvider = Provider<GoogleIdentityService>(
+  (ref) => PlatformGoogleIdentityService(),
+);
 
 final authProvider = AsyncNotifierProvider<AuthController, User?>(
   AuthController.new,
@@ -11,6 +15,7 @@ final authProvider = AsyncNotifierProvider<AuthController, User?>(
 
 class AuthController extends AsyncNotifier<User?> {
   ApiClient get _api => ref.read(apiClientProvider);
+  GoogleIdentityService get _google => ref.read(googleIdentityProvider);
 
   @override
   Future<User?> build() async {
@@ -46,8 +51,22 @@ class AuthController extends AsyncNotifier<User?> {
     });
   }
 
+  Future<void> loginWithGoogle() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final idToken = await _google.authenticate();
+      final response = await _api.post<Map<String, dynamic>>(
+        '/auth/google/',
+        data: {'id_token': idToken},
+      );
+      await _api.saveTokens(response.data!);
+      return User.fromJson(response.data!['user'] as Map<String, dynamic>);
+    });
+  }
+
   Future<void> logout() async {
     await _api.clearTokens();
+    await _google.signOut();
     state = const AsyncData(null);
   }
 }

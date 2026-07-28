@@ -67,4 +67,46 @@ void main() {
 
     expect(find.byIcon(Icons.image_not_supported_outlined), findsOneWidget);
   });
+
+  testWidgets('Google authentication button exposes its configured state', (
+    tester,
+  ) async {
+    var pressed = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: GoogleAuthButton(
+            label: 'ادامه با گوگل',
+            enabled: true,
+            onPressed: () => pressed = true,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('google-auth-button')));
+    expect(pressed, isTrue);
+    expect(find.text('ادامه با گوگل'), findsOneWidget);
+    expect(find.bySemanticsLabel('Google'), findsOneWidget);
+  });
+
+  testWidgets('Google authentication button is disabled while unconfigured', (
+    tester,
+  ) async {
+    var pressed = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: GoogleAuthButton(
+            label: 'ادامه با گوگل',
+            enabled: false,
+            onPressed: () => pressed = true,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('google-auth-button')));
+    expect(pressed, isFalse);
+  });
 }

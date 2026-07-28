@@ -752,6 +752,54 @@ button:disabled {
   font-weight: 700;
 }
 
+.auth-divider {
+  margin: 22px 0 16px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  height: 1px;
+  background: var(--line);
+  content: "";
+}
+
+.google-button-wrap {
+  position: relative;
+  width: min(400px, 100%);
+  min-height: 44px;
+  margin-inline: auto;
+}
+
+.google-button-host,
+.google-button-host > div,
+.google-button-host iframe {
+  max-width: 100%;
+}
+
+.google-button-blocker {
+  position: absolute;
+  inset: 0;
+  cursor: wait;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.google-unavailable {
+  margin: 0;
+  padding: 11px 14px;
+  color: var(--muted);
+  text-align: center;
+  background: var(--mint);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-size: 13px;
+}
+
 .form-error {
   padding: 12px 14px;
   color: #9e2633;

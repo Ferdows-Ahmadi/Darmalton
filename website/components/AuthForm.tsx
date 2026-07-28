@@ -1,36 +1,106 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export function AuthForm({ mode }: { mode: "login" | "register" }) {
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
+
+type AuthErrorPayload = {
+  error?: {
+    code?: string;
+    message?: string;
+  };
+};
+
+const googleErrorMessages: Record<string, string> = {
+  google_link_required:
+    "برای حفاظت حساب، نخست با رمز عبور وارد شوید؛ سپس حساب گوگل را پیوند دهید.",
+  google_email_unverified:
+    "حساب گوگل باید یک ایمیل تأییدشده داشته باشد.",
+  invalid_google_token:
+    "گوگل نتوانست این ورود را تأیید کند. دوباره کوشش کنید.",
+  google_sign_in_unavailable:
+    "ورود با گوگل فعلاً در دسترس نیست. کمی بعد دوباره کوشش کنید.",
+  inactive_account: "این حساب غیرفعال است. با پشتیبانی تماس بگیرید."
+};
+
+export function AuthForm({
+  mode,
+  googleClientId
+}: {
+  mode: "login" | "register";
+  googleClientId: string;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  const finishAuthentication = useCallback(() => {
+    router.push("/");
+    router.refresh();
+  }, [router]);
+
+  const submitGoogle = useCallback(
+    async (credential: string) => {
+      setBusy(true);
+      setError("");
+      try {
+        const response = await fetch("/api/auth/google", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id_token: credential })
+        });
+        const payload = (await response
+          .json()
+          .catch(() => ({}))) as AuthErrorPayload;
+        if (response.ok) {
+          finishAuthentication();
+          return;
+        }
+        const code = payload.error?.code || "";
+        setError(
+          googleErrorMessages[code] ||
+            payload.error?.message ||
+            "ورود با گوگل انجام نشد. دوباره کوشش کنید."
+        );
+      } catch {
+        setError("ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.");
+      } finally {
+        setBusy(false);
+      }
+    },
+    [finishAuthentication]
+  );
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     setError("");
-    const form = new FormData(event.currentTarget);
-    const body = Object.fromEntries(form.entries());
-    const response = await fetch(`/api/auth/${mode}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (response.ok) {
-      router.push("/");
-      router.refresh();
-    } else {
-      setError(
-        payload.error?.message ||
-          "معلومات واردشده را بررسی و دوباره کوشش کنید."
-      );
+    try {
+      const form = new FormData(event.currentTarget);
+      const body = Object.fromEntries(form.entries());
+      const response = await fetch(`/api/auth/${mode}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const payload = (await response
+        .json()
+        .catch(() => ({}))) as AuthErrorPayload;
+      if (response.ok) {
+        finishAuthentication();
+      } else {
+        setError(
+          payload.error?.message ||
+            "معلومات واردشده را بررسی و دوباره کوشش کنید."
+        );
+      }
+    } catch {
+      setError("ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.");
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   }
 
   const register = mode === "register";
@@ -90,6 +160,16 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       <button className="primary wide" disabled={busy}>
         {busy ? "لطفاً منتظر بمانید..." : register ? "ایجاد حساب" : "ورود"}
       </button>
+      <div className="auth-divider" aria-hidden="true">
+        <span>یا</span>
+      </div>
+      <GoogleSignInButton
+        clientId={googleClientId}
+        mode={mode}
+        busy={busy}
+        onCredential={submitGoogle}
+        onError={setError}
+      />
       <p className="auth-switch">
         {register ? "قبلاً ثبت‌نام کرده‌اید؟" : "حساب کاربری ندارید؟"}{" "}
         <Link href={register ? "/login" : "/register"}>

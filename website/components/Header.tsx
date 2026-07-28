@@ -10,6 +10,7 @@ export function Header({ authenticated }: { authenticated: boolean }) {
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
+    window.google?.accounts.id.disableAutoSelect();
     router.push("/login");
     router.refresh();
   }

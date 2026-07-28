@@ -44,9 +44,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
   }
 
+  Future<void> _submitGoogle() async {
+    await ref.read(authProvider.notifier).loginWithGoogle();
+    if (mounted && ref.read(authProvider).value != null) {
+      context.go('/catalogue');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(authProvider);
+    final googleConfigured = ref.watch(googleIdentityProvider).isConfigured;
     return Scaffold(
       appBar: AppBar(title: const Text('ایجاد حساب')),
       body: Center(
@@ -159,6 +167,40 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     icon: Icons.person_add_alt_1_rounded,
                     onPressed: state.isLoading ? null : _submit,
                     loading: state.isLoading,
+                  ),
+                  const SizedBox(height: 18),
+                  const Row(
+                    children: [
+                      Expanded(child: Divider()),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Text('یا'),
+                      ),
+                      Expanded(child: Divider()),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  GoogleAuthButton(
+                    label: 'ایجاد حساب با گوگل',
+                    enabled: googleConfigured,
+                    loading: state.isLoading,
+                    onPressed: _submitGoogle,
+                  ),
+                  if (!googleConfigured) ...[
+                    const SizedBox(height: 8),
+                    const Text(
+                      'ورود با گوگل در این نسخه تنظیم نشده است.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: DarmaltonColors.muted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 10),
+                  TextButton(
+                    onPressed: state.isLoading ? null : () => context.pop(),
+                    child: const Text('قبلاً حساب دارید؟ ورود'),
                   ),
                 ],
               ),

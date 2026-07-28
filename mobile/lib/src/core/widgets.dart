@@ -170,6 +170,61 @@ class DarmaltonWordmark extends StatelessWidget {
   );
 }
 
+class GoogleAuthButton extends StatelessWidget {
+  const GoogleAuthButton({
+    required this.label,
+    required this.onPressed,
+    this.enabled = true,
+    this.loading = false,
+    super.key,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+  final bool enabled;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: 52,
+    child: OutlinedButton(
+      key: const Key('google-auth-button'),
+      onPressed: enabled && !loading ? onPressed : null,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: const Color(0xFF1F1F1F),
+        backgroundColor: Colors.white,
+        disabledForegroundColor: DarmaltonColors.muted,
+        side: const BorderSide(color: Color(0xFF747775)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        textStyle: const TextStyle(
+          fontFamily: 'Vazirmatn',
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      child: loading
+          ? const SizedBox.square(
+              dimension: 22,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/branding/google-g.png',
+                  width: 20,
+                  height: 20,
+                  semanticLabel: 'Google',
+                ),
+                const SizedBox(width: 12),
+                Text(label),
+              ],
+            ),
+    ),
+  );
+}
+
 class MedicineImage extends StatelessWidget {
   const MedicineImage({
     required this.medicine,
