@@ -28,8 +28,8 @@ export function Header({ authenticated }: { authenticated: boolean }) {
         <Image
           src="/branding/darmalton-wordmark.png"
           alt="درملتون"
-          width={190}
-          height={59}
+          width={2000}
+          height={808}
           priority
         />
       </Link>

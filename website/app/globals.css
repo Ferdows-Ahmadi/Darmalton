@@ -82,6 +82,20 @@ select:focus-visible {
   height: auto;
 }
 
+.auth-brand {
+  display: block;
+  width: min(180px, 58%);
+  height: auto;
+  margin: 0 auto 12px;
+}
+
+.footer-brand {
+  display: block;
+  width: 128px;
+  height: auto;
+  margin: 0 auto 10px;
+}
+
 nav {
   display: flex;
   align-items: center;

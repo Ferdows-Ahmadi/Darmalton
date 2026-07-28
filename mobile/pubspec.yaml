@@ -45,6 +45,6 @@ flutter_launcher_icons:
   remove_alpha_ios: true
   image_path: assets/branding/darmalton-launcher.png
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: assets/branding/darmalton-launcher.png
+  adaptive_icon_foreground: assets/branding/darmalton-launcher-foreground.png
   adaptive_icon_foreground_inset: 18
   min_sdk_android: 24

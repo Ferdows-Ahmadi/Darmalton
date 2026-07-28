@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { cookies } from "next/headers";
 import localFont from "next/font/local";
 
@@ -17,8 +18,13 @@ const vazirmatn = localFont({
 });
 
 export const metadata: Metadata = {
+  applicationName: "Darmalton",
   title: { default: "درملتون | داروخانه آنلاین", template: "%s | درملتون" },
-  description: "خرید آنلاین دوا و محصولات صحی با قیمت و موجودی تأییدشده."
+  description: "خرید آنلاین دوا و محصولات صحی با قیمت و موجودی تأییدشده.",
+  icons: {
+    icon: "/branding/brand-bag-mark.png",
+    apple: "/branding/brand-bag-mark.png"
+  }
 };
 
 export default async function RootLayout({
@@ -35,7 +41,13 @@ export default async function RootLayout({
         <ScrollToTop />
         <main>{children}</main>
         <footer>
-          <strong>درملتون</strong>
+          <Image
+            className="footer-brand"
+            src="/branding/darmalton-wordmark.png"
+            alt="درملتون"
+            width={2000}
+            height={808}
+          />
           <p>قیمت، موجودی و مجموع سفارش همیشه توسط سرور داروخانه تأیید می‌شود.</p>
         </footer>
       </body>

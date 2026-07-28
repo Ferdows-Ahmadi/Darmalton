@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { FormEvent, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -106,6 +107,14 @@ export function AuthForm({
   const register = mode === "register";
   return (
     <form className="auth-card" onSubmit={submit}>
+      <Image
+        className="auth-brand"
+        src="/branding/darmalton-wordmark.png"
+        alt="درملتون"
+        width={2000}
+        height={808}
+        priority
+      />
       <p className="eyebrow">دسترسی امن مشتری</p>
       <h1>{register ? "ایجاد حساب کاربری" : "خوش آمدید"}</h1>
       <p className="muted">
