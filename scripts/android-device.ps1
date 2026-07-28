@@ -51,9 +51,15 @@ if ($Mode -eq "usb") {
 }
 
 if ($Build) {
+    $dartDefines = @("--dart-define=API_BASE_URL=$apiBaseUrl")
+    if ($env:GOOGLE_CLIENT_ID) {
+        $dartDefines += "--dart-define=GOOGLE_CLIENT_ID=$($env:GOOGLE_CLIENT_ID)"
+    } else {
+        Write-Warning "GOOGLE_CLIENT_ID is not set; the Google sign-in button will be disabled."
+    }
     Push-Location (Join-Path $repo "mobile")
     try {
-        & $flutter build apk --debug "--dart-define=API_BASE_URL=$apiBaseUrl"
+        & $flutter build apk --debug @dartDefines
         if ($LASTEXITCODE -ne 0) {
             throw "Flutter APK build failed with exit code $LASTEXITCODE."
         }

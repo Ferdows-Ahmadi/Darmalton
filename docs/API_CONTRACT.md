@@ -22,10 +22,18 @@ Errors use:
 |---|---|---|---|
 | POST | `/auth/register/` | `email`, `password`, `first_name`, `last_name`, optional `phone` | `user`, `access`, `refresh` |
 | POST | `/auth/login/` | `email`, `password` | `user`, `access`, `refresh` |
+| POST | `/auth/google/` | Google Identity Services `id_token` | `user`, `access`, `refresh` |
 | POST | `/auth/refresh/` | `refresh` | `access` and rotated `refresh` |
 | GET | `/auth/me/` | bearer access token | `User` |
 
 `User`: `id`, `email`, `phone`, `first_name`, `last_name`, `role`.
+
+`/auth/google/` verifies the Google signature, configured audience, issuer,
+expiry, stable `sub`, and verified email server-side. A stored social identity
+is keyed by provider and subject. A new verified identity creates a customer
+with an unusable local password. Automatic linking to an existing email is
+limited to Gmail or Google Workspace accounts for which Google is authoritative;
+otherwise the endpoint returns `google_link_required`.
 
 ## Catalogue
 
@@ -41,6 +49,21 @@ Errors use:
 optional `description_dari`, `prescription_required`, `image_url`, `price`,
 `available_quantity`, `in_stock`. English/Latin fields remain the fallback;
 clients prefer populated Dari display fields.
+
+### Medicine images
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/medicine-images/?medicine_id={uuid}` | Staff/admin image metadata |
+| POST | `/medicine-images/` | Staff/admin multipart upload |
+| GET/PATCH/DELETE | `/medicine-images/{id}/` | Staff/admin management |
+| GET | `/medicine-images/{id}/content/` | Anonymous cacheable image bytes |
+
+Uploads accept actual JPEG, PNG, or WebP images up to 5 MiB and dimensions from
+128 through 6000 pixels. Django inspects image content rather than trusting the
+filename or MIME header. Exactly one image can be primary per medicine; deleting
+it promotes the next image. Medicine responses contain ordered `images[]` and a
+primary `image_url`; clients use the neutral fallback when none exists.
 
 ## Cart
 

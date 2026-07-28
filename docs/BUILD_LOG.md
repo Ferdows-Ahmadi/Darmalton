@@ -120,3 +120,28 @@
   `OP-20260726-0E15FFC5`. The production backend image intentionally excludes
   `pytest`; backend unit tests run from the project test environment, while this
   smoke validates the containerized PostgreSQL path.
+
+## 2026-07-28 - Branding, medicine media, and Google identity
+
+- Replaced every Android legacy/adaptive/round and iOS launcher asset from the
+  supplied transparent Darmalton launcher master. Flutter analysis, tests,
+  debug APK generation, install, and Pixel launcher inspection passed.
+- Added staff/admin medicine-image CRUD, content-based JPEG/PNG/WebP validation,
+  a single-primary database invariant, cacheable anonymous content delivery,
+  Django admin management, Next Image optimization, and Flutter disk/memory
+  caching with a neutral local fallback.
+- Verified a real multipart image lifecycle through PostgreSQL Compose:
+  authenticated upload, medicine primary URL, anonymous cache/ETag response,
+  Next.js proxy and optimizer rendering, then deletion/promotion cleanup.
+- Added Google Identity Services authentication. Django verifies provider ID
+  tokens and stores stable provider subjects before issuing the existing JWT
+  pair. Next.js preserves HTTP-only cookie sessions; Flutter uses
+  `google_sign_in` and secure token storage. Both authentication screens remain
+  Dari-first and use Google-compliant button branding.
+- Backend verification now passes 20 tests plus Ruff, Django checks, migration
+  consistency, and OpenAPI validation. Website typecheck, source lint, and
+  production build pass. Flutter analysis is clean, all 8 tests pass, and the
+  debug APK builds with API and Google client-ID defines.
+- Live Google consent remains operator-gated because the repository correctly
+  contains no OAuth credentials. Platform credential/registration requirements
+  are recorded in `README.md` and `docs/KNOWN_ISSUES.md`.

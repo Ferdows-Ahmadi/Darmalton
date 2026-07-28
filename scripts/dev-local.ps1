@@ -4,6 +4,19 @@ $repo = Split-Path -Parent $PSScriptRoot
 $tmp = Join-Path $repo "tmp\dev"
 New-Item -ItemType Directory -Force -Path $tmp | Out-Null
 
+$dotenv = Join-Path $repo ".env"
+if (Test-Path -LiteralPath $dotenv) {
+    Get-Content -LiteralPath $dotenv | ForEach-Object {
+        if ($_ -match "^\s*([^#][^=]*)=(.*)$") {
+            $name = $matches[1].Trim()
+            $value = $matches[2].Trim()
+            if ($name -and -not [Environment]::GetEnvironmentVariable($name, "Process")) {
+                [Environment]::SetEnvironmentVariable($name, $value, "Process")
+            }
+        }
+    }
+}
+
 $python = Join-Path $repo ".venv\Scripts\python.exe"
 $node = "C:\Program Files\nodejs\npm.cmd"
 if (-not (Test-Path -LiteralPath $python)) {

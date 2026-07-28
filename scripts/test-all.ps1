@@ -81,7 +81,16 @@ if ($flutter) {
         Invoke-Checked $flutter pub get
         Invoke-Checked $flutter analyze
         Invoke-Checked $flutter test
-        Invoke-Checked $flutter build apk --debug "--dart-define=API_BASE_URL=$mobileApiBaseUrl"
+        $flutterBuildArguments = @(
+            "build",
+            "apk",
+            "--debug",
+            "--dart-define=API_BASE_URL=$mobileApiBaseUrl"
+        )
+        if ($env:GOOGLE_CLIENT_ID) {
+            $flutterBuildArguments += "--dart-define=GOOGLE_CLIENT_ID=$($env:GOOGLE_CLIENT_ID)"
+        }
+        Invoke-Checked $flutter @flutterBuildArguments
     } finally {
         Pop-Location
     }

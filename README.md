@@ -29,6 +29,31 @@ Open:
 - Swagger: http://localhost:8000/api/docs/
 - Django Admin: http://localhost:8000/admin/
 
+## Google sign-in configuration
+
+Create a Google OAuth 2.0 **Web application** client, then set
+`GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the ignored `.env`. Add
+`http://localhost:3000` as an authorized JavaScript origin for local website
+testing. `GOOGLE_CLIENT_ID` is intentionally public: Next.js passes it to
+Google Identity Services and the Flutter build uses it as the backend ID-token
+audience. `GOOGLE_CLIENT_SECRET` remains in Django's server environment and is
+never compiled into either client.
+
+For Android, also register package `com.darmalton.pharmacy` and the signing
+certificate SHA-1 in the same Google Cloud project. Then build from a shell where
+the public client ID is set:
+
+```powershell
+$env:GOOGLE_CLIENT_ID="<web-client-id>.apps.googleusercontent.com"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\android-device.ps1 -Mode usb -Build -Install -Launch
+```
+
+Django accepts only a Google-signed ID token whose audience matches that client
+ID. It never accepts a client-provided Google user ID or email as proof of
+identity. Existing Gmail/Google Workspace email accounts can be linked after
+verification; other pre-existing email accounts must first use password login
+to prevent automatic account takeover.
+
 ## Windows fallback without Docker
 
 ```powershell

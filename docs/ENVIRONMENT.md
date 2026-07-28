@@ -43,3 +43,10 @@ The verified device path uses `adb reverse tcp:8000 tcp:8000` and a debug APK
 built with `API_BASE_URL=http://127.0.0.1:8000/api/v1`. Wi-Fi testing uses the
 active non-VPN private address and the Private-profile `Darmalton Django 8000`
 firewall rule.
+
+Google sign-in additionally requires `GOOGLE_CLIENT_ID` at Django/Next runtime
+and as a Flutter `--dart-define`. `GOOGLE_CLIENT_SECRET` is server-only. The
+repository contains no Google credentials. Live Android authentication also
+requires Google Cloud registration for `com.darmalton.pharmacy` plus the debug
+or release signing SHA-1. iOS Google URL-scheme/client registration and signing
+must be validated on macOS.

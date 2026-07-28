@@ -15,7 +15,7 @@ does not exist.
 | Tracking | current status and ordered status history | static map illustration, estimated progress | live GPS, assigned courier, chat and courier calls |
 | Prescription | no model or endpoint | explanatory review process | upload, preview persistence, pharmacist review and prescription-order linkage |
 | Profile | `/auth/me/`, addresses, orders | customer initials and derived order count | wallet, notification preferences, help tickets and saved payments |
-| Authentication | register, login, refresh, current user, logout token clearing | branded Dari copy | password-reset endpoint |
+| Authentication | register, password login, verified Google ID-token login, refresh, current user, logout token clearing | branded Dari copy | password-reset endpoint |
 
 ## Localization fields
 
