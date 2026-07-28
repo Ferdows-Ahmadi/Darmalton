@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { OrderCard } from "@/components/OrderCard";
 import { ApiError, apiFetch } from "@/lib/api";
+import { loginPath } from "@/lib/auth-navigation";
 import type { Order, PageResult } from "@/lib/types";
 
 export default function OrdersPage() {
@@ -17,7 +18,9 @@ export default function OrdersPage() {
     apiFetch<PageResult<Order>>("orders/")
       .then((data) => setOrders(data.results))
       .catch((err) => {
-        if (err instanceof ApiError && err.status === 401) router.push("/login");
+        if (err instanceof ApiError && err.status === 401) {
+          router.push(loginPath("/orders"));
+        }
         else setError(err instanceof Error ? err.message : "سفارش‌ها بار نشد.");
       });
   }, [router]);

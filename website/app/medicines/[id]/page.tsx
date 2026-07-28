@@ -91,7 +91,7 @@ export default async function MedicinePage({
             </small>
           </div>
           <AddToCart
-            medicineId={medicine.id}
+            medicine={medicine}
             disabled={!medicine.in_stock}
             prescriptionRequired={medicine.prescription_required}
           />

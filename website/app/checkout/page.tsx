@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { apiFetch, money } from "@/lib/api";
+import { loginPath } from "@/lib/auth-navigation";
 import type { Address, Cart, Order, PageResult } from "@/lib/types";
 
 const emptyAddress = {
@@ -41,7 +42,7 @@ export default function CheckoutPage() {
       );
       setShowForm(!list.length);
     } catch {
-      router.push("/login");
+      router.push(loginPath("/checkout"));
     }
   }, [router]);
 

@@ -2,26 +2,37 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { ApiError, apiFetch, money } from "@/lib/api";
+import { loginPath } from "@/lib/auth-navigation";
+import {
+  guestCart,
+  removeGuestCartItem,
+  updateGuestCartItem
+} from "@/lib/guest-cart";
 import { MedicineMedia } from "@/components/MedicineMedia";
 import type { Cart } from "@/lib/types";
 
 export default function CartPage() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [error, setError] = useState("");
-  const router = useRouter();
+  const [guest, setGuest] = useState(false);
 
   const load = useCallback(async function load() {
     try {
       setCart(await apiFetch<Cart>("cart/"));
+      setGuest(false);
       setError("");
     } catch (err) {
-      if (err instanceof ApiError && err.status === 401) router.push("/login");
-      else setError(err instanceof Error ? err.message : "سبد خرید بار نشد.");
+      if (err instanceof ApiError && err.status === 401) {
+        setGuest(true);
+        setCart(guestCart());
+        setError("");
+      } else {
+        setError(err instanceof Error ? err.message : "سبد خرید بار نشد.");
+      }
     }
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     void load();
@@ -29,6 +40,11 @@ export default function CartPage() {
 
   async function update(id: string, quantity: number) {
     if (quantity < 1) return;
+    if (guest) {
+      updateGuestCartItem(id.replace(/^guest:/, ""), quantity);
+      setCart(guestCart());
+      return;
+    }
     try {
       await apiFetch(`cart/items/${id}/`, {
         method: "PATCH",
@@ -41,6 +57,11 @@ export default function CartPage() {
   }
 
   async function remove(id: string) {
+    if (guest) {
+      removeGuestCartItem(id.replace(/^guest:/, ""));
+      setCart(guestCart());
+      return;
+    }
     try {
       await apiFetch(`cart/items/${id}/`, { method: "DELETE" });
       await load();
@@ -58,6 +79,12 @@ export default function CartPage() {
           ? `${cart.item_count.toLocaleString("fa-AF")} قلم محصول در سبد شما`
           : "قیمت و موجودی سبد از سرور داروخانه خوانده می‌شود."}
       </p>
+      {guest && (
+        <p className="guest-cart-note">
+          این سبد روی همین دستگاه نگهداری می‌شود. هنگام ادامه به پرداخت، برای
+          حفظ و همگام‌سازی آن وارد حساب شوید.
+        </p>
+      )}
       {error && (
         <p className="form-error" role="alert">
           {error}
@@ -130,7 +157,10 @@ export default function CartPage() {
             <span>مجموع فعلی</span>
             <strong>{money(cart.subtotal)}</strong>
             <small>مجموع نهایی و موجودی هنگام ثبت سفارش دوباره تأیید می‌شود.</small>
-            <Link className="button primary" href="/checkout">
+            <Link
+              className="button primary"
+              href={guest ? loginPath("/checkout") : "/checkout"}
+            >
               ادامه به پرداخت
             </Link>
           </div>

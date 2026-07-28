@@ -2,14 +2,64 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/auth_gate.dart';
 import '../../core/design_system.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/strings.dart';
 import '../../core/widgets.dart';
 
-class CatalogueScreen extends ConsumerWidget {
+class CatalogueScreen extends ConsumerStatefulWidget {
   const CatalogueScreen({super.key});
+
+  @override
+  ConsumerState<CatalogueScreen> createState() => _CatalogueScreenState();
+}
+
+class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
+  bool _promptScheduled = false;
+
+  void _scheduleGuestPrompt() {
+    if (_promptScheduled) return;
+    _promptScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await ref.read(guestAccountPromptProvider.notifier).markSeen();
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showMaterialBanner(
+        MaterialBanner(
+          leading: const Icon(
+            Icons.person_add_alt_1_rounded,
+            color: DarmaltonColors.teal,
+          ),
+          content: const Text(
+            'با ایجاد حساب، سبد شما حفظ می‌شود و می‌توانید سفارش و نسخه‌های خود را پیگیری کنید.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                messenger.hideCurrentMaterialBanner();
+                context.push(authenticationLocation('login', '/catalogue'));
+              },
+              child: const Text('ورود'),
+            ),
+            TextButton(
+              onPressed: () {
+                messenger.hideCurrentMaterialBanner();
+                context.push(authenticationLocation('register', '/catalogue'));
+              },
+              child: const Text('ایجاد حساب'),
+            ),
+            TextButton(
+              onPressed: messenger.hideCurrentMaterialBanner,
+              child: const Text('بعداً'),
+            ),
+          ],
+        ),
+      );
+    });
+  }
 
   Future<void> _addToCart(
     BuildContext context,
@@ -17,7 +67,7 @@ class CatalogueScreen extends ConsumerWidget {
     Medicine medicine,
   ) async {
     try {
-      await ref.read(cartProvider.notifier).add(medicine.id);
+      await ref.read(cartProvider.notifier).add(medicine);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -39,11 +89,17 @@ class CatalogueScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    ref.listen(guestAccountPromptProvider, (_, next) {
+      if (next.value == true) _scheduleGuestPrompt();
+    });
     const query = CatalogueQuery();
     final medicines = ref.watch(medicinesProvider(query));
     final categories = ref.watch(categoriesProvider);
-    final addresses = ref.watch(addressesProvider);
+    final auth = ref.watch(authProvider);
+    final AsyncValue<List<Address>> addresses = auth.value == null
+        ? const AsyncData([])
+        : ref.watch(addressesProvider);
 
     return MainScaffold(
       index: 2,

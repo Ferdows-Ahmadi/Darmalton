@@ -93,9 +93,7 @@ class _MedicineDetailState extends ConsumerState<_MedicineDetail> {
     }
     setState(() => _adding = true);
     try {
-      await ref
-          .read(cartProvider.notifier)
-          .add(medicine.id, quantity: _quantity);
+      await ref.read(cartProvider.notifier).add(medicine, quantity: _quantity);
       if (!mounted) return;
       if (checkout) {
         context.push('/checkout');

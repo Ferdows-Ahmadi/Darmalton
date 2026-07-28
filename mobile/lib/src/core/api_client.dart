@@ -2,9 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiException implements Exception {
-  const ApiException(this.message, {this.fields = const {}});
+  const ApiException(this.message, {this.fields = const {}, this.statusCode});
   final String message;
   final Map<String, dynamic> fields;
+  final int? statusCode;
 
   @override
   String toString() => message;
@@ -133,6 +134,7 @@ class ApiClient {
       return ApiException(
         details['message'] as String? ?? 'درخواست انجام نشد. دوباره کوشش کنید.',
         fields: details['fields'] as Map<String, dynamic>? ?? const {},
+        statusCode: error.response?.statusCode,
       );
     }
     if (error.type == DioExceptionType.connectionError ||
@@ -141,6 +143,9 @@ class ApiClient {
         'ارتباط با داروخانه برقرار نشد. اینترنت خود را بررسی و دوباره کوشش کنید.',
       );
     }
-    return const ApiException('مشکلی رخ داد. دوباره کوشش کنید.');
+    return ApiException(
+      'مشکلی رخ داد. دوباره کوشش کنید.',
+      statusCode: error.response?.statusCode,
+    );
   }
 }

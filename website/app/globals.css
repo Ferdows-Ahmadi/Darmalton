@@ -96,6 +96,64 @@ select:focus-visible {
   margin: 0 auto 10px;
 }
 
+.guest-welcome {
+  position: fixed;
+  z-index: 30;
+  inset-inline-start: 22px;
+  bottom: 22px;
+  width: min(390px, calc(100vw - 44px));
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 55px rgba(11, 83, 82, 0.18);
+}
+
+.guest-welcome strong {
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.guest-welcome p {
+  margin: 7px 0 14px;
+  color: var(--muted);
+}
+
+.guest-welcome > div {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.guest-welcome a,
+.guest-welcome > div button {
+  color: var(--teal-dark);
+  font-weight: 700;
+  border: 0;
+  background: none;
+}
+
+.guest-welcome-close {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 10px;
+  width: 34px;
+  height: 34px;
+  color: var(--muted);
+  border: 0;
+  background: none;
+  font-size: 26px;
+}
+
+.guest-cart-note {
+  margin: 14px 0;
+  padding: 12px 14px;
+  color: var(--teal-dark);
+  border: 1px solid var(--mint-strong);
+  border-radius: 14px;
+  background: var(--mint);
+}
+
 nav {
   display: flex;
   align-items: center;
@@ -764,6 +822,14 @@ button:disabled {
 .auth-switch a {
   color: var(--teal);
   font-weight: 700;
+}
+
+.auth-return-note {
+  padding: 10px 12px;
+  color: var(--teal-dark);
+  border-radius: 12px;
+  background: var(--mint);
+  text-align: center;
 }
 
 .auth-divider {

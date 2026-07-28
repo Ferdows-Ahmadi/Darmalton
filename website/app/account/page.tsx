@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { ApiError, apiFetch } from "@/lib/api";
+import { loginPath } from "@/lib/auth-navigation";
 import type { Address, Order, PageResult, User } from "@/lib/types";
 
 export default function AccountPage() {
@@ -25,7 +26,9 @@ export default function AccountPage() {
         setOrderCount(orders.count);
       })
       .catch((err) => {
-        if (err instanceof ApiError && err.status === 401) router.push("/login");
+        if (err instanceof ApiError && err.status === 401) {
+          router.push(loginPath("/account"));
+        }
       });
   }, [router]);
 

@@ -4,14 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { ApiError, apiFetch } from "@/lib/api";
-import type { CartItem } from "@/lib/types";
+import { addGuestCartItem } from "@/lib/guest-cart";
+import type { CartItem, Medicine } from "@/lib/types";
 
 export function AddToCart({
-  medicineId,
+  medicine,
   disabled,
   prescriptionRequired = false
 }: {
-  medicineId: string;
+  medicine: Medicine;
   disabled: boolean;
   prescriptionRequired?: boolean;
 }) {
@@ -29,12 +30,13 @@ export function AddToCart({
     try {
       await apiFetch<CartItem>("cart/items/", {
         method: "POST",
-        body: JSON.stringify({ medicine_id: medicineId, quantity: 1 })
+        body: JSON.stringify({ medicine_id: medicine.id, quantity: 1 })
       });
       router.push("/cart");
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
-        router.push("/login");
+        addGuestCartItem(medicine);
+        router.push("/cart");
       } else {
         setMessage(
           error instanceof Error

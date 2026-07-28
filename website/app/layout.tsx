@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import localFont from "next/font/local";
 
 import { Header } from "@/components/Header";
+import { GuestWelcomePrompt } from "@/components/GuestWelcomePrompt";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import "./globals.css";
 
@@ -38,6 +39,7 @@ export default async function RootLayout({
     <html lang="fa-AF" dir="rtl">
       <body className={vazirmatn.variable}>
         <Header authenticated={authenticated} />
+        <GuestWelcomePrompt authenticated={authenticated} />
         <ScrollToTop />
         <main>{children}</main>
         <footer>

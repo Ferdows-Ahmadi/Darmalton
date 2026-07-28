@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/design_system.dart';
+import 'core/auth_gate.dart';
 import 'core/strings.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
@@ -24,8 +25,16 @@ final routerProvider = Provider<GoRouter>(
     initialLocation: '/splash',
     routes: [
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
-      GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
-      GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
+      GoRoute(
+        path: '/login',
+        builder: (_, state) =>
+            LoginScreen(returnTo: state.uri.queryParameters['returnTo']),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (_, state) =>
+            RegisterScreen(returnTo: state.uri.queryParameters['returnTo']),
+      ),
       GoRoute(path: '/catalogue', builder: (_, _) => const CatalogueScreen()),
       GoRoute(path: '/categories', builder: (_, _) => const CategoriesScreen()),
       GoRoute(
@@ -40,18 +49,41 @@ final routerProvider = Provider<GoRouter>(
             MedicineDetailScreen(id: state.pathParameters['id']!),
       ),
       GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
-      GoRoute(path: '/checkout', builder: (_, _) => const CheckoutScreen()),
+      GoRoute(
+        path: '/checkout',
+        builder: (_, _) => const ProtectedRoute(
+          destination: '/checkout',
+          child: CheckoutScreen(),
+        ),
+      ),
       GoRoute(
         path: '/prescription',
-        builder: (_, _) => const PrescriptionScreen(),
+        builder: (_, _) => const ProtectedRoute(
+          destination: '/prescription',
+          child: PrescriptionScreen(),
+        ),
       ),
-      GoRoute(path: '/orders', builder: (_, _) => const OrderHistoryScreen()),
+      GoRoute(
+        path: '/orders',
+        builder: (_, _) => const ProtectedRoute(
+          destination: '/orders',
+          child: OrderHistoryScreen(),
+        ),
+      ),
       GoRoute(
         path: '/orders/:id',
-        builder: (_, state) =>
-            OrderDetailScreen(id: state.pathParameters['id']!),
+        builder: (_, state) => ProtectedRoute(
+          destination: state.uri.toString(),
+          child: OrderDetailScreen(id: state.pathParameters['id']!),
+        ),
       ),
-      GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen()),
+      GoRoute(
+        path: '/profile',
+        builder: (_, _) => const ProtectedRoute(
+          destination: '/profile',
+          child: ProfileScreen(),
+        ),
+      ),
     ],
   ),
 );

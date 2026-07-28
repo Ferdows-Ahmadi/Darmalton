@@ -12,9 +12,7 @@ class SplashScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen(authProvider, (_, next) {
-      next.whenData(
-        (user) => context.go(user == null ? '/login' : '/catalogue'),
-      );
+      next.whenData((_) => context.go('/catalogue'));
     });
     return const Scaffold(
       body: DecoratedBox(

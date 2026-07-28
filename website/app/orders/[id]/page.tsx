@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 import { ApiError, apiFetch, money, readableStatus } from "@/lib/api";
+import { loginPath } from "@/lib/auth-navigation";
 import type { Order } from "@/lib/types";
 
 export default function OrderPage() {
@@ -18,7 +19,9 @@ export default function OrderPage() {
       setOrder(await apiFetch<Order>(`orders/${id}/`));
       setError("");
     } catch (err) {
-      if (err instanceof ApiError && err.status === 401) router.push("/login");
+      if (err instanceof ApiError && err.status === 401) {
+        router.push(loginPath(`/orders/${id}`));
+      }
       else setError(err instanceof Error ? err.message : "سفارش بار نشد.");
     }
   }, [id, router]);

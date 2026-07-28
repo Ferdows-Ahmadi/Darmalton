@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/auth_gate.dart';
 import '../../core/design_system.dart';
 import '../../core/providers.dart';
 import '../../core/widgets.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({this.returnTo, super.key});
+
+  final String? returnTo;
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -18,6 +21,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _obscure = true;
+
+  void _finishAuthentication() {
+    context.go(safeReturnLocation(widget.returnTo));
+  }
 
   @override
   void dispose() {
@@ -33,14 +40,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         .login(_email.text.trim(), _password.text);
     if (!mounted) return;
     final state = ref.read(authProvider);
-    if (state.hasValue && state.value != null) context.go('/catalogue');
+    if (state.hasValue && state.value != null) _finishAuthentication();
   }
 
   Future<void> _submitGoogle() async {
     await ref.read(authProvider.notifier).loginWithGoogle();
     if (!mounted) return;
     final state = ref.read(authProvider);
-    if (state.hasValue && state.value != null) context.go('/catalogue');
+    if (state.hasValue && state.value != null) _finishAuthentication();
   }
 
   @override
@@ -61,6 +68,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   children: [
                     const Center(child: DarmaltonWordmark(height: 58)),
                     const SizedBox(height: 28),
+                    if (widget.returnTo != null) ...[
+                      const Text(
+                        'برای ادامه کار قبلی وارد حساب شوید؛ پس از ورود به همان بخش برمی‌گردید.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: DarmaltonColors.teal),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
                     Container(
                       padding: const EdgeInsets.all(22),
                       decoration: BoxDecoration(
@@ -198,8 +213,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     OutlinedButton(
                       onPressed: state.isLoading
                           ? null
-                          : () => context.push('/register'),
+                          : () => context.push(
+                              authenticationLocation(
+                                'register',
+                                safeReturnLocation(widget.returnTo),
+                              ),
+                            ),
                       child: const Text('ایجاد حساب کاربری'),
+                    ),
+                    TextButton(
+                      onPressed: state.isLoading
+                          ? null
+                          : () => context.go('/catalogue'),
+                      child: const Text('ادامه بدون ورود'),
                     ),
                     const SizedBox(height: 16),
                     const Text(

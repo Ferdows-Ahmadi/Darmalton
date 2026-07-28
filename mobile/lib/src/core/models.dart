@@ -104,6 +104,24 @@ class Medicine {
     price: json['price'] as String?,
   );
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'brand_name': brandName,
+    'brand_name_dari': brandNameDari,
+    'generic_name': genericName,
+    'strength': strength,
+    'dosage_form': {'name': dosageForm, 'name_dari': dosageFormDari},
+    'pack_size': packSize,
+    'category': {'name': categoryName, 'name_dari': categoryNameDari},
+    'manufacturer': {'name': manufacturer},
+    'description': description,
+    'description_dari': descriptionDari,
+    'image_url': imageUrl,
+    'prescription_required': prescriptionRequired,
+    'available_quantity': availableQuantity,
+    'price': price,
+  };
+
   final String id;
   final String brandName;
   final String brandNameDari;

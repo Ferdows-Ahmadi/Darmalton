@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/auth_gate.dart';
 import '../../core/design_system.dart';
 import '../../core/providers.dart';
 import '../../core/widgets.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
-  const RegisterScreen({super.key});
+  const RegisterScreen({this.returnTo, super.key});
+
+  final String? returnTo;
 
   @override
   ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
@@ -21,6 +24,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _phone = TextEditingController();
   final _password = TextEditingController();
   bool _obscure = true;
+
+  void _finishAuthentication() {
+    context.go(safeReturnLocation(widget.returnTo));
+  }
 
   @override
   void dispose() {
@@ -40,14 +47,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       'password': _password.text,
     });
     if (mounted && ref.read(authProvider).value != null) {
-      context.go('/catalogue');
+      _finishAuthentication();
     }
   }
 
   Future<void> _submitGoogle() async {
     await ref.read(authProvider.notifier).loginWithGoogle();
     if (mounted && ref.read(authProvider).value != null) {
-      context.go('/catalogue');
+      _finishAuthentication();
     }
   }
 
@@ -199,8 +206,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ],
                   const SizedBox(height: 10),
                   TextButton(
-                    onPressed: state.isLoading ? null : () => context.pop(),
+                    onPressed: state.isLoading
+                        ? null
+                        : () => context.go(
+                            authenticationLocation(
+                              'login',
+                              safeReturnLocation(widget.returnTo),
+                            ),
+                          ),
                     child: const Text('قبلاً حساب دارید؟ ورود'),
+                  ),
+                  TextButton(
+                    onPressed: state.isLoading
+                        ? null
+                        : () => context.go('/catalogue'),
+                    child: const Text('ادامه بدون ایجاد حساب'),
                   ),
                 ],
               ),

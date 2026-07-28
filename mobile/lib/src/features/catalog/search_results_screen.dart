@@ -35,7 +35,7 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
 
   Future<void> _add(Medicine medicine) async {
     try {
-      await ref.read(cartProvider.notifier).add(medicine.id);
+      await ref.read(cartProvider.notifier).add(medicine);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${medicine.displayName} به سبد افزوده شد.')),
