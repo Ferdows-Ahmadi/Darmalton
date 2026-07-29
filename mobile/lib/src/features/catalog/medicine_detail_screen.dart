@@ -19,12 +19,12 @@ class MedicineDetailScreen extends ConsumerWidget {
     return MainScaffold(
       index: 2,
       child: medicine.when(
-        loading: () => const Scaffold(
-          appBar: _DetailAppBar(),
-          body: Center(child: CircularProgressIndicator()),
+        loading: () => Scaffold(
+          appBar: _DetailAppBar(medicineId: id),
+          body: const Center(child: CircularProgressIndicator()),
         ),
         error: (error, _) => Scaffold(
-          appBar: const _DetailAppBar(),
+          appBar: _DetailAppBar(medicineId: id),
           body: AsyncMessage(
             message: '$error',
             onRetry: () => ref.invalidate(medicineProvider(id)),
@@ -36,36 +36,44 @@ class MedicineDetailScreen extends ConsumerWidget {
   }
 }
 
-class _DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const _DetailAppBar();
+class _DetailAppBar extends ConsumerWidget implements PreferredSizeWidget {
+  const _DetailAppBar({required this.medicineId});
+
+  final String medicineId;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
-  Widget build(BuildContext context) => AppBar(
-    title: const DarmaltonWordmark(height: 32),
-    actions: [
-      IconButton(
-        tooltip: 'اشتراک‌گذاری',
-        onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('اشتراک‌گذاری در نسخه بعدی فعال می‌شود.'),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favorites = ref.watch(favoritesProvider).value ?? const <String>{};
+    final favorite = favorites.contains(medicineId);
+    return AppBar(
+      title: const DarmaltonWordmark(height: 32),
+      actions: [
+        IconButton(
+          tooltip: 'اشتراک‌گذاری',
+          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('اشتراک‌گذاری در نسخه بعدی فعال می‌شود.'),
+            ),
+          ),
+          icon: const Icon(Icons.share_outlined),
+        ),
+        IconButton(
+          tooltip: favorite
+              ? 'حذف از علاقه‌مندی‌ها'
+              : 'افزودن به علاقه‌مندی‌ها',
+          onPressed: () =>
+              ref.read(favoritesProvider.notifier).toggle(medicineId),
+          icon: Icon(
+            favorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            color: favorite ? DarmaltonColors.danger : null,
           ),
         ),
-        icon: const Icon(Icons.share_outlined),
-      ),
-      IconButton(
-        tooltip: 'ذخیره محصول',
-        onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('ذخیره محصولات در نسخه بعدی فعال می‌شود.'),
-          ),
-        ),
-        icon: const Icon(Icons.favorite_border_rounded),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 }
 
 class _MedicineDetail extends ConsumerStatefulWidget {
@@ -121,7 +129,7 @@ class _MedicineDetailState extends ConsumerState<_MedicineDetail> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: const _DetailAppBar(),
+    appBar: _DetailAppBar(medicineId: medicine.id),
     body: CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
@@ -248,8 +256,8 @@ class _MedicineDetailState extends ConsumerState<_MedicineDetail> {
           ? GradientButton(
               label: 'ارسال نسخه برای بررسی',
               icon: Icons.upload_file_rounded,
-            onPressed: () =>
-                context.push('/prescription?medicineId=${medicine.id}'),
+              onPressed: () =>
+                  context.push('/prescription?medicineId=${medicine.id}'),
             )
           : Row(
               children: [

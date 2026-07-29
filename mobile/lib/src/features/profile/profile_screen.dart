@@ -54,7 +54,7 @@ class ProfileScreen extends ConsumerWidget {
           actions: [
             IconButton(
               tooltip: 'تنظیمات',
-              onPressed: () => _comingSoon(context, 'تنظیمات پیشرفته'),
+              onPressed: () => context.push('/settings'),
               icon: const Icon(Icons.settings_outlined),
             ),
           ],

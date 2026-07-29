@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'core/design_system.dart';
 import 'core/auth_gate.dart';
+import 'core/app_settings.dart';
 import 'core/strings.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
@@ -19,6 +20,7 @@ import 'features/orders/order_detail_screen.dart';
 import 'features/orders/order_history_screen.dart';
 import 'features/prescription/prescription_screen.dart';
 import 'features/profile/profile_screen.dart';
+import 'features/settings/settings_screen.dart';
 
 final routerProvider = Provider<GoRouter>(
   (ref) => GoRouter(
@@ -86,6 +88,7 @@ final routerProvider = Provider<GoRouter>(
           child: ProfileScreen(),
         ),
       ),
+      GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
     ],
   ),
 );
@@ -94,21 +97,34 @@ class PharmacyApp extends ConsumerWidget {
   const PharmacyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => MaterialApp.router(
-    title: DariStrings.appName,
-    debugShowCheckedModeBanner: false,
-    locale: const Locale('fa', 'AF'),
-    supportedLocales: const [Locale('fa', 'AF')],
-    localizationsDelegates: const [
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
-    ],
-    theme: buildDarmaltonTheme(),
-    builder: (context, child) => Directionality(
-      textDirection: TextDirection.rtl,
-      child: child ?? const SizedBox.shrink(),
-    ),
-    routerConfig: ref.watch(routerProvider),
-  );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings =
+        ref.watch(appSettingsProvider).value ?? const AppSettings();
+    return MaterialApp.router(
+      title: DariStrings.appName,
+      debugShowCheckedModeBanner: false,
+      locale: const Locale('fa', 'AF'),
+      supportedLocales: const [Locale('fa', 'AF')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      theme: buildDarmaltonTheme(),
+      builder: (context, child) {
+        final media = MediaQuery.of(context);
+        return MediaQuery(
+          data: media.copyWith(
+            textScaler: TextScaler.linear(settings.largerText ? 1.12 : 1),
+            disableAnimations: settings.reduceMotion,
+          ),
+          child: Directionality(
+            textDirection: TextDirection.rtl,
+            child: child ?? const SizedBox.shrink(),
+          ),
+        );
+      },
+      routerConfig: ref.watch(routerProvider),
+    );
+  }
 }

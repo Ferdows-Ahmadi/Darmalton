@@ -10,21 +10,31 @@ const _guestPromptKey = 'darmalton_guest_prompt_seen_v1';
 class GuestCartEntry {
   const GuestCartEntry({required this.medicine, required this.quantity});
 
-  factory GuestCartEntry.fromJson(Map<String, dynamic> json) => GuestCartEntry(
-    medicine: Medicine.fromJson(json['medicine'] as Map<String, dynamic>),
-    quantity: json['quantity'] as int,
-  );
+  factory GuestCartEntry.fromJson(Map<String, dynamic> json) {
+    final cached = Map<String, dynamic>.from(
+      json['medicine'] as Map<String, dynamic>,
+    );
+    cached['price'] = null;
+    cached['available_quantity'] = 0;
+    return GuestCartEntry(
+      medicine: Medicine.fromJson(cached),
+      quantity: json['quantity'] as int,
+    );
+  }
 
   final Medicine medicine;
   final int quantity;
 
   Map<String, dynamic> toJson() => {
-    'medicine': medicine.toJson(),
+    'medicine': medicine.toCacheJson(),
     'quantity': quantity,
   };
 
-  GuestCartEntry copyWith({int? quantity}) =>
-      GuestCartEntry(medicine: medicine, quantity: quantity ?? this.quantity);
+  GuestCartEntry copyWith({Medicine? medicine, int? quantity}) =>
+      GuestCartEntry(
+        medicine: medicine ?? this.medicine,
+        quantity: quantity ?? this.quantity,
+      );
 }
 
 abstract interface class GuestSessionStore {

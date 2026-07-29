@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'api_client.dart';
+import 'app_settings.dart';
 import 'google_identity_service.dart';
 import 'guest_session.dart';
 import 'models.dart';
@@ -12,6 +13,18 @@ final guestSessionStoreProvider = Provider<GuestSessionStore>(
 final googleIdentityProvider = Provider<GoogleIdentityService>(
   (ref) => PlatformGoogleIdentityService(),
 );
+
+final offlineProvider = NotifierProvider<OfflineController, bool>(
+  OfflineController.new,
+);
+
+class OfflineController extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void markOffline() => state = true;
+  void markOnline() => state = false;
+}
 
 final authProvider = AsyncNotifierProvider<AuthController, User?>(
   AuthController.new,
@@ -95,41 +108,131 @@ class CatalogueQuery {
   int get hashCode => Object.hash(search, category);
 }
 
-final categoriesProvider = FutureProvider<List<Category>>((ref) async {
-  final response = await ref
-      .read(apiClientProvider)
-      .get<List<dynamic>>('/categories/');
-  return response.data!
-      .map((item) => Category.fromJson(item as Map<String, dynamic>))
-      .toList();
-});
-
-final medicinesProvider = FutureProvider.family<List<Medicine>, CatalogueQuery>(
-  (ref, query) async {
+final categoriesProvider = StreamProvider<List<Category>>((ref) async* {
+  final cache = ref.read(localCacheProvider);
+  final cached = await cache.readCategories();
+  if (cached.isNotEmpty) yield cached;
+  try {
     final response = await ref
         .read(apiClientProvider)
-        .get<Map<String, dynamic>>(
-          '/medicines/',
-          query: {
-            if (query.search.isNotEmpty) 'search': query.search,
-            if (query.category.isNotEmpty) 'category': query.category,
-          },
-        );
-    return (response.data!['results'] as List<dynamic>)
-        .map((item) => Medicine.fromJson(item as Map<String, dynamic>))
+        .get<List<dynamic>>('/categories/');
+    final fresh = response.data!
+        .map((item) => Category.fromJson(item as Map<String, dynamic>))
         .toList();
+    await cache.writeCategories(fresh);
+    ref.read(offlineProvider.notifier).markOnline();
+    yield fresh;
+  } on ApiException {
+    ref.read(offlineProvider.notifier).markOffline();
+    if (cached.isEmpty) rethrow;
+  }
+});
+
+final medicinesProvider = StreamProvider.family<List<Medicine>, CatalogueQuery>(
+  (ref, query) async* {
+    final cache = ref.read(localCacheProvider);
+    final cached = await cache.readMedicines(
+      search: query.search,
+      category: query.category,
+    );
+    if (cached.isNotEmpty) yield cached;
+    try {
+      final response = await ref
+          .read(apiClientProvider)
+          .get<Map<String, dynamic>>(
+            '/medicines/',
+            query: {
+              if (query.search.isNotEmpty) 'search': query.search,
+              if (query.category.isNotEmpty) 'category': query.category,
+            },
+          );
+      final fresh = (response.data!['results'] as List<dynamic>)
+          .map((item) => Medicine.fromJson(item as Map<String, dynamic>))
+          .toList();
+      await cache.writeMedicines(
+        fresh,
+        search: query.search,
+        category: query.category,
+      );
+      ref.read(offlineProvider.notifier).markOnline();
+      yield fresh;
+    } on ApiException {
+      ref.read(offlineProvider.notifier).markOffline();
+      if (cached.isEmpty) rethrow;
+    }
   },
 );
 
-final medicineProvider = FutureProvider.family<Medicine, String>((
+final medicineProvider = StreamProvider.family<Medicine, String>((
   ref,
   id,
-) async {
-  final response = await ref
-      .read(apiClientProvider)
-      .get<Map<String, dynamic>>('/medicines/$id/');
-  return Medicine.fromJson(response.data!);
+) async* {
+  final cache = ref.read(localCacheProvider);
+  final cachedItems = await cache.readMedicines();
+  final cached = cachedItems.where((item) => item.id == id).firstOrNull;
+  if (cached != null) yield cached;
+  try {
+    final response = await ref
+        .read(apiClientProvider)
+        .get<Map<String, dynamic>>('/medicines/$id/');
+    final fresh = Medicine.fromJson(response.data!);
+    final merged = [...cachedItems.where((item) => item.id != id), fresh];
+    await cache.writeMedicines(merged);
+    ref.read(offlineProvider.notifier).markOnline();
+    yield fresh;
+  } on ApiException {
+    ref.read(offlineProvider.notifier).markOffline();
+    if (cached == null) rethrow;
+  }
 });
+
+final favoritesProvider =
+    AsyncNotifierProvider<FavoritesController, Set<String>>(
+      FavoritesController.new,
+    );
+
+class FavoritesController extends AsyncNotifier<Set<String>> {
+  @override
+  Future<Set<String>> build() => ref.read(localCacheProvider).readFavoriteIds();
+
+  Future<void> toggle(String medicineId) async {
+    final next = {...?state.value};
+    if (!next.add(medicineId)) next.remove(medicineId);
+    state = AsyncData(next);
+    await ref.read(localCacheProvider).writeFavoriteIds(next);
+  }
+}
+
+final recentSearchesProvider =
+    AsyncNotifierProvider<RecentSearchesController, List<String>>(
+      RecentSearchesController.new,
+    );
+
+class RecentSearchesController extends AsyncNotifier<List<String>> {
+  @override
+  Future<List<String>> build() =>
+      ref.read(localCacheProvider).readRecentSearches();
+
+  Future<void> remember(String query) async {
+    final normalized = query.trim();
+    if (normalized.isEmpty) return;
+    final settings = ref.read(appSettingsProvider).value;
+    if (settings?.rememberSearches == false) return;
+    final next = [
+      normalized,
+      ...?state.value?.where(
+        (item) => item.toLowerCase() != normalized.toLowerCase(),
+      ),
+    ].take(8).toList();
+    state = AsyncData(next);
+    await ref.read(localCacheProvider).writeRecentSearches(next);
+  }
+
+  Future<void> clear() async {
+    state = const AsyncData([]);
+    await ref.read(localCacheProvider).writeRecentSearches(const []);
+  }
+}
 
 final cartProvider = AsyncNotifierProvider<CartController, Cart>(
   CartController.new,
@@ -160,7 +263,30 @@ class CartController extends AsyncNotifier<Cart> {
   }
 
   Future<Cart> _loadGuest() async {
-    final entries = await _guestStore.loadCart();
+    final cachedEntries = await _guestStore.loadCart();
+    final entries = <GuestCartEntry>[];
+    var networkFailed = false;
+    for (final entry in cachedEntries) {
+      try {
+        final response = await _api.get<Map<String, dynamic>>(
+          '/medicines/${entry.medicine.id}/',
+        );
+        entries.add(
+          entry.copyWith(medicine: Medicine.fromJson(response.data!)),
+        );
+      } on ApiException {
+        networkFailed = true;
+        entries.add(entry);
+      }
+    }
+    if (entries.isNotEmpty) {
+      await _guestStore.saveCart(entries);
+      if (networkFailed) {
+        ref.read(offlineProvider.notifier).markOffline();
+      } else {
+        ref.read(offlineProvider.notifier).markOnline();
+      }
+    }
     final items = entries
         .map(
           (entry) => CartItem(
@@ -232,10 +358,7 @@ class CartController extends AsyncNotifier<Cart> {
       if (prescriptionId != null) {
         payload['prescription_id'] = prescriptionId;
       }
-      await _api.post(
-        '/cart/items/',
-        data: payload,
-      );
+      await _api.post('/cart/items/', data: payload);
     }
     await refresh();
   }
@@ -383,9 +506,6 @@ class PrescriptionRepository {
   }
 
   Future<void> respond(String id, String message) async {
-    await _api.post(
-      '/prescriptions/$id/respond/',
-      data: {'response': message},
-    );
+    await _api.post('/prescriptions/$id/respond/', data: {'response': message});
   }
 }

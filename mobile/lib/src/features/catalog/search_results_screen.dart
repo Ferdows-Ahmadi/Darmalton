@@ -27,6 +27,11 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
   bool _inStockOnly = false;
   bool? _prescriptionFilter;
 
+  Future<void> _submitSearch(String value) async {
+    await ref.read(recentSearchesProvider.notifier).remember(value);
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
     _search.dispose();
@@ -142,6 +147,8 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
     );
     final medicines = ref.watch(medicinesProvider(query));
     final categories = ref.watch(categoriesProvider);
+    final recentSearches = ref.watch(recentSearchesProvider);
+    final favorites = ref.watch(favoritesProvider).value ?? const <String>{};
 
     return Scaffold(
       appBar: AppBar(title: const Text(DariStrings.search)),
@@ -153,7 +160,7 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
               controller: _search,
               autofocus: widget.initialCategory.isEmpty,
               textInputAction: TextInputAction.search,
-              onSubmitted: (_) => setState(() {}),
+              onSubmitted: _submitSearch,
               decoration: InputDecoration(
                 hintText: DariStrings.searchHint,
                 prefixIcon: const Icon(Icons.search_rounded),
@@ -170,6 +177,51 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
               ),
             ),
           ),
+          if (_search.text.isEmpty)
+            recentSearches.when(
+              loading: () => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
+              data: (items) => items.isEmpty
+                  ? const SizedBox.shrink()
+                  : SizedBox(
+                      height: 42,
+                      child: ListView(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsetsDirectional.only(
+                              end: 8,
+                              top: 10,
+                            ),
+                            child: Text(
+                              'جستجوهای اخیر:',
+                              style: TextStyle(fontSize: 11),
+                            ),
+                          ),
+                          ...items.map(
+                            (item) => Padding(
+                              padding: const EdgeInsetsDirectional.only(end: 7),
+                              child: ActionChip(
+                                label: Text(item),
+                                onPressed: () {
+                                  _search.text = item;
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'پاک‌کردن جستجوهای اخیر',
+                            onPressed: () => ref
+                                .read(recentSearchesProvider.notifier)
+                                .clear(),
+                            icon: const Icon(Icons.delete_outline_rounded),
+                          ),
+                        ],
+                      ),
+                    ),
+            ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -283,6 +335,10 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                     return _SearchMedicineCard(
                       medicine: medicine,
                       onAdd: () => _add(medicine),
+                      favorite: favorites.contains(medicine.id),
+                      onFavorite: () => ref
+                          .read(favoritesProvider.notifier)
+                          .toggle(medicine.id),
                     );
                   },
                 );
@@ -322,10 +378,17 @@ class _CategoryChoice extends StatelessWidget {
 }
 
 class _SearchMedicineCard extends StatelessWidget {
-  const _SearchMedicineCard({required this.medicine, required this.onAdd});
+  const _SearchMedicineCard({
+    required this.medicine,
+    required this.onAdd,
+    required this.favorite,
+    required this.onFavorite,
+  });
 
   final Medicine medicine;
   final VoidCallback onAdd;
+  final bool favorite;
+  final VoidCallback onFavorite;
 
   @override
   Widget build(BuildContext context) => DarmaltonCard(
@@ -364,16 +427,16 @@ class _SearchMedicineCard extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        tooltip: DariStrings.comingSoon,
-                        onPressed: () =>
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'ذخیره محصولات در نسخه بعدی فعال می‌شود.',
-                                ),
-                              ),
-                            ),
-                        icon: const Icon(Icons.favorite_border_rounded),
+                        tooltip: favorite
+                            ? 'حذف از علاقه‌مندی‌ها'
+                            : 'افزودن به علاقه‌مندی‌ها',
+                        onPressed: onFavorite,
+                        icon: Icon(
+                          favorite
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          color: favorite ? DarmaltonColors.danger : null,
+                        ),
                       ),
                     ],
                   ),

@@ -51,6 +51,13 @@ class Category {
   final String slug;
 
   String get displayName => nameDari.isEmpty ? name : nameDari;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'name_dari': nameDari,
+    'slug': slug,
+  };
 }
 
 class Medicine {
@@ -120,6 +127,14 @@ class Medicine {
     'prescription_required': prescriptionRequired,
     'available_quantity': availableQuantity,
     'price': price,
+  };
+
+  Map<String, dynamic> toCacheJson() => {
+    ...toJson(),
+    // Price and stock are intentionally never persisted. Cached catalogue
+    // entries are descriptive metadata only and must be refreshed before sale.
+    'available_quantity': 0,
+    'price': null,
   };
 
   final String id;
@@ -414,18 +429,14 @@ class Prescription {
     expiresAt: json['expires_at'] == null
         ? null
         : DateTime.parse(json['expires_at'] as String),
-    authorizedMedicines:
-        (json['authorized_medicines'] as List<dynamic>? ?? [])
-            .map(
-              (item) => AuthorizedMedicine.fromJson(
-                item as Map<String, dynamic>,
-              ),
-            )
-            .toList(),
+    authorizedMedicines: (json['authorized_medicines'] as List<dynamic>? ?? [])
+        .map(
+          (item) => AuthorizedMedicine.fromJson(item as Map<String, dynamic>),
+        )
+        .toList(),
     history: (json['history'] as List<dynamic>? ?? [])
         .map(
-          (item) =>
-              PrescriptionHistory.fromJson(item as Map<String, dynamic>),
+          (item) => PrescriptionHistory.fromJson(item as Map<String, dynamic>),
         )
         .toList(),
   );

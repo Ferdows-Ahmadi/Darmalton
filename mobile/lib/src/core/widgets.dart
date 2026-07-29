@@ -1,9 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'app_settings.dart';
 import 'design_system.dart';
 import 'models.dart';
+import 'providers.dart';
 import 'strings.dart';
 
 class AsyncMessage extends StatelessWidget {
@@ -103,56 +107,141 @@ class EmptyMessage extends StatelessWidget {
   );
 }
 
-class MainScaffold extends StatelessWidget {
+class MainScaffold extends ConsumerStatefulWidget {
   const MainScaffold({required this.child, required this.index, super.key});
 
   final Widget child;
   final int index;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    body: child,
-    bottomNavigationBar: NavigationBar(
-      selectedIndex: index,
-      onDestinationSelected: (value) {
-        const routes = [
-          '/categories',
-          '/orders',
-          '/catalogue',
-          '/cart',
-          '/profile',
-        ];
-        context.go(routes[value]);
-      },
-      destinations: const [
-        NavigationDestination(
-          icon: Icon(Icons.grid_view_outlined),
-          selectedIcon: Icon(Icons.grid_view_rounded),
-          label: DariStrings.categories,
+  ConsumerState<MainScaffold> createState() => _MainScaffoldState();
+}
+
+class _MainScaffoldState extends ConsumerState<MainScaffold> {
+  DateTime? _lastBackPress;
+
+  void _handleBack(bool didPop, Object? result) {
+    if (didPop) return;
+    if (widget.index != 2) {
+      context.go('/catalogue');
+      return;
+    }
+    final now = DateTime.now();
+    if (_lastBackPress != null &&
+        now.difference(_lastBackPress!) < const Duration(seconds: 2)) {
+      SystemNavigator.pop();
+      return;
+    }
+    _lastBackPress = now;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('برای خروج، دکمه برگشت را دوباره فشار دهید.'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final offline = ref.watch(offlineProvider);
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: _handleBack,
+      child: Scaffold(
+        body: Stack(
+          children: [
+            Positioned.fill(child: widget.child),
+            if (offline)
+              Positioned(
+                top: MediaQuery.paddingOf(context).top + 6,
+                left: 14,
+                right: 14,
+                child: Material(
+                  elevation: 3,
+                  color: const Color(0xFFFFF4D8),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 9,
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.cloud_off_outlined,
+                          size: 20,
+                          color: Color(0xFF9B6813),
+                        ),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            'آفلاین — قیمت و موجودی تا اتصال دوباره نمایش داده نمی‌شود.',
+                            style: TextStyle(
+                              color: Color(0xFF79510D),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            ref.invalidate(categoriesProvider);
+                            ref.invalidate(
+                              medicinesProvider(const CatalogueQuery()),
+                            );
+                          },
+                          child: const Text('تلاش'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
-        NavigationDestination(
-          icon: Icon(Icons.receipt_long_outlined),
-          selectedIcon: Icon(Icons.receipt_long_rounded),
-          label: DariStrings.orders,
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: widget.index,
+          onDestinationSelected: (value) {
+            const routes = [
+              '/categories',
+              '/orders',
+              '/catalogue',
+              '/cart',
+              '/profile',
+            ];
+            context.go(routes[value]);
+          },
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.grid_view_outlined),
+              selectedIcon: Icon(Icons.grid_view_rounded),
+              label: DariStrings.categories,
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.receipt_long_outlined),
+              selectedIcon: Icon(Icons.receipt_long_rounded),
+              label: DariStrings.orders,
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home_rounded),
+              label: DariStrings.home,
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.shopping_cart_outlined),
+              selectedIcon: Icon(Icons.shopping_cart_rounded),
+              label: DariStrings.cart,
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline_rounded),
+              selectedIcon: Icon(Icons.person_rounded),
+              label: DariStrings.profile,
+            ),
+          ],
         ),
-        NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          selectedIcon: Icon(Icons.home_rounded),
-          label: DariStrings.home,
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.shopping_cart_outlined),
-          selectedIcon: Icon(Icons.shopping_cart_rounded),
-          label: DariStrings.cart,
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.person_outline_rounded),
-          selectedIcon: Icon(Icons.person_rounded),
-          label: DariStrings.profile,
-        ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 class DarmaltonWordmark extends StatelessWidget {
@@ -243,14 +332,14 @@ class MedicineImage extends StatelessWidget {
     return uri?.path.endsWith('/static/medicine-fallback.svg') ?? false;
   }
 
-  @override
-  Widget build(BuildContext context) => Container(
+  Widget _buildImage(bool cacheThumbnails) => Container(
     color: DarmaltonColors.mint,
     padding: padding,
     alignment: Alignment.center,
     child: _usesFallback
         ? const _MedicineFallback()
-        : CachedNetworkImage(
+        : cacheThumbnails
+        ? CachedNetworkImage(
             imageUrl: medicine.imageUrl,
             width: double.infinity,
             height: double.infinity,
@@ -260,8 +349,32 @@ class MedicineImage extends StatelessWidget {
             maxWidthDiskCache: 1600,
             placeholder: (_, _) => const SkeletonBox(),
             errorWidget: (_, _, _) => const _MedicineFallback(),
+          )
+        : Image.network(
+            medicine.imageUrl,
+            width: double.infinity,
+            height: double.infinity,
+            fit: fit,
+            cacheWidth: 800,
+            loadingBuilder: (context, child, progress) =>
+                progress == null ? child : const SkeletonBox(),
+            errorBuilder: (_, _, _) => const _MedicineFallback(),
           ),
   );
+
+  @override
+  Widget build(BuildContext context) {
+    try {
+      ProviderScope.containerOf(context, listen: false);
+    } on StateError {
+      return _buildImage(true);
+    }
+    return Consumer(
+      builder: (context, ref, _) => _buildImage(
+        ref.watch(appSettingsProvider).value?.cacheThumbnails ?? true,
+      ),
+    );
+  }
 }
 
 class _MedicineFallback extends StatelessWidget {
