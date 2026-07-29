@@ -3,7 +3,14 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import Category, DosageForm, Manufacturer, Medicine, MedicineImage
+from .models import (
+    Category,
+    DosageForm,
+    InventoryBatch,
+    Manufacturer,
+    Medicine,
+    MedicineImage,
+)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -140,6 +147,7 @@ class MedicineSerializer(serializers.ModelSerializer):
             cache = list(
                 obj.batches.filter(
                     is_active=True,
+                    quality_status=InventoryBatch.QualityStatus.APPROVED,
                     expiry_date__gt=timezone.localdate(),
                     available_quantity__gt=0,
                     branch__status="ACTIVE",

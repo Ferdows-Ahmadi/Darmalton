@@ -6,6 +6,8 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from catalog.models import InventoryBatch, Medicine, PharmacyBranch
+from operations.models import InventoryTransaction
+from operations.services import record_inventory_change
 from prescriptions.services import validate_prescription_authorization
 
 from .models import Cart, Order, OrderItem, OrderItemAllocation, OrderStatusHistory
@@ -111,6 +113,7 @@ def create_order(*, customer, address):
                 branch=cart.branch,
                 medicine=medicine,
                 is_active=True,
+                quality_status=InventoryBatch.QualityStatus.APPROVED,
                 expiry_date__gt=today,
                 available_quantity__gt=0,
             )
@@ -165,8 +168,17 @@ def create_order(*, customer, address):
             line_total=line_total,
         )
         for batch, quantity in allocations:
-            batch.available_quantity -= quantity
-            batch.save(update_fields=("available_quantity", "updated_at"))
+            record_inventory_change(
+                batch=batch,
+                transaction_type=InventoryTransaction.TransactionType.SALE,
+                direction=InventoryTransaction.Direction.DEDUCTION,
+                quantity=quantity,
+                actor=customer,
+                order=order,
+                reference=order.order_number,
+                unit_cost=batch.purchase_price,
+                notes=f"Allocated to {order_item.medicine_name}",
+            )
             OrderItemAllocation.objects.create(
                 order_item=order_item, batch=batch, quantity=quantity
             )

@@ -1,10 +1,14 @@
 from django.contrib import admin, messages
 
 from .models import (
+    InventoryQualityInspection,
+    InventoryTransaction,
     PurchaseOrder,
     PurchaseOrderItem,
     PurchaseOrderStatusHistory,
+    StorageLocation,
     Supplier,
+    Warehouse,
 )
 from .services import transition_purchase_order
 
@@ -198,3 +202,98 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
     )
     actions = (submit_purchase_orders, approve_purchase_orders)
     inlines = (PurchaseOrderItemInline, PurchaseOrderStatusHistoryInline)
+
+
+@admin.register(Warehouse)
+class WarehouseAdmin(admin.ModelAdmin):
+    list_display = ("code", "name", "branch", "is_active", "updated_at")
+    list_filter = ("is_active", "branch")
+    search_fields = ("code", "name", "branch__name", "address")
+    autocomplete_fields = ("branch",)
+
+
+@admin.register(StorageLocation)
+class StorageLocationAdmin(admin.ModelAdmin):
+    list_display = (
+        "code",
+        "warehouse",
+        "rack",
+        "shelf",
+        "temperature_zone",
+        "is_active",
+    )
+    list_filter = ("is_active", "warehouse", "temperature_zone")
+    search_fields = ("code", "name", "rack", "shelf", "warehouse__code")
+    autocomplete_fields = ("warehouse",)
+
+
+@admin.register(InventoryTransaction)
+class InventoryTransactionAdmin(admin.ModelAdmin):
+    list_display = (
+        "created_at",
+        "transaction_type",
+        "direction",
+        "batch",
+        "quantity",
+        "previous_quantity",
+        "resulting_quantity",
+        "performed_by",
+    )
+    list_filter = ("transaction_type", "direction", "created_at")
+    search_fields = (
+        "batch__batch_number",
+        "batch__medicine__sku",
+        "batch__medicine__brand_name",
+        "reference",
+        "performed_by__email",
+    )
+    readonly_fields = (
+        "id",
+        "batch",
+        "transaction_type",
+        "direction",
+        "quantity",
+        "previous_quantity",
+        "resulting_quantity",
+        "unit_cost",
+        "purchase_order",
+        "order",
+        "reference",
+        "performed_by",
+        "verified_by",
+        "notes",
+        "created_at",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(InventoryQualityInspection)
+class InventoryQualityInspectionAdmin(admin.ModelAdmin):
+    list_display = ("created_at", "batch", "from_status", "to_status", "inspected_by")
+    list_filter = ("from_status", "to_status", "created_at")
+    search_fields = (
+        "batch__batch_number",
+        "batch__medicine__sku",
+        "batch__medicine__brand_name",
+        "inspected_by__email",
+    )
+    readonly_fields = (
+        "id",
+        "batch",
+        "from_status",
+        "to_status",
+        "inspected_by",
+        "notes",
+        "created_at",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

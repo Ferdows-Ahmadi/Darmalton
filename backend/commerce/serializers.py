@@ -18,6 +18,7 @@ def medicine_stock(medicine, branch):
             medicine=medicine,
             branch=branch,
             is_active=True,
+            quality_status=InventoryBatch.QualityStatus.APPROVED,
             expiry_date__gt=timezone.localdate(),
         ).aggregate(total=Sum("available_quantity"))["total"]
         or 0
@@ -30,6 +31,7 @@ def medicine_price(medicine, branch):
             medicine=medicine,
             branch=branch,
             is_active=True,
+            quality_status=InventoryBatch.QualityStatus.APPROVED,
             expiry_date__gt=timezone.localdate(),
             available_quantity__gt=0,
         )

@@ -1,4 +1,7 @@
+import uuid
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import (
     MaxValueValidator,
     MinValueValidator,
@@ -6,7 +9,7 @@ from django.core.validators import (
 )
 from django.db import models
 
-from catalog.models import Medicine, PharmacyBranch
+from catalog.models import InventoryBatch, Medicine, PharmacyBranch
 from common.models import TimeStampedUUIDModel
 
 
@@ -240,3 +243,193 @@ class PurchaseOrderStatusHistory(models.Model):
             f"{self.purchase_order.purchase_order_number}: "
             f"{self.from_status or 'NEW'} -> {self.to_status}"
         )
+
+
+class Warehouse(TimeStampedUUIDModel):
+    branch = models.ForeignKey(
+        PharmacyBranch,
+        on_delete=models.RESTRICT,
+        related_name="warehouses",
+    )
+    code = models.CharField(max_length=32)
+    name = models.CharField(max_length=160)
+    address = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ("branch__name", "code")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("branch", "code"),
+                name="unique_warehouse_code_per_branch",
+            )
+        ]
+        indexes = [models.Index(fields=("branch", "is_active"))]
+
+    def save(self, *args, **kwargs):
+        self.code = self.code.strip().upper()
+        self.name = self.name.strip()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.branch} / {self.code}"
+
+
+class StorageLocation(TimeStampedUUIDModel):
+    warehouse = models.ForeignKey(
+        Warehouse,
+        on_delete=models.RESTRICT,
+        related_name="locations",
+    )
+    code = models.CharField(max_length=40)
+    name = models.CharField(max_length=160, blank=True)
+    rack = models.CharField(max_length=40)
+    shelf = models.CharField(max_length=40)
+    temperature_zone = models.CharField(max_length=80, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ("warehouse__code", "rack", "shelf", "code")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("warehouse", "code"),
+                name="unique_storage_location_code_per_warehouse",
+            ),
+            models.UniqueConstraint(
+                fields=("warehouse", "rack", "shelf"),
+                name="unique_rack_shelf_per_warehouse",
+            ),
+        ]
+        indexes = [models.Index(fields=("warehouse", "is_active"))]
+
+    def save(self, *args, **kwargs):
+        self.code = self.code.strip().upper()
+        self.rack = self.rack.strip().upper()
+        self.shelf = self.shelf.strip().upper()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.warehouse.code} / {self.rack} / {self.shelf}"
+
+
+class InventoryTransaction(models.Model):
+    class TransactionType(models.TextChoices):
+        PURCHASE = "PURCHASE", "Purchase receipt"
+        SALE = "SALE", "Sale"
+        CUSTOMER_RETURN = "CUSTOMER_RETURN", "Customer return"
+        SUPPLIER_RETURN = "SUPPLIER_RETURN", "Supplier return"
+        EXPIRY = "EXPIRY", "Expiry"
+        DAMAGE = "DAMAGE", "Damage"
+        ADJUSTMENT = "ADJUSTMENT", "Adjustment"
+        STOCK_VERIFICATION = "STOCK_VERIFICATION", "Stock verification"
+
+    class Direction(models.TextChoices):
+        ADDITION = "ADDITION", "Addition"
+        DEDUCTION = "DEDUCTION", "Deduction"
+        NONE = "NONE", "No quantity change"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    batch = models.ForeignKey(
+        InventoryBatch,
+        on_delete=models.RESTRICT,
+        related_name="transactions",
+    )
+    transaction_type = models.CharField(max_length=24, choices=TransactionType.choices)
+    direction = models.CharField(max_length=16, choices=Direction.choices)
+    quantity = models.PositiveIntegerField()
+    previous_quantity = models.PositiveIntegerField()
+    resulting_quantity = models.PositiveIntegerField()
+    unit_cost = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
+    purchase_order = models.ForeignKey(
+        PurchaseOrder,
+        null=True,
+        blank=True,
+        on_delete=models.RESTRICT,
+        related_name="inventory_transactions",
+    )
+    order = models.ForeignKey(
+        "commerce.Order",
+        null=True,
+        blank=True,
+        on_delete=models.RESTRICT,
+        related_name="inventory_transactions",
+    )
+    reference = models.CharField(max_length=120, blank=True)
+    performed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="inventory_transactions_performed",
+    )
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="inventory_transactions_verified",
+    )
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=("batch", "-created_at")),
+            models.Index(fields=("transaction_type", "-created_at")),
+            models.Index(fields=("purchase_order", "-created_at")),
+            models.Index(fields=("order", "-created_at")),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(
+                    transaction_type="STOCK_VERIFICATION",
+                    quantity__gte=0,
+                )
+                | models.Q(quantity__gt=0),
+                name="inventory_transaction_quantity_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(previous_quantity__gte=0),
+                name="inventory_previous_quantity_nonnegative",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(resulting_quantity__gte=0),
+                name="inventory_resulting_quantity_nonnegative",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.transaction_type}: {self.batch} ({self.quantity})"
+
+    def save(self, *args, **kwargs):
+        if self.pk and type(self).objects.filter(pk=self.pk).exists():
+            raise ValidationError("Inventory transactions are immutable.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Inventory transactions cannot be deleted.")
+
+
+class InventoryQualityInspection(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    batch = models.ForeignKey(
+        InventoryBatch,
+        on_delete=models.RESTRICT,
+        related_name="quality_inspections",
+    )
+    from_status = models.CharField(max_length=16, choices=InventoryBatch.QualityStatus.choices)
+    to_status = models.CharField(max_length=16, choices=InventoryBatch.QualityStatus.choices)
+    inspected_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.RESTRICT,
+        related_name="inventory_quality_inspections",
+    )
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+        indexes = [models.Index(fields=("batch", "-created_at"))]
+
+    def __str__(self):
+        return f"{self.batch}: {self.from_status} -> {self.to_status}"

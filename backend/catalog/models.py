@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
@@ -200,8 +201,21 @@ class MedicineImage(TimeStampedUUIDModel):
 
 
 class InventoryBatch(TimeStampedUUIDModel):
+    class QualityStatus(models.TextChoices):
+        PENDING = "PENDING", "Pending inspection"
+        APPROVED = "APPROVED", "Approved"
+        QUARANTINED = "QUARANTINED", "Quarantined"
+        REJECTED = "REJECTED", "Rejected"
+
     medicine = models.ForeignKey(Medicine, on_delete=models.RESTRICT, related_name="batches")
     branch = models.ForeignKey(PharmacyBranch, on_delete=models.RESTRICT, related_name="batches")
+    storage_location = models.ForeignKey(
+        "operations.StorageLocation",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="batches",
+    )
     batch_number = models.CharField(max_length=100)
     expiry_date = models.DateField()
     available_quantity = models.PositiveIntegerField(default=0)
@@ -211,6 +225,28 @@ class InventoryBatch(TimeStampedUUIDModel):
     selling_price = models.DecimalField(
         max_digits=14, decimal_places=2, validators=[MinValueValidator(0)]
     )
+    quality_status = models.CharField(
+        max_length=16,
+        choices=QualityStatus.choices,
+        default=QualityStatus.APPROVED,
+    )
+    inspection_notes = models.TextField(blank=True)
+    inspected_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="inventory_batches_inspected",
+    )
+    inspected_at = models.DateTimeField(null=True, blank=True)
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="inventory_batches_verified",
+    )
+    verified_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -230,6 +266,8 @@ class InventoryBatch(TimeStampedUUIDModel):
         ]
         indexes = [
             models.Index(fields=("branch", "medicine", "is_active", "expiry_date")),
+            models.Index(fields=("quality_status", "expiry_date")),
+            models.Index(fields=("storage_location", "is_active")),
         ]
         ordering = ("expiry_date", "created_at")
 

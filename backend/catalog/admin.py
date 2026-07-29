@@ -41,14 +41,25 @@ class InventoryBatchAdmin(admin.ModelAdmin):
         "batch_number",
         "medicine",
         "branch",
+        "storage_location",
         "expiry_date",
         "available_quantity",
         "selling_price",
+        "quality_status",
         "is_active",
     )
-    list_filter = ("is_active", "expiry_date", "branch")
+    list_filter = ("is_active", "quality_status", "expiry_date", "branch")
     search_fields = ("batch_number", "medicine__brand_name", "medicine__sku")
-    autocomplete_fields = ("medicine", "branch")
+    autocomplete_fields = ("medicine", "branch", "storage_location")
+    readonly_fields = (
+        "available_quantity",
+        "inspected_by",
+        "inspected_at",
+        "verified_by",
+        "verified_at",
+        "created_at",
+        "updated_at",
+    )
 
 
 @admin.register(Pharmacy)
