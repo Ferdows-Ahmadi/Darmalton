@@ -119,7 +119,7 @@ stock quantities, workflow state, and actor fields.
 | Method | Path | Notes |
 |---|---|---|
 | GET/POST | `/operations/suppliers/` | Search/filter suppliers; create normalized supplier records |
-| GET/PATCH/DELETE | `/operations/suppliers/{id}/` | Supplier detail and maintenance |
+| GET/PATCH | `/operations/suppliers/{id}/` | Supplier detail and maintenance; deactivate instead of deleting |
 | GET/POST | `/operations/purchase-orders/` | Search/filter or create a purchase order with nested items |
 | GET/PATCH | `/operations/purchase-orders/{id}/` | Detail; core terms/items become immutable after submission |
 | POST | `/operations/purchase-orders/{id}/submit/` | Draft to submitted |
@@ -139,9 +139,9 @@ quantity.
 | Method | Path | Notes |
 |---|---|---|
 | GET/POST | `/operations/warehouses/` | Branch warehouse CRUD |
-| GET/PATCH/DELETE | `/operations/warehouses/{id}/` | Warehouse detail |
+| GET/PATCH | `/operations/warehouses/{id}/` | Warehouse detail; deactivate instead of deleting |
 | GET/POST | `/operations/storage-locations/` | Rack/shelf location CRUD |
-| GET/PATCH/DELETE | `/operations/storage-locations/{id}/` | Storage-location detail |
+| GET/PATCH | `/operations/storage-locations/{id}/` | Storage-location detail; deactivate instead of deleting |
 | GET | `/operations/inventory-batches/` | Operational batch list |
 | GET | `/operations/inventory-batches/{id}/` | Batch inspection, location, and verification detail |
 | POST | `/operations/inventory-batches/{id}/inspect/` | Approve, quarantine, reject, or mark pending |

@@ -81,6 +81,12 @@ def test_staff_creates_purchase_order_with_server_totals(
     assert purchase_order.net_total == 110
     assert purchase_order.items.get().line_total == 120
     assert purchase_order.status_history.get().to_status == PurchaseOrder.Status.DRAFT
+    assert (
+        procurement_client.delete(
+            f"/api/v1/operations/purchase-orders/{purchase_order.pk}/"
+        ).status_code
+        == 405
+    )
 
 
 @pytest.mark.django_db

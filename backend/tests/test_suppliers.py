@@ -70,6 +70,9 @@ def test_operations_staff_can_create_filter_and_update_supplier(operations_clien
     assert response.status_code == 200
     supplier.refresh_from_db()
     assert supplier.is_active is False
+    assert (
+        operations_client.delete(f"/api/v1/operations/suppliers/{supplier.pk}/").status_code == 405
+    )
 
 
 @pytest.mark.django_db

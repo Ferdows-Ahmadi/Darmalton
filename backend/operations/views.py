@@ -51,6 +51,7 @@ from .services import (
 
 
 class SupplierViewSet(viewsets.ModelViewSet):
+    http_method_names = ("get", "post", "put", "patch", "head", "options")
     permission_classes = (IsOperationsStaff,)
     serializer_class = SupplierSerializer
     queryset = Supplier.objects.all()
@@ -80,6 +81,7 @@ class SupplierViewSet(viewsets.ModelViewSet):
 
 
 class PurchaseOrderViewSet(viewsets.ModelViewSet):
+    http_method_names = ("get", "post", "put", "patch", "head", "options")
     permission_classes = (IsOperationsStaff,)
     serializer_class = PurchaseOrderSerializer
     queryset = PurchaseOrder.objects.all()
@@ -172,6 +174,7 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
 
 
 class WarehouseViewSet(viewsets.ModelViewSet):
+    http_method_names = ("get", "post", "put", "patch", "head", "options")
     permission_classes = (IsOperationsStaff,)
     serializer_class = WarehouseSerializer
     queryset = Warehouse.objects.select_related("branch")
@@ -192,6 +195,7 @@ class WarehouseViewSet(viewsets.ModelViewSet):
 
 
 class StorageLocationViewSet(viewsets.ModelViewSet):
+    http_method_names = ("get", "post", "put", "patch", "head", "options")
     permission_classes = (IsOperationsStaff,)
     serializer_class = StorageLocationSerializer
     queryset = StorageLocation.objects.select_related("warehouse", "warehouse__branch")

@@ -145,7 +145,21 @@ class PurchaseOrderItemInline(admin.TabularInline):
     model = PurchaseOrderItem
     extra = 0
     autocomplete_fields = ("medicine",)
-    readonly_fields = ("quantity_received", "line_total", "created_at", "updated_at")
+    readonly_fields = (
+        "medicine",
+        "quantity_ordered",
+        "quantity_received",
+        "unit_cost",
+        "line_total",
+        "created_at",
+        "updated_at",
+    )
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class PurchaseOrderStatusHistoryInline(admin.TabularInline):
@@ -250,6 +264,9 @@ class WarehouseAdmin(OperationsAdminPermissionMixin, admin.ModelAdmin):
     search_fields = ("code", "name", "branch__name", "address")
     autocomplete_fields = ("branch",)
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(StorageLocation)
 class StorageLocationAdmin(OperationsAdminPermissionMixin, admin.ModelAdmin):
@@ -264,6 +281,9 @@ class StorageLocationAdmin(OperationsAdminPermissionMixin, admin.ModelAdmin):
     list_filter = ("is_active", "warehouse", "temperature_zone")
     search_fields = ("code", "name", "rack", "shelf", "warehouse__code")
     autocomplete_fields = ("warehouse",)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(InventoryTransaction)

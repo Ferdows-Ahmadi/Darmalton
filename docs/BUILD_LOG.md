@@ -211,6 +211,9 @@
   inventory, ledger, and returns. Unsafe direct creation/deletion is disabled
   for workflow/audit records, batch quality actions call audited services, and
   medicine images have previews.
+- Disabled hard-delete API routes for suppliers, purchase orders, warehouses,
+  and storage locations; operators use active/inactive state so referenced
+  operational history remains intact.
 - PostgreSQL applied `accounts.0004`, `catalog.0004` through `catalog.0005`, and
   `operations.0001` through `operations.0004` without error. Django checks pass
   on the running container.
