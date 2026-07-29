@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 export function Header({ authenticated }: { authenticated: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
+  const landing = pathname === "/";
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -15,16 +16,25 @@ export function Header({ authenticated }: { authenticated: boolean }) {
     router.refresh();
   }
 
-  const links = [
-    ["/", "خانه"],
-    ["/cart", "سبد خرید"],
-    ["/prescriptions", "نسخه‌ها"],
-    ["/orders", "سفارش‌های من"],
-    ["/account", "حساب کاربری"]
-  ];
+  const links = landing
+    ? [
+        ["/#why", "چرا درملتون"],
+        ["/#features", "خدمات"],
+        ["/#download", "اپ اندروید"],
+        ["/#faq", "پرسش‌ها"],
+        ["/#contact", "تماس"],
+        ["/shop", "فروشگاه"]
+      ]
+    : [
+        ["/shop", "فروشگاه"],
+        ["/cart", "سبد خرید"],
+        ["/prescriptions", "نسخه‌ها"],
+        ["/orders", "سفارش‌های من"],
+        ["/account", "حساب کاربری"]
+      ];
 
   return (
-    <header className="site-header">
+    <header className={`site-header ${landing ? "public-header" : "portal-header"}`}>
       <Link href="/" className="brand" aria-label="خانه درملتون">
         <Image
           src="/branding/darmalton-wordmark.png"
@@ -34,7 +44,7 @@ export function Header({ authenticated }: { authenticated: boolean }) {
           priority
         />
       </Link>
-      <nav aria-label="منوی اصلی">
+      <nav className={landing ? "landing-navigation" : ""} aria-label="منوی اصلی">
         {links.map(([href, label]) => (
           <Link
             className={pathname === href ? "active" : ""}
@@ -50,7 +60,7 @@ export function Header({ authenticated }: { authenticated: boolean }) {
           </button>
         ) : (
           <Link
-            className={pathname === "/login" ? "active" : ""}
+            className={`header-login ${pathname === "/login" ? "active" : ""}`}
             href="/login"
           >
             ورود

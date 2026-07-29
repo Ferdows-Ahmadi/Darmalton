@@ -15,7 +15,7 @@ export function GuestWelcomePrompt({
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (authenticated || pathname !== "/") return;
+    if (authenticated || pathname !== "/shop") return;
     if (window.localStorage.getItem(promptKey) === "true") return;
     const timer = window.setTimeout(() => {
       window.localStorage.setItem(promptKey, "true");
@@ -24,7 +24,7 @@ export function GuestWelcomePrompt({
     return () => window.clearTimeout(timer);
   }, [authenticated, pathname]);
 
-  if (!visible || authenticated || pathname !== "/") return null;
+  if (!visible || authenticated || pathname !== "/shop") return null;
   return (
     <aside className="guest-welcome" aria-label="پیشنهاد ایجاد حساب">
       <button

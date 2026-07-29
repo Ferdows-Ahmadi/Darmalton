@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { cookies } from "next/headers";
 import localFont from "next/font/local";
 
@@ -20,8 +21,12 @@ const vazirmatn = localFont({
 
 export const metadata: Metadata = {
   applicationName: "Darmalton",
-  title: { default: "درملتون | داروخانه آنلاین", template: "%s | درملتون" },
-  description: "خرید آنلاین دوا و محصولات صحی با قیمت و موجودی تأییدشده.",
+  title: {
+    default: "درملتون | داروخانه آنلاین",
+    template: "%s | درملتون"
+  },
+  description:
+    "جستجوی دارو و محصولات صحی، ارسال محرمانه نسخه و پیگیری سفارش در درملتون.",
   icons: {
     icon: "/branding/brand-bag-mark.png",
     apple: "/branding/brand-bag-mark.png"
@@ -42,15 +47,46 @@ export default async function RootLayout({
         <GuestWelcomePrompt authenticated={authenticated} />
         <ScrollToTop />
         <main>{children}</main>
-        <footer>
-          <Image
-            className="footer-brand"
-            src="/branding/darmalton-wordmark.png"
-            alt="درملتون"
-            width={2000}
-            height={808}
-          />
-          <p>قیمت، موجودی و مجموع سفارش همیشه توسط سرور داروخانه تأیید می‌شود.</p>
+        <footer className="site-footer">
+          <div className="footer-main">
+            <div className="footer-intro">
+              <Image
+                className="footer-brand"
+                src="/branding/darmalton-wordmark.png"
+                alt="درملتون"
+                width={2000}
+                height={808}
+              />
+              <p>
+                راه ساده و مسئولانه برای جستجوی دارو، بررسی نسخه و پیگیری
+                سفارش.
+              </p>
+            </div>
+            <div>
+              <strong>درملتون</strong>
+              <Link href="/about">درباره ما</Link>
+              <Link href="/contact">تماس</Link>
+              <Link href="/#faq">پرسش‌های متداول</Link>
+            </div>
+            <div>
+              <strong>خدمات</strong>
+              <Link href="/shop">فروشگاه</Link>
+              <Link href="/prescriptions">ارسال نسخه</Link>
+              <Link href="/orders">پیگیری سفارش</Link>
+            </div>
+            <div>
+              <strong>قوانین</strong>
+              <Link href="/privacy">حریم خصوصی</Link>
+              <Link href="/terms">شرایط استفاده</Link>
+            </div>
+          </div>
+          <div className="footer-bottom">
+            <span>© ۲۰۲۶ درملتون</span>
+            <span>
+              قیمت، موجودی و مجموع سفارش همیشه توسط سرور داروخانه تأیید
+              می‌شود.
+            </span>
+          </div>
         </footer>
       </body>
     </html>

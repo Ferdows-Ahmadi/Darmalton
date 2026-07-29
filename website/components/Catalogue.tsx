@@ -27,7 +27,7 @@ export function Catalogue({
     const next = new URLSearchParams();
     if (search.trim()) next.set("search", search.trim());
     if (category) next.set("category", category);
-    router.push(`/?${next}`);
+    router.push(`/shop?${next}`);
   }
 
   function categoryChanged(value: string) {
@@ -36,7 +36,7 @@ export function Catalogue({
     if (value) next.set("category", value);
     else next.delete("category");
     next.delete("page");
-    router.push(`/?${next}`);
+    router.push(`/shop?${next}`);
   }
 
   return (
