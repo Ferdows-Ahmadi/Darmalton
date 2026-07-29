@@ -1,6 +1,12 @@
 from django.contrib import admin, messages
 
-from .models import Supplier
+from .models import (
+    PurchaseOrder,
+    PurchaseOrderItem,
+    PurchaseOrderStatusHistory,
+    Supplier,
+)
+from .services import transition_purchase_order
 
 
 @admin.action(description="Activate selected suppliers")
@@ -96,3 +102,99 @@ class SupplierAdmin(admin.ModelAdmin):
         ),
         ("Audit", {"fields": ("created_at", "updated_at")}),
     )
+
+
+class PurchaseOrderItemInline(admin.TabularInline):
+    model = PurchaseOrderItem
+    extra = 0
+    autocomplete_fields = ("medicine",)
+    readonly_fields = ("quantity_received", "line_total", "created_at", "updated_at")
+
+
+class PurchaseOrderStatusHistoryInline(admin.TabularInline):
+    model = PurchaseOrderStatusHistory
+    extra = 0
+    can_delete = False
+    readonly_fields = (
+        "from_status",
+        "to_status",
+        "changed_by",
+        "note",
+        "created_at",
+    )
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.action(description="Submit selected draft purchase orders")
+def submit_purchase_orders(modeladmin, request, queryset):
+    updated = 0
+    for purchase_order in queryset:
+        if purchase_order.status == PurchaseOrder.Status.DRAFT:
+            transition_purchase_order(
+                purchase_order=purchase_order,
+                new_status=PurchaseOrder.Status.SUBMITTED,
+                actor=request.user,
+                note="Submitted in Django Admin",
+            )
+            updated += 1
+    modeladmin.message_user(request, f"Submitted {updated} purchase order(s).")
+
+
+@admin.action(description="Approve selected submitted purchase orders")
+def approve_purchase_orders(modeladmin, request, queryset):
+    updated = 0
+    for purchase_order in queryset:
+        if purchase_order.status == PurchaseOrder.Status.SUBMITTED:
+            transition_purchase_order(
+                purchase_order=purchase_order,
+                new_status=PurchaseOrder.Status.APPROVED,
+                actor=request.user,
+                note="Approved in Django Admin",
+            )
+            updated += 1
+    modeladmin.message_user(request, f"Approved {updated} purchase order(s).")
+
+
+@admin.register(PurchaseOrder)
+class PurchaseOrderAdmin(admin.ModelAdmin):
+    list_display = (
+        "purchase_order_number",
+        "supplier",
+        "branch",
+        "status",
+        "payment_status",
+        "expected_delivery_on",
+        "net_total",
+    )
+    list_filter = (
+        "status",
+        "payment_status",
+        "branch",
+        "supplier",
+        "expected_delivery_on",
+    )
+    search_fields = (
+        "purchase_order_number",
+        "invoice_number",
+        "supplier__code",
+        "supplier__company_name",
+        "ordered_by__email",
+    )
+    autocomplete_fields = ("supplier", "branch", "ordered_by")
+    readonly_fields = (
+        "purchase_order_number",
+        "approved_by",
+        "received_by",
+        "status",
+        "subtotal",
+        "net_total",
+        "received_delivery_on",
+        "submitted_at",
+        "approved_at",
+        "created_at",
+        "updated_at",
+    )
+    actions = (submit_purchase_orders, approve_purchase_orders)
+    inlines = (PurchaseOrderItemInline, PurchaseOrderStatusHistoryInline)
