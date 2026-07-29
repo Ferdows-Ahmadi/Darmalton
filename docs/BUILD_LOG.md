@@ -226,3 +226,50 @@
 - The live PostgreSQL integrated registration/catalogue/cart/address/checkout/
   status-refresh smoke passed after sale-ledger integration for order
   `OP-20260729-EB87AE2C`.
+
+## 2026-07-29 - Public, staff, and mobile product experience
+
+- Replaced the website root with a responsive Dari-first public landing page
+  covering value, prescription review, delivery, the Android client, FAQ,
+  contact, about, privacy, and terms while preserving the customer portal under
+  `/shop`. The generated campaign artwork is stored at
+  `website/public/branding/landing-hero.png`.
+- Added a dedicated role-gated Next.js staff console for dashboards, orders,
+  prescriptions, inventory and ledger, warehouses and locations, suppliers,
+  purchasing, returns, customers, reports, and local staff preferences. Django
+  Admin remains the guarded surface for complex operational changes.
+- Expanded the Flutter home with a production image banner, prescription and
+  nearby-pharmacy shortcuts, popular and recommended medicines, continue
+  shopping, server-priced daily selections, brands, a seasonal campaign, health
+  articles, loading/empty/error states, and persisted recently viewed items.
+- Added secure stale-while-revalidate catalogue/category caching, thumbnail
+  control, favorites, recent searches, guest-cart ID/quantity persistence,
+  signed-in address caching, a clear offline banner, retry recovery, and cache
+  clearing. Cached medicine and cart records are contract-tested to exclude
+  price and stock.
+- Added complete functional account settings for profile editing, address
+  access, larger text, reduced motion, notification/search/image preferences,
+  privacy guidance, cache management, help/contact/about/terms/privacy pages,
+  password change, and confirmed soft account deactivation. Historical records
+  are retained; no duplicate account model was introduced.
+- Improved Android navigation so nested routes pop normally, bottom-tab back
+  returns home, and a second back press exits from the home root. The app remains
+  RTL with the bundled Vazirmatn Dari font.
+- Final verification passed Ruff format/lint, 52 backend tests, Django checks,
+  migration consistency, and OpenAPI generation (one documented enum-name
+  warning); website TypeScript, ESLint, and a 33-route production build; Flutter
+  analysis and all 19 tests; Compose validation and PostgreSQL checks with all
+  migrations applied.
+- The live PostgreSQL integrated registration/catalogue/cart/address/checkout/
+  transition/status-refresh smoke passed for order
+  `OP-20260729-52E520A9`.
+- Browser QA covered the landing and staff dashboard at 1440x900 and 390x844.
+  Both remained RTL without document overflow, staff tables used contained
+  horizontal scrolling, route navigation reset scroll to zero at both sizes,
+  and basic checks found one H1, no missing image alt text, no empty buttons,
+  and no unlabelled form controls. A mobile CSS selector that hid the landing
+  sign-in button was found and fixed during this pass.
+- The campaign illustration was generated in `ads-marketing` mode with a prompt
+  for a premium Afghan online-pharmacy hero: a white pharmacy bag, teal medical
+  cross, generic bottles, blister pack, capsules and leaves, wide composition,
+  no product brands, logo, text, or watermark.

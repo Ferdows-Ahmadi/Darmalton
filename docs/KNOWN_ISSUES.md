@@ -17,17 +17,16 @@
 - Wallets, stored payment methods, ratings/reviews, live GPS, and courier chat
   remain outside the current milestone and must stay labeled or disabled rather
   than simulated.
-- The Phase 3 prescription backend, customer clients, authorization rules, and
-  guarded admin review controls are implemented and checkpointed. A fresh
-  end-to-end PostgreSQL/browser/Pixel workflow and responsive QA still need to
-  be completed after the final admin edits; the user intentionally stopped that
-  verification to preserve the checkpoint.
+- The prescription backend, clients, authorization rules, and guarded review
+  controls pass the full automated suite. A fresh physical-device walkthrough
+  of upload, clarification, approval, authorized cart, and checkout is still
+  required before release.
 - The current `file_picker` Android plugin still applies the legacy Kotlin
   Gradle plugin. The debug build succeeds today, but Flutter warns that a future
   toolchain may require a plugin release migrated to built-in Kotlin.
-- Supplier, procurement, warehouse, inventory-ledger, and returns operations
-  are available through Django Admin and staff APIs. A dedicated staff-facing
-  Next.js or Flutter operations console is not implemented.
+- The dedicated Next.js staff console provides responsive dashboards, live
+  searchable resource views, reports, and quick links. Complex operational
+  mutations remain intentionally delegated to guarded Django Admin workflows.
 - Refund completion is intentionally a manual workflow record. It does not
   initiate or reconcile a bank, card, wallet, or other payment-gateway refund.
 - Purchase receiving requires staff to enter batch, expiry, selling price,
@@ -40,6 +39,27 @@
   before production cutover.
 - Medicine seed records use a neutral fallback until real, licensed product
   photography is uploaded through the staff/admin image-management API.
+- Promotional campaigns, recommendations, offers, and health articles currently
+  use curated demo content in the clients. A production content-management,
+  approval, scheduling, and localization workflow is not yet implemented.
+- The mobile app is Dari-first and currently ships only the light theme.
+  Biometric login and operating-system push notifications remain disabled until
+  their platform-specific secure-storage, consent, and credential work is
+  completed.
+- Offline mobile support persists public catalogue metadata, thumbnails,
+  favorites, searches, recently viewed items, guest-cart item IDs/quantities,
+  preferences, and the signed-in user's addresses. It deliberately omits live
+  prices, stock, order, prescription, and payment status. Authenticated server
+  carts are not available offline, and automatic connection detection still
+  relies on a refresh/retry rather than a background connectivity listener.
+- The latest Flutter source passes analysis and widget tests, but this product
+  quality session did not create another APK or complete a visual pass of the
+  new long home/settings screens on the connected Pixel. The last known debug
+  APK verification predates those screens.
+- OpenAPI generation succeeds with one non-blocking warning because multiple
+  resources expose different choice sets named `payment_status`; add a
+  `SPECTACULAR_SETTINGS.ENUM_NAME_OVERRIDES` entry before publishing a generated
+  SDK.
 - Historical order item and status-note snapshots preserve the text stored at
   order time. Newly seeded catalogue display names are Dari-first, but older
   snapshots can retain a Latin medicine name.
