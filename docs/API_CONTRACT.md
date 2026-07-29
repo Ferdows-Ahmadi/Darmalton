@@ -25,6 +25,7 @@ Errors use:
 | POST | `/auth/google/` | Google Identity Services `id_token` | `user`, `access`, `refresh` |
 | POST | `/auth/refresh/` | `refresh` | `access` and rotated `refresh` |
 | GET | `/auth/me/` | bearer access token | `User` |
+| GET/PATCH/PUT | `/auth/me/medical-profile/` | `allergies[]`, optional `medical_notes` | Owner's minimal medical profile |
 
 `User`: `id`, `email`, `phone`, `first_name`, `last_name`, `role`.
 
@@ -106,3 +107,74 @@ Address fields: `label`, `recipient_name`, `recipient_phone`, `country_code`,
 Order items snapshot `medicine_id`, `medicine_name`, `strength`, `dosage_form`,
 `quantity`, `unit_price`, and `line_total`. Clients never submit any monetary,
 inventory, ownership, payment-status, or order-status field.
+
+## Pharmacy operations
+
+All `/operations/` endpoints require an authenticated pharmacist, pharmacy staff
+member, administrator, or superuser. Django remains authoritative for totals,
+stock quantities, workflow state, and actor fields.
+
+### Suppliers and procurement
+
+| Method | Path | Notes |
+|---|---|---|
+| GET/POST | `/operations/suppliers/` | Search/filter suppliers; create normalized supplier records |
+| GET/PATCH/DELETE | `/operations/suppliers/{id}/` | Supplier detail and maintenance |
+| GET/POST | `/operations/purchase-orders/` | Search/filter or create a purchase order with nested items |
+| GET/PATCH | `/operations/purchase-orders/{id}/` | Detail; core terms/items become immutable after submission |
+| POST | `/operations/purchase-orders/{id}/submit/` | Draft to submitted |
+| POST | `/operations/purchase-orders/{id}/approve/` | Submitted to approved, recording approver and time |
+| POST | `/operations/purchase-orders/{id}/cancel/` | Cancel a permitted unreceived order |
+| POST | `/operations/purchase-orders/{id}/receive/` | Receive batch quantities into an active location |
+
+Purchase-order numbers, subtotals, line totals, net totals, ordered/approved/
+received actors, receipt status, and delivery timestamps are server-generated.
+Receipt items require the purchase-order item, quantity, batch number, expiry,
+selling price, storage location, quality decision, and optional inspection note.
+Partial receipts are supported and cannot exceed the outstanding ordered
+quantity.
+
+### Warehouses and inventory
+
+| Method | Path | Notes |
+|---|---|---|
+| GET/POST | `/operations/warehouses/` | Branch warehouse CRUD |
+| GET/PATCH/DELETE | `/operations/warehouses/{id}/` | Warehouse detail |
+| GET/POST | `/operations/storage-locations/` | Rack/shelf location CRUD |
+| GET/PATCH/DELETE | `/operations/storage-locations/{id}/` | Storage-location detail |
+| GET | `/operations/inventory-batches/` | Operational batch list |
+| GET | `/operations/inventory-batches/{id}/` | Batch inspection, location, and verification detail |
+| POST | `/operations/inventory-batches/{id}/inspect/` | Approve, quarantine, reject, or mark pending |
+| POST | `/operations/inventory-batches/{id}/verify/` | Record physical count and any resulting adjustment |
+| POST | `/operations/inventory-batches/{id}/adjust/` | Audited expiry, damage, or manual adjustment |
+| GET | `/operations/inventory-transactions/` | Immutable stock-movement ledger |
+| GET | `/operations/inventory-transactions/{id}/` | Ledger entry detail |
+
+Every purchase receipt, checkout sale, eligible customer return, expiry,
+damage, manual adjustment, and physical verification records the batch,
+direction, quantity, before/after stock, actor, reference, and timestamp. Ledger
+entries cannot be changed or deleted through the model or admin. Customer stock
+and FEFO checkout include only active, unexpired, quality-approved batches.
+
+### Customer returns and refunds
+
+| Method | Path | Notes |
+|---|---|---|
+| GET/POST | `/returns/` | Current customer's return requests; delivered orders only |
+| GET | `/returns/{id}/` | Owner-scoped detail and customer-safe history |
+| POST | `/returns/{id}/cancel/` | Cancel while still requested |
+| GET | `/operations/returns/` | Staff search/filter queue |
+| GET | `/operations/returns/{id}/` | Staff detail, history, and stock movements |
+| POST | `/operations/returns/{id}/approve/` | Approve per-item quantities |
+| POST | `/operations/returns/{id}/reject/` | Reject with reason |
+| POST | `/operations/returns/{id}/schedule-pickup/` | Record pickup schedule |
+| POST | `/operations/returns/{id}/mark-picked-up/` | Advance pickup status |
+| POST | `/operations/returns/{id}/receive/` | Record received quantities |
+| POST | `/operations/returns/{id}/verify/` | Record condition and eligible restocking |
+| POST | `/operations/returns/{id}/complete-refund/` | Record completed manual refund reference |
+
+Requested and approved refund amounts are derived from immutable order-item
+prices. Return quantities are capped across active requests. Only staff-verified,
+unopened items allocated from active, approved, unexpired source batches can be
+restocked. Refund completion records an internal/manual reference and does not
+call a payment gateway.

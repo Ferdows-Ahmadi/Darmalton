@@ -25,7 +25,19 @@
 - The current `file_picker` Android plugin still applies the legacy Kotlin
   Gradle plugin. The debug build succeeds today, but Flutter warns that a future
   toolchain may require a plugin release migrated to built-in Kotlin.
-- Phase 4 pharmacy administration improvements have not started.
+- Supplier, procurement, warehouse, inventory-ledger, and returns operations
+  are available through Django Admin and staff APIs. A dedicated staff-facing
+  Next.js or Flutter operations console is not implemented.
+- Refund completion is intentionally a manual workflow record. It does not
+  initiate or reconcile a bank, card, wallet, or other payment-gateway refund.
+- Purchase receiving requires staff to enter batch, expiry, selling price,
+  quality decision, and storage location. Barcode scanners, supplier EDI,
+  automated replenishment, and accounting-system export remain production
+  integrations.
+- Existing batches created before warehouse tracking have a null storage
+  location and default to quality-approved to preserve current sellable stock.
+  Operations staff should assign locations and complete a physical verification
+  before production cutover.
 - Medicine seed records use a neutral fallback until real, licensed product
   photography is uploaded through the staff/admin image-management API.
 - Historical order item and status-note snapshots preserve the text stored at

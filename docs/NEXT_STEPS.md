@@ -7,6 +7,11 @@ implementation progress is in `docs/BUILD_LOG.md`.
    live website plus signed Android provider-consent tests.
 2. Validate iOS, including its Google OAuth client and callback URL scheme, on a
    macOS CI runner or developer Mac.
-3. For a later backend milestone, prioritize prescription upload/review, pharmacy staff workflow,
-   delivery assignment/tracking, customer notifications, audit logging, rate
-   limiting, managed secrets/object storage, and CI across PostgreSQL/web/mobile.
+3. Assign locations to migrated inventory batches and perform an opening
+   physical stock verification before production cutover.
+4. Choose and integrate the production payment/refund provider; until then,
+   refund completion remains an explicit manual record.
+5. Add delivery assignment/live tracking, rate limiting, managed secrets/object
+   storage, observability, backups, and CI across PostgreSQL/web/mobile.
+6. Build a dedicated staff operations console only if Django Admin and the
+   staff APIs are insufficient for the pharmacy's day-to-day workflow.

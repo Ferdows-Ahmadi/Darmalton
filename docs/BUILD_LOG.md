@@ -178,3 +178,48 @@
   upload -> pharmacist review -> clarification/approval -> authorized Rx cart
   and order through the website and Pixel, then address any discovered Phase 3
   UI/operational issues before starting Phase 4.
+
+## 2026-07-29 - Pharmacy operations and inventory controls
+
+- Reviewed the additional database proposal as inspiration only. Rejected its
+  duplicate user/customer/employee/password structures and retained the
+  existing normalized Django identity, catalogue, order, and prescription
+  models.
+- Added supplier records with normalized codes, contact and pharmacy-license
+  fields, payment terms, bounded ratings, verification, active/inactive state,
+  staff-only APIs, Django Admin filters/search/actions, and permission tests.
+- Added server-authoritative purchase orders with supplier and branch linkage,
+  nested medicine items, generated numbers/totals, invoice and payment status,
+  expected/received delivery dates, ordered/approved/received actors, guarded
+  transitions, partial receipts, and immutable history.
+- Extended inventory batches with warehouse/rack/shelf locations, quality
+  status, inspection history, quarantine, physical verification, and verified
+  actor/timestamp fields. Existing batches default to approved and may retain a
+  null location until operationally assigned.
+- Added an immutable inventory ledger. Purchase receipts, checkout sales,
+  eligible customer returns, expiry, damage, adjustments, and stock counts now
+  record batch, direction, quantity, before/after stock, actors, references, and
+  source purchase/order/return records.
+- Added owner-scoped customer returns with delivered-order and cumulative
+  quantity validation, partial approval, pickup state, receipt, condition
+  verification, safe restoration to original eligible batches, and manual
+  refund completion. No payment gateway integration was added.
+- Added only allergies and optional medical notes to the existing customer
+  profile, with owner-only API access and bounded normalization. No duplicate
+  customer or authentication model was introduced.
+- Hardened Django Admin for suppliers, procurement, warehouse locations,
+  inventory, ledger, and returns. Unsafe direct creation/deletion is disabled
+  for workflow/audit records, batch quality actions call audited services, and
+  medicine images have previews.
+- PostgreSQL applied `accounts.0004`, `catalog.0004` through `catalog.0005`, and
+  `operations.0001` through `operations.0004` without error. Django checks pass
+  on the running container.
+- Final verification passed Ruff formatting/lint, 46 backend tests, Django
+  checks, migration consistency, OpenAPI validation without warnings, website
+  TypeScript/ESLint/15-page production build, Flutter analysis, and all 16
+  Flutter tests. Compose configuration validation passed; no Docker image or
+  APK rebuild was needed because no container dependency or mobile source
+  changed.
+- The live PostgreSQL integrated registration/catalogue/cart/address/checkout/
+  status-refresh smoke passed after sale-ledger integration for order
+  `OP-20260729-EB87AE2C`.
