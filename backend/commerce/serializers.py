@@ -220,9 +220,7 @@ class OrderSerializer(serializers.ModelSerializer):
 class StaffOrderSerializer(OrderSerializer):
     customer_id = serializers.UUIDField(source="customer.id", read_only=True)
     customer_email = serializers.EmailField(source="customer.email", read_only=True)
-    customer_phone = serializers.CharField(
-        source="customer.phone", allow_null=True, read_only=True
-    )
+    customer_phone = serializers.CharField(source="customer.phone", allow_null=True, read_only=True)
     branch_name = serializers.CharField(source="branch.name", read_only=True)
 
     class Meta(OrderSerializer.Meta):
