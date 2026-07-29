@@ -3308,10 +3308,6 @@ a.staff-metric-card:hover {
     overflow: visible;
   }
 
-  .landing-navigation a:last-of-type {
-    display: none;
-  }
-
   .header-login {
     min-height: 38px;
     padding: 7px 14px;
