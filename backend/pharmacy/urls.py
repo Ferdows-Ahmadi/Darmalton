@@ -12,6 +12,7 @@ urlpatterns = [
     path("api/v1/", include("catalog.urls")),
     path("api/v1/", include("commerce.urls")),
     path("api/v1/", include("prescriptions.urls")),
+    path("api/v1/", include("operations.urls")),
 ]
 
 if settings.DEBUG:
