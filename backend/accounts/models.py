@@ -54,6 +54,8 @@ class User(AbstractUser):
 class CustomerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="customer_profile")
     date_of_birth = models.DateField(null=True, blank=True)
+    allergies = models.JSONField(default=list, blank=True)
+    medical_notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

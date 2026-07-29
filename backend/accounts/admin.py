@@ -53,7 +53,20 @@ class CustomUserAdmin(UserAdmin):
     inlines = (SocialIdentityInline,)
 
 
-admin.site.register(CustomerProfile)
+@admin.register(CustomerProfile)
+class CustomerProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "allergy_count", "has_medical_notes", "updated_at")
+    search_fields = ("user__email", "user__phone", "medical_notes")
+    readonly_fields = ("created_at", "updated_at")
+    autocomplete_fields = ("user",)
+
+    @admin.display(description="Allergies")
+    def allergy_count(self, obj):
+        return len(obj.allergies)
+
+    @admin.display(boolean=True, description="Medical notes")
+    def has_medical_notes(self, obj):
+        return bool(obj.medical_notes)
 
 
 @admin.register(SocialIdentity)

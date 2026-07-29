@@ -1,7 +1,9 @@
 from rest_framework import generics, permissions, response, status
 from rest_framework_simplejwt.views import TokenRefreshView
 
+from .models import CustomerProfile
 from .serializers import (
+    CustomerMedicalProfileSerializer,
     GoogleLoginSerializer,
     LoginSerializer,
     RegisterSerializer,
@@ -48,6 +50,16 @@ class MeView(generics.GenericAPIView):
 
     def get(self, request):
         return response.Response(UserSerializer(request.user).data)
+
+
+class CustomerMedicalProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = CustomerMedicalProfileSerializer
+
+    def get_object(self):
+        profile, _ = CustomerProfile.objects.get_or_create(
+            user=self.request.user
+        )
+        return profile
 
 
 class RefreshView(TokenRefreshView):
