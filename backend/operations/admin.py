@@ -19,9 +19,7 @@ from .services import approve_return_request, reject_return_request, transition_
 
 class OperationsAdminPermissionMixin:
     def has_module_permission(self, request):
-        return is_operations_staff(request.user) and super().has_module_permission(
-            request
-        )
+        return is_operations_staff(request.user) and super().has_module_permission(request)
 
     def has_view_permission(self, request, obj=None):
         return is_operations_staff(request.user) and super().has_view_permission(

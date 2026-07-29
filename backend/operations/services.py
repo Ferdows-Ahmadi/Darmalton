@@ -218,9 +218,7 @@ def verify_inventory_count(*, batch, physical_quantity, actor, notes=""):
     locked = InventoryBatch.objects.select_for_update().get(pk=batch.pk)
     physical_quantity = int(physical_quantity)
     if physical_quantity < 0:
-        raise ValidationError(
-            {"physical_quantity": "Physical quantity cannot be negative."}
-        )
+        raise ValidationError({"physical_quantity": "Physical quantity cannot be negative."})
     previous = locked.available_quantity
     difference = physical_quantity - previous
     if difference > 0:
@@ -339,10 +337,7 @@ def receive_purchase_order(*, purchase_order, receipt_items, actor, invoice_numb
                 inspection_notes=receipt.get("inspection_notes", ""),
                 inspected_by=actor,
                 inspected_at=timezone.now(),
-                is_active=(
-                    receipt["quality_status"]
-                    == InventoryBatch.QualityStatus.APPROVED
-                ),
+                is_active=(receipt["quality_status"] == InventoryBatch.QualityStatus.APPROVED),
             )
 
         record_inventory_change(
@@ -367,9 +362,7 @@ def receive_purchase_order(*, purchase_order, receipt_items, actor, invoice_numb
     ).exists()
     previous_status = locked_order.status
     locked_order.status = (
-        PurchaseOrder.Status.RECEIVED
-        if all_received
-        else PurchaseOrder.Status.PARTIALLY_RECEIVED
+        PurchaseOrder.Status.RECEIVED if all_received else PurchaseOrder.Status.PARTIALLY_RECEIVED
     )
     locked_order.received_by = actor
     if invoice_number:
@@ -503,16 +496,16 @@ def approve_return_request(*, return_request, approved_items, actor, note=""):
 
     approved_total = Decimal("0.00")
     for payload in approved_items:
-        item = ReturnItem.objects.select_for_update().select_related("order_item").get(
-            pk=payload["return_item"].pk
+        item = (
+            ReturnItem.objects.select_for_update()
+            .select_related("order_item")
+            .get(pk=payload["return_item"].pk)
         )
         if item.return_request_id != locked.pk:
             raise ValidationError({"items": "Every item must belong to this return."})
         quantity = int(payload["quantity_approved"])
         if quantity < 0 or quantity > item.quantity_requested:
-            raise ValidationError(
-                {"items": "Approved quantity cannot exceed requested quantity."}
-            )
+            raise ValidationError({"items": "Approved quantity cannot exceed requested quantity."})
         item.quantity_approved = quantity
         item.save(update_fields=("quantity_approved", "updated_at"))
         approved_total += item.order_item.unit_price * quantity
@@ -550,9 +543,7 @@ def reject_return_request(*, return_request, actor, note):
     locked.status = ReturnRequest.Status.REJECTED
     locked.refund_status = ReturnRequest.RefundStatus.REJECTED
     locked.admin_notes = str(note).strip()
-    locked.save(
-        update_fields=("status", "refund_status", "admin_notes", "updated_at")
-    )
+    locked.save(update_fields=("status", "refund_status", "admin_notes", "updated_at"))
     _record_return_status(locked, previous, actor, note)
     return locked
 
@@ -609,9 +600,7 @@ def receive_return_request(*, return_request, received_items, actor, note=""):
             raise ValidationError({"items": "Every item must belong to this return."})
         quantity = int(payload["quantity_received"])
         if quantity < 0 or quantity > item.quantity_approved:
-            raise ValidationError(
-                {"items": "Received quantity cannot exceed approved quantity."}
-            )
+            raise ValidationError({"items": "Received quantity cannot exceed approved quantity."})
         item.quantity_received = quantity
         item.save(update_fields=("quantity_received", "updated_at"))
 
@@ -677,9 +666,7 @@ def verify_return_request(*, return_request, verified_items, actor, note=""):
                 if restored:
                     record_inventory_change(
                         batch=batch,
-                        transaction_type=(
-                            InventoryTransaction.TransactionType.CUSTOMER_RETURN
-                        ),
+                        transaction_type=(InventoryTransaction.TransactionType.CUSTOMER_RETURN),
                         direction=InventoryTransaction.Direction.ADDITION,
                         quantity=restored,
                         actor=actor,

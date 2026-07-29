@@ -33,9 +33,7 @@ class CustomerMedicalProfileSerializer(serializers.ModelSerializer):
             if not allergy:
                 raise serializers.ValidationError("Allergy entries cannot be blank.")
             if len(allergy) > 120:
-                raise serializers.ValidationError(
-                    "Each allergy must be 120 characters or fewer."
-                )
+                raise serializers.ValidationError("Each allergy must be 120 characters or fewer.")
             key = allergy.casefold()
             if key not in seen:
                 normalized.append(allergy)
@@ -45,9 +43,7 @@ class CustomerMedicalProfileSerializer(serializers.ModelSerializer):
     def validate_medical_notes(self, value):
         normalized = value.strip()
         if len(normalized) > 2000:
-            raise serializers.ValidationError(
-                "Medical notes must be 2000 characters or fewer."
-            )
+            raise serializers.ValidationError("Medical notes must be 2000 characters or fewer.")
         return normalized
 
 

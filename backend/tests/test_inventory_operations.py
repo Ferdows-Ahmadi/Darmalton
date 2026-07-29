@@ -241,7 +241,4 @@ def test_checkout_deduction_creates_sale_ledger(user, branch, medicine):
 
 @pytest.mark.django_db
 def test_customer_cannot_access_inventory_operations(authenticated_client):
-    assert (
-        authenticated_client.get("/api/v1/operations/inventory-transactions/").status_code
-        == 403
-    )
+    assert authenticated_client.get("/api/v1/operations/inventory-transactions/").status_code == 403

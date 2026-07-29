@@ -44,9 +44,7 @@ class Prescription(TimeStampedUUIDModel):
     contact_phone = models.CharField(max_length=32, blank=True)
     delivery_preference = models.CharField(max_length=120, blank=True)
     customer_note = models.TextField(blank=True)
-    status = models.CharField(
-        max_length=32, choices=Status.choices, default=Status.SUBMITTED
-    )
+    status = models.CharField(max_length=32, choices=Status.choices, default=Status.SUBMITTED)
     reviewer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,

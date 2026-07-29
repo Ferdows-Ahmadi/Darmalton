@@ -78,10 +78,7 @@ def test_customer_submission_is_private_and_internal_notes_never_leak(
     other_client = APIClient()
     other_client.force_authenticate(other_user)
     assert other_client.get(f"/api/v1/prescriptions/{prescription_id}/").status_code == 404
-    assert (
-        other_client.get(f"/api/v1/prescriptions/{prescription_id}/file/").status_code
-        == 404
-    )
+    assert other_client.get(f"/api/v1/prescriptions/{prescription_id}/file/").status_code == 404
 
     started = pharmacist_client.post(
         f"/api/v1/staff/prescriptions/{prescription_id}/start-review/",

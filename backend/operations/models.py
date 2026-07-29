@@ -647,6 +647,5 @@ class ReturnStatusHistory(models.Model):
 
     def __str__(self):
         return (
-            f"{self.return_request.return_number}: "
-            f"{self.from_status or 'NEW'} -> {self.to_status}"
+            f"{self.return_request.return_number}: {self.from_status or 'NEW'} -> {self.to_status}"
         )

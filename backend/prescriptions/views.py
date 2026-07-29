@@ -20,10 +20,7 @@ from .services import cancel_prescription, respond_to_clarification, transition_
 
 class PrescriptionFileMixin:
     def file_response(self, request, prescription):
-        if not (
-            prescription.customer_id == request.user.id
-            or is_pharmacy_reviewer(request.user)
-        ):
+        if not (prescription.customer_id == request.user.id or is_pharmacy_reviewer(request.user)):
             raise Http404
         try:
             handle = prescription.document.open("rb")

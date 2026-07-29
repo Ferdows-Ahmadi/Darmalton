@@ -73,9 +73,7 @@ def create_order(*, customer, address):
         raise ValidationError("The fulfillment branch is not currently active.")
 
     cart_items = list(
-        cart.items.select_related("medicine__dosage_form", "prescription").order_by(
-            "created_at"
-        )
+        cart.items.select_related("medicine__dosage_form", "prescription").order_by("created_at")
     )
     if not cart_items:
         raise ValidationError("Your cart is empty.")
@@ -91,9 +89,7 @@ def create_order(*, customer, address):
             raise ValidationError(f"{medicine.brand_name} is no longer available.")
         if medicine.prescription_required:
             if not cart_item.prescription:
-                raise ValidationError(
-                    f"{medicine.brand_name} requires an approved prescription."
-                )
+                raise ValidationError(f"{medicine.brand_name} requires an approved prescription.")
             validated = validate_prescription_authorization(
                 prescription=cart_item.prescription,
                 customer=customer,

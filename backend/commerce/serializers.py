@@ -115,14 +115,10 @@ class CartItemSerializer(serializers.ModelSerializer):
                     prescription=prescription,
                     customer=cart.customer,
                     medicine=medicine,
-                    quantity=attrs.get(
-                        "quantity", getattr(self.instance, "quantity", 0)
-                    ),
+                    quantity=attrs.get("quantity", getattr(self.instance, "quantity", 0)),
                 )
         elif prescription:
-            raise serializers.ValidationError(
-                {"prescription_id": "این دوا به نسخه نیاز ندارد."}
-            )
+            raise serializers.ValidationError({"prescription_id": "این دوا به نسخه نیاز ندارد."})
         if medicine and cart:
             available = medicine_stock(medicine, cart.branch)
             if attrs.get("quantity", getattr(self.instance, "quantity", 0)) > available:

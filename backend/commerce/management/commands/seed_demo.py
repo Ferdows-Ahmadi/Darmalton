@@ -181,12 +181,8 @@ class Command(BaseCommand):
         admin_password = os.getenv("DEMO_ADMIN_PASSWORD", "ChangeMe-Admin-123!")
         customer_email = os.getenv("DEMO_CUSTOMER_EMAIL", "customer@example.test")
         customer_password = os.getenv("DEMO_CUSTOMER_PASSWORD", "ChangeMe-Customer-123!")
-        pharmacist_email = os.getenv(
-            "DEMO_PHARMACIST_EMAIL", "pharmacist@example.test"
-        )
-        pharmacist_password = os.getenv(
-            "DEMO_PHARMACIST_PASSWORD", "ChangeMe-Pharmacist-123!"
-        )
+        pharmacist_email = os.getenv("DEMO_PHARMACIST_EMAIL", "pharmacist@example.test")
+        pharmacist_password = os.getenv("DEMO_PHARMACIST_PASSWORD", "ChangeMe-Pharmacist-123!")
 
         admin, _ = User.objects.get_or_create(
             email=admin_email,

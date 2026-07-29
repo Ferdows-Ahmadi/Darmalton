@@ -58,9 +58,7 @@ def test_operations_staff_can_create_filter_and_update_supplier(operations_clien
     assert supplier.email == "supplier@example.test"
     assert supplier.rating == Decimal("4.50")
 
-    response = operations_client.get(
-        "/api/v1/operations/suppliers/?is_active=true&search=Kabul"
-    )
+    response = operations_client.get("/api/v1/operations/suppliers/?is_active=true&search=Kabul")
     assert response.status_code == 200
     assert response.data["count"] == 1
 

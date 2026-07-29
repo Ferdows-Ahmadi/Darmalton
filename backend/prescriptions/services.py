@@ -143,9 +143,7 @@ def transition_prescription(
 
     if new_status == Prescription.Status.CLARIFICATION_REQUESTED:
         if not clarification_request.strip():
-            raise ValidationError(
-                {"clarification_request": "درخواست توضیح نمی‌تواند خالی باشد."}
-            )
+            raise ValidationError({"clarification_request": "درخواست توضیح نمی‌تواند خالی باشد."})
         locked.clarification_request = clarification_request.strip()
         update_fields.append("clarification_request")
 
@@ -153,9 +151,7 @@ def transition_prescription(
         if not expires_at or expires_at <= now:
             raise ValidationError({"expires_at": "زمان اعتبار باید در آینده باشد."})
         if not authorized_items:
-            raise ValidationError(
-                {"authorized_items": "حداقل یک دوای نسخه‌ای را انتخاب کنید."}
-            )
+            raise ValidationError({"authorized_items": "حداقل یک دوای نسخه‌ای را انتخاب کنید."})
         locked.expires_at = expires_at
         locked.reviewed_at = now
         update_fields.extend(["expires_at", "reviewed_at"])
@@ -236,9 +232,7 @@ def cancel_prescription(*, prescription, customer):
 
 
 @transaction.atomic
-def validate_prescription_authorization(
-    *, prescription, customer, medicine, quantity, lock=False
-):
+def validate_prescription_authorization(*, prescription, customer, medicine, quantity, lock=False):
     queryset = Prescription.objects
     if lock:
         queryset = queryset.select_for_update()

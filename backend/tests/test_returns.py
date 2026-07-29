@@ -94,9 +94,7 @@ def test_return_workflow_restores_verified_stock_and_records_manual_refund(
     pickup = returns_staff_client.post(
         f"/api/v1/operations/returns/{return_request.pk}/schedule-pickup/",
         {
-            "scheduled_at": (
-                timezone.now() + timedelta(days=1)
-            ).isoformat(),
+            "scheduled_at": (timezone.now() + timedelta(days=1)).isoformat(),
         },
         format="json",
     )

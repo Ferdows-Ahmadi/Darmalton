@@ -36,12 +36,14 @@ def test_audit_models_and_workflow_records_cannot_be_added_or_deleted_in_admin(
     admin_request,
 ):
     site = AdminSite()
-    assert InventoryTransactionAdmin(InventoryTransaction, site).has_add_permission(
-        admin_request
-    ) is False
-    assert InventoryTransactionAdmin(InventoryTransaction, site).has_delete_permission(
-        admin_request
-    ) is False
+    assert (
+        InventoryTransactionAdmin(InventoryTransaction, site).has_add_permission(admin_request)
+        is False
+    )
+    assert (
+        InventoryTransactionAdmin(InventoryTransaction, site).has_delete_permission(admin_request)
+        is False
+    )
     assert PurchaseOrderAdmin(PurchaseOrder, site).has_add_permission(admin_request) is False
     assert PurchaseOrderAdmin(PurchaseOrder, site).has_delete_permission(admin_request) is False
     assert ReturnRequestAdmin(ReturnRequest, site).has_add_permission(admin_request) is False

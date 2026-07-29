@@ -135,6 +135,15 @@ SPECTACULAR_SETTINGS = {
     "ENUM_NAME_OVERRIDES": {
         "OrderStatusEnum": "commerce.models.Order.Status",
         "PrescriptionStatusEnum": "prescriptions.models.Prescription.Status",
+        "PurchaseOrderStatusEnum": "operations.models.PurchaseOrder.Status",
+        "PurchasePaymentStatusEnum": "operations.models.PurchaseOrder.PaymentStatus",
+        "InventoryQualityStatusEnum": "catalog.models.InventoryBatch.QualityStatus",
+        "InventoryTransactionTypeEnum": ("operations.models.InventoryTransaction.TransactionType"),
+        "InventoryDirectionEnum": "operations.models.InventoryTransaction.Direction",
+        "ReturnStatusEnum": "operations.models.ReturnRequest.Status",
+        "ReturnRefundStatusEnum": "operations.models.ReturnRequest.RefundStatus",
+        "ReturnPickupStatusEnum": "operations.models.ReturnRequest.PickupStatus",
+        "ReturnItemConditionEnum": "operations.models.ReturnItem.Condition",
     },
 }
 

@@ -54,9 +54,7 @@ class SupplierSerializer(serializers.ModelSerializer):
     def validate_code(self, value):
         normalized = value.strip().upper()
         if not re.fullmatch(r"[A-Z0-9][A-Z0-9_-]*", normalized):
-            raise serializers.ValidationError(
-                "Use letters, numbers, hyphens, or underscores."
-            )
+            raise serializers.ValidationError("Use letters, numbers, hyphens, or underscores.")
         queryset = Supplier.objects.filter(code=normalized)
         if self.instance:
             queryset = queryset.exclude(pk=self.instance.pk)
