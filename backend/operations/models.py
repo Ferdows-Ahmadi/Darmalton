@@ -354,6 +354,13 @@ class InventoryTransaction(models.Model):
         on_delete=models.RESTRICT,
         related_name="inventory_transactions",
     )
+    return_request = models.ForeignKey(
+        "ReturnRequest",
+        null=True,
+        blank=True,
+        on_delete=models.RESTRICT,
+        related_name="inventory_transactions",
+    )
     reference = models.CharField(max_length=120, blank=True)
     performed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -433,3 +440,213 @@ class InventoryQualityInspection(models.Model):
 
     def __str__(self):
         return f"{self.batch}: {self.from_status} -> {self.to_status}"
+
+
+class ReturnRequest(TimeStampedUUIDModel):
+    class Status(models.TextChoices):
+        REQUESTED = "REQUESTED", "Requested"
+        APPROVED = "APPROVED", "Approved"
+        REJECTED = "REJECTED", "Rejected"
+        PICKUP_SCHEDULED = "PICKUP_SCHEDULED", "Pickup scheduled"
+        PICKED_UP = "PICKED_UP", "Picked up"
+        RECEIVED = "RECEIVED", "Received"
+        VERIFIED = "VERIFIED", "Verified"
+        REFUND_PENDING = "REFUND_PENDING", "Refund pending"
+        REFUNDED = "REFUNDED", "Refunded"
+        CLOSED = "CLOSED", "Closed"
+        CANCELLED = "CANCELLED", "Cancelled"
+
+    class RefundStatus(models.TextChoices):
+        NOT_STARTED = "NOT_STARTED", "Not started"
+        PENDING = "PENDING", "Pending"
+        COMPLETED = "COMPLETED", "Completed"
+        REJECTED = "REJECTED", "Rejected"
+
+    class PickupStatus(models.TextChoices):
+        NOT_REQUIRED = "NOT_REQUIRED", "Not required"
+        REQUESTED = "REQUESTED", "Requested"
+        SCHEDULED = "SCHEDULED", "Scheduled"
+        PICKED_UP = "PICKED_UP", "Picked up"
+        DELIVERED = "DELIVERED", "Delivered to pharmacy"
+
+    return_number = models.CharField(max_length=32, unique=True)
+    order = models.ForeignKey(
+        "commerce.Order",
+        on_delete=models.RESTRICT,
+        related_name="return_requests",
+    )
+    customer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.RESTRICT,
+        related_name="return_requests",
+    )
+    reason = models.CharField(max_length=240)
+    customer_notes = models.TextField(blank=True)
+    admin_notes = models.TextField(blank=True)
+    status = models.CharField(
+        max_length=24,
+        choices=Status.choices,
+        default=Status.REQUESTED,
+    )
+    pickup_status = models.CharField(
+        max_length=24,
+        choices=PickupStatus.choices,
+        default=PickupStatus.NOT_REQUIRED,
+    )
+    pickup_scheduled_at = models.DateTimeField(null=True, blank=True)
+    refund_status = models.CharField(
+        max_length=24,
+        choices=RefundStatus.choices,
+        default=RefundStatus.NOT_STARTED,
+    )
+    currency_code = models.CharField(max_length=3, default="AFN")
+    requested_refund_amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=0,
+    )
+    approved_refund_amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=0,
+    )
+    refund_reference = models.CharField(max_length=120, blank=True)
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.RESTRICT,
+        related_name="returns_approved",
+    )
+    received_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.RESTRICT,
+        related_name="returns_received",
+    )
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.RESTRICT,
+        related_name="returns_verified",
+    )
+    refund_processed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.RESTRICT,
+        related_name="returns_refunded",
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+    received_at = models.DateTimeField(null=True, blank=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    refunded_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=("customer", "-created_at")),
+            models.Index(fields=("status", "-created_at")),
+            models.Index(fields=("refund_status", "-created_at")),
+            models.Index(fields=("pickup_status", "-created_at")),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(requested_refund_amount__gte=0),
+                name="return_requested_refund_nonnegative",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(approved_refund_amount__gte=0),
+                name="return_approved_refund_nonnegative",
+            ),
+        ]
+
+    def __str__(self):
+        return self.return_number
+
+
+class ReturnItem(TimeStampedUUIDModel):
+    class Condition(models.TextChoices):
+        UNOPENED = "UNOPENED", "Unopened"
+        OPENED = "OPENED", "Opened"
+        DAMAGED = "DAMAGED", "Damaged"
+        EXPIRED = "EXPIRED", "Expired"
+        UNKNOWN = "UNKNOWN", "Not yet verified"
+
+    return_request = models.ForeignKey(
+        ReturnRequest,
+        on_delete=models.RESTRICT,
+        related_name="items",
+    )
+    order_item = models.ForeignKey(
+        "commerce.OrderItem",
+        on_delete=models.RESTRICT,
+        related_name="return_items",
+    )
+    quantity_requested = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    quantity_approved = models.PositiveIntegerField(default=0)
+    quantity_received = models.PositiveIntegerField(default=0)
+    condition = models.CharField(
+        max_length=16,
+        choices=Condition.choices,
+        default=Condition.UNKNOWN,
+    )
+    restock_eligible = models.BooleanField(default=False)
+    verification_notes = models.CharField(max_length=240, blank=True)
+
+    class Meta:
+        ordering = ("created_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=("return_request", "order_item"),
+                name="unique_order_item_per_return_request",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(quantity_requested__gt=0),
+                name="return_item_requested_quantity_positive",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(quantity_approved__gte=0)
+                & models.Q(quantity_approved__lte=models.F("quantity_requested")),
+                name="return_item_approved_not_above_requested",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(quantity_received__gte=0)
+                & models.Q(quantity_received__lte=models.F("quantity_approved")),
+                name="return_item_received_not_above_approved",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.return_request.return_number} / {self.order_item.medicine_name}"
+
+
+class ReturnStatusHistory(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    return_request = models.ForeignKey(
+        ReturnRequest,
+        on_delete=models.RESTRICT,
+        related_name="status_history",
+    )
+    from_status = models.CharField(max_length=24, blank=True)
+    to_status = models.CharField(max_length=24, choices=ReturnRequest.Status.choices)
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="return_status_changes",
+    )
+    note = models.CharField(max_length=240, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("created_at", "id")
+        indexes = [models.Index(fields=("return_request", "created_at"))]
+
+    def __str__(self):
+        return (
+            f"{self.return_request.return_number}: "
+            f"{self.from_status or 'NEW'} -> {self.to_status}"
+        )

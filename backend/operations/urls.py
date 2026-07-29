@@ -4,6 +4,8 @@ from .views import (
     InventoryBatchOperationsViewSet,
     InventoryTransactionViewSet,
     PurchaseOrderViewSet,
+    ReturnRequestViewSet,
+    StaffReturnRequestViewSet,
     StorageLocationViewSet,
     SupplierViewSet,
     WarehouseViewSet,
@@ -31,6 +33,12 @@ router.register(
     "operations/inventory-transactions",
     InventoryTransactionViewSet,
     basename="inventory-transaction",
+)
+router.register("returns", ReturnRequestViewSet, basename="return-request")
+router.register(
+    "operations/returns",
+    StaffReturnRequestViewSet,
+    basename="operations-return-request",
 )
 
 urlpatterns = router.urls

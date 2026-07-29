@@ -6,11 +6,14 @@ from .models import (
     PurchaseOrder,
     PurchaseOrderItem,
     PurchaseOrderStatusHistory,
+    ReturnItem,
+    ReturnRequest,
+    ReturnStatusHistory,
     StorageLocation,
     Supplier,
     Warehouse,
 )
-from .services import transition_purchase_order
+from .services import approve_return_request, reject_return_request, transition_purchase_order
 
 
 @admin.action(description="Activate selected suppliers")
@@ -296,4 +299,131 @@ class InventoryQualityInspectionAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
+        return False
+
+
+class ReturnItemInline(admin.TabularInline):
+    model = ReturnItem
+    extra = 0
+    can_delete = False
+    readonly_fields = (
+        "order_item",
+        "quantity_requested",
+        "quantity_approved",
+        "quantity_received",
+        "condition",
+        "restock_eligible",
+        "verification_notes",
+        "created_at",
+        "updated_at",
+    )
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class ReturnStatusHistoryInline(admin.TabularInline):
+    model = ReturnStatusHistory
+    extra = 0
+    can_delete = False
+    readonly_fields = (
+        "from_status",
+        "to_status",
+        "changed_by",
+        "note",
+        "created_at",
+    )
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.action(description="Approve all requested quantities")
+def approve_returns(modeladmin, request, queryset):
+    updated = 0
+    for return_request in queryset.filter(status=ReturnRequest.Status.REQUESTED):
+        approve_return_request(
+            return_request=return_request,
+            approved_items=[
+                {
+                    "return_item": item,
+                    "quantity_approved": item.quantity_requested,
+                }
+                for item in return_request.items.all()
+            ],
+            actor=request.user,
+            note="All requested quantities approved in Django Admin",
+        )
+        updated += 1
+    modeladmin.message_user(request, f"Approved {updated} return request(s).")
+
+
+@admin.action(description="Reject selected requested returns")
+def reject_returns(modeladmin, request, queryset):
+    updated = 0
+    for return_request in queryset.filter(status=ReturnRequest.Status.REQUESTED):
+        reject_return_request(
+            return_request=return_request,
+            actor=request.user,
+            note="Rejected in Django Admin",
+        )
+        updated += 1
+    modeladmin.message_user(request, f"Rejected {updated} return request(s).")
+
+
+@admin.register(ReturnRequest)
+class ReturnRequestAdmin(admin.ModelAdmin):
+    list_display = (
+        "return_number",
+        "order",
+        "customer",
+        "status",
+        "pickup_status",
+        "refund_status",
+        "approved_refund_amount",
+        "created_at",
+    )
+    list_filter = (
+        "status",
+        "pickup_status",
+        "refund_status",
+        "created_at",
+    )
+    search_fields = (
+        "return_number",
+        "order__order_number",
+        "customer__email",
+        "customer__phone",
+        "reason",
+        "refund_reference",
+    )
+    readonly_fields = (
+        "return_number",
+        "order",
+        "customer",
+        "reason",
+        "customer_notes",
+        "status",
+        "pickup_status",
+        "pickup_scheduled_at",
+        "refund_status",
+        "currency_code",
+        "requested_refund_amount",
+        "approved_refund_amount",
+        "refund_reference",
+        "approved_by",
+        "received_by",
+        "verified_by",
+        "refund_processed_by",
+        "approved_at",
+        "received_at",
+        "verified_at",
+        "refunded_at",
+        "created_at",
+        "updated_at",
+    )
+    actions = (approve_returns, reject_returns)
+    inlines = (ReturnItemInline, ReturnStatusHistoryInline)
+
+    def has_add_permission(self, request):
         return False

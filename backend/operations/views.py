@@ -6,6 +6,7 @@ from catalog.models import InventoryBatch
 from .models import (
     InventoryTransaction,
     PurchaseOrder,
+    ReturnRequest,
     StorageLocation,
     Supplier,
     Warehouse,
@@ -18,16 +19,34 @@ from .serializers import (
     PurchaseOrderSerializer,
     PurchaseReceiptSerializer,
     QualityInspectionInputSerializer,
+    ReturnApprovalSerializer,
+    ReturnNoteSerializer,
+    ReturnPickupSerializer,
+    ReturnReceiptSerializer,
+    ReturnRefundSerializer,
+    ReturnRejectionSerializer,
+    ReturnRequestCreateSerializer,
+    ReturnRequestCustomerSerializer,
+    ReturnRequestStaffSerializer,
+    ReturnVerificationSerializer,
     StockVerificationInputSerializer,
     StorageLocationSerializer,
     SupplierSerializer,
     WarehouseSerializer,
 )
 from .services import (
+    approve_return_request,
+    cancel_return_request,
+    complete_return_refund,
     inspect_inventory_batch,
+    mark_return_picked_up,
+    receive_return_request,
     record_inventory_change,
+    reject_return_request,
+    schedule_return_pickup,
     transition_purchase_order,
     verify_inventory_count,
+    verify_return_request,
 )
 
 
@@ -306,3 +325,170 @@ class InventoryTransactionViewSet(
             if value:
                 queryset = queryset.filter(**{field: value})
         return queryset
+
+
+class ReturnRequestViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+):
+    serializer_class = ReturnRequestCustomerSerializer
+    queryset = ReturnRequest.objects.none()
+
+    def get_queryset(self):
+        return (
+            ReturnRequest.objects.filter(customer=self.request.user)
+            .select_related("order")
+            .prefetch_related(
+                "items__order_item",
+                "status_history__changed_by",
+            )
+        )
+
+    def create(self, request, *args, **kwargs):
+        input_serializer = ReturnRequestCreateSerializer(
+            data=request.data,
+            context={"request": request},
+        )
+        input_serializer.is_valid(raise_exception=True)
+        return_request = input_serializer.save()
+        return response.Response(
+            self.get_serializer(return_request).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    @action(detail=True, methods=("post",))
+    def cancel(self, request, pk=None):
+        updated = cancel_return_request(
+            return_request=self.get_object(),
+            customer=request.user,
+        )
+        return response.Response(self.get_serializer(updated).data)
+
+
+class StaffReturnRequestViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+):
+    permission_classes = (IsOperationsStaff,)
+    serializer_class = ReturnRequestStaffSerializer
+    queryset = ReturnRequest.objects.all()
+    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
+    search_fields = (
+        "return_number",
+        "order__order_number",
+        "customer__email",
+        "customer__phone",
+        "reason",
+        "refund_reference",
+    )
+    ordering_fields = ("created_at", "updated_at", "approved_refund_amount")
+    ordering = ("-created_at",)
+
+    def get_queryset(self):
+        queryset = (
+            super()
+            .get_queryset()
+            .select_related(
+                "order",
+                "customer",
+                "approved_by",
+                "received_by",
+                "verified_by",
+                "refund_processed_by",
+            )
+            .prefetch_related(
+                "items__order_item",
+                "status_history__changed_by",
+                "inventory_transactions__batch",
+            )
+        )
+        for field in ("status", "refund_status", "pickup_status", "customer"):
+            value = self.request.query_params.get(field)
+            if value:
+                queryset = queryset.filter(**{field: value})
+        return queryset
+
+    @action(detail=True, methods=("post",))
+    def approve(self, request, pk=None):
+        serializer = ReturnApprovalSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        updated = approve_return_request(
+            return_request=self.get_object(),
+            approved_items=serializer.validated_data["items"],
+            actor=request.user,
+            note=serializer.validated_data.get("note", ""),
+        )
+        return response.Response(self.get_serializer(updated).data)
+
+    @action(detail=True, methods=("post",))
+    def reject(self, request, pk=None):
+        serializer = ReturnRejectionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        updated = reject_return_request(
+            return_request=self.get_object(),
+            actor=request.user,
+            note=serializer.validated_data["note"],
+        )
+        return response.Response(self.get_serializer(updated).data)
+
+    @action(detail=True, methods=("post",), url_path="schedule-pickup")
+    def schedule_pickup(self, request, pk=None):
+        serializer = ReturnPickupSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        updated = schedule_return_pickup(
+            return_request=self.get_object(),
+            scheduled_at=serializer.validated_data["scheduled_at"],
+            actor=request.user,
+            note=serializer.validated_data.get("note", ""),
+        )
+        return response.Response(self.get_serializer(updated).data)
+
+    @action(detail=True, methods=("post",), url_path="mark-picked-up")
+    def mark_picked_up(self, request, pk=None):
+        serializer = ReturnNoteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        updated = mark_return_picked_up(
+            return_request=self.get_object(),
+            actor=request.user,
+            note=serializer.validated_data.get("note", ""),
+        )
+        return response.Response(self.get_serializer(updated).data)
+
+    @action(detail=True, methods=("post",))
+    def receive(self, request, pk=None):
+        serializer = ReturnReceiptSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        updated = receive_return_request(
+            return_request=self.get_object(),
+            received_items=serializer.validated_data["items"],
+            actor=request.user,
+            note=serializer.validated_data.get("note", ""),
+        )
+        return response.Response(self.get_serializer(updated).data)
+
+    @action(detail=True, methods=("post",))
+    def verify(self, request, pk=None):
+        serializer = ReturnVerificationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        updated = verify_return_request(
+            return_request=self.get_object(),
+            verified_items=serializer.validated_data["items"],
+            actor=request.user,
+            note=serializer.validated_data.get("note", ""),
+        )
+        return response.Response(self.get_serializer(updated).data)
+
+    @action(detail=True, methods=("post",), url_path="complete-refund")
+    def complete_refund(self, request, pk=None):
+        serializer = ReturnRefundSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        updated = complete_return_refund(
+            return_request=self.get_object(),
+            actor=request.user,
+            reference=serializer.validated_data["reference"],
+            note=serializer.validated_data.get("note", ""),
+        )
+        return response.Response(self.get_serializer(updated).data)

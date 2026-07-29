@@ -3,6 +3,7 @@ import re
 from rest_framework import serializers
 
 from catalog.models import InventoryBatch, Medicine, PharmacyBranch
+from commerce.models import Order, OrderItem
 
 from .models import (
     InventoryQualityInspection,
@@ -10,11 +11,18 @@ from .models import (
     PurchaseOrder,
     PurchaseOrderItem,
     PurchaseOrderStatusHistory,
+    ReturnItem,
+    ReturnRequest,
+    ReturnStatusHistory,
     StorageLocation,
     Supplier,
     Warehouse,
 )
-from .services import create_purchase_order, receive_purchase_order
+from .services import (
+    create_purchase_order,
+    create_return_request,
+    receive_purchase_order,
+)
 
 
 class SupplierSerializer(serializers.ModelSerializer):
@@ -431,3 +439,212 @@ class InventoryAdjustmentInputSerializer(serializers.Serializer):
     quantity = serializers.IntegerField(min_value=1)
     reference = serializers.CharField(max_length=120, required=False, allow_blank=True)
     notes = serializers.CharField(required=False, allow_blank=True)
+
+
+class ReturnItemSerializer(serializers.ModelSerializer):
+    order_item_id = serializers.UUIDField(source="order_item.id", read_only=True)
+    medicine_name = serializers.CharField(
+        source="order_item.medicine_name",
+        read_only=True,
+    )
+    unit_price = serializers.DecimalField(
+        source="order_item.unit_price",
+        max_digits=14,
+        decimal_places=2,
+        read_only=True,
+    )
+
+    class Meta:
+        model = ReturnItem
+        fields = (
+            "id",
+            "order_item_id",
+            "medicine_name",
+            "unit_price",
+            "quantity_requested",
+            "quantity_approved",
+            "quantity_received",
+            "condition",
+            "restock_eligible",
+            "verification_notes",
+        )
+
+
+class ReturnStatusHistorySerializer(serializers.ModelSerializer):
+    changed_by_email = serializers.EmailField(
+        source="changed_by.email",
+        allow_null=True,
+        read_only=True,
+    )
+
+    class Meta:
+        model = ReturnStatusHistory
+        fields = (
+            "id",
+            "from_status",
+            "to_status",
+            "changed_by_email",
+            "note",
+            "created_at",
+        )
+
+
+class ReturnRequestCustomerSerializer(serializers.ModelSerializer):
+    order_id = serializers.UUIDField(source="order.id", read_only=True)
+    items = ReturnItemSerializer(many=True, read_only=True)
+    status_history = ReturnStatusHistorySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ReturnRequest
+        fields = (
+            "id",
+            "return_number",
+            "order_id",
+            "reason",
+            "customer_notes",
+            "status",
+            "pickup_status",
+            "pickup_scheduled_at",
+            "refund_status",
+            "currency_code",
+            "requested_refund_amount",
+            "approved_refund_amount",
+            "items",
+            "status_history",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = fields
+
+
+class ReturnItemCreateSerializer(serializers.Serializer):
+    order_item_id = serializers.PrimaryKeyRelatedField(
+        source="order_item",
+        queryset=OrderItem.objects.all(),
+    )
+    quantity = serializers.IntegerField(min_value=1)
+
+
+class ReturnRequestCreateSerializer(serializers.Serializer):
+    order_id = serializers.PrimaryKeyRelatedField(
+        source="order",
+        queryset=Order.objects.all(),
+    )
+    reason = serializers.CharField(max_length=240)
+    customer_notes = serializers.CharField(required=False, allow_blank=True)
+    pickup_required = serializers.BooleanField(default=False)
+    items = ReturnItemCreateSerializer(many=True)
+
+    def create(self, validated_data):
+        return create_return_request(
+            customer=self.context["request"].user,
+            order=validated_data["order"],
+            reason=validated_data["reason"],
+            notes=validated_data.get("customer_notes", ""),
+            pickup_required=validated_data.get("pickup_required", False),
+            items=validated_data["items"],
+        )
+
+
+class ReturnRequestStaffSerializer(ReturnRequestCustomerSerializer):
+    customer_id = serializers.UUIDField(source="customer.id", read_only=True)
+    customer_email = serializers.EmailField(source="customer.email", read_only=True)
+    approved_by_id = serializers.UUIDField(
+        source="approved_by.id",
+        allow_null=True,
+        read_only=True,
+    )
+    received_by_id = serializers.UUIDField(
+        source="received_by.id",
+        allow_null=True,
+        read_only=True,
+    )
+    verified_by_id = serializers.UUIDField(
+        source="verified_by.id",
+        allow_null=True,
+        read_only=True,
+    )
+    refund_processed_by_id = serializers.UUIDField(
+        source="refund_processed_by.id",
+        allow_null=True,
+        read_only=True,
+    )
+
+    class Meta(ReturnRequestCustomerSerializer.Meta):
+        fields = ReturnRequestCustomerSerializer.Meta.fields + (
+            "customer_id",
+            "customer_email",
+            "admin_notes",
+            "refund_reference",
+            "approved_by_id",
+            "received_by_id",
+            "verified_by_id",
+            "refund_processed_by_id",
+            "approved_at",
+            "received_at",
+            "verified_at",
+            "refunded_at",
+            "inventory_transactions",
+        )
+        read_only_fields = fields
+
+    inventory_transactions = InventoryTransactionSerializer(many=True, read_only=True)
+
+
+class ReturnApprovalItemSerializer(serializers.Serializer):
+    return_item_id = serializers.PrimaryKeyRelatedField(
+        source="return_item",
+        queryset=ReturnItem.objects.all(),
+    )
+    quantity_approved = serializers.IntegerField(min_value=0)
+
+
+class ReturnApprovalSerializer(serializers.Serializer):
+    items = ReturnApprovalItemSerializer(many=True)
+    note = serializers.CharField(required=False, allow_blank=True)
+
+
+class ReturnNoteSerializer(serializers.Serializer):
+    note = serializers.CharField(required=False, allow_blank=True)
+
+
+class ReturnRejectionSerializer(serializers.Serializer):
+    note = serializers.CharField()
+
+
+class ReturnPickupSerializer(serializers.Serializer):
+    scheduled_at = serializers.DateTimeField()
+    note = serializers.CharField(required=False, allow_blank=True)
+
+
+class ReturnReceivedItemSerializer(serializers.Serializer):
+    return_item_id = serializers.PrimaryKeyRelatedField(
+        source="return_item",
+        queryset=ReturnItem.objects.all(),
+    )
+    quantity_received = serializers.IntegerField(min_value=0)
+
+
+class ReturnReceiptSerializer(serializers.Serializer):
+    items = ReturnReceivedItemSerializer(many=True)
+    note = serializers.CharField(required=False, allow_blank=True)
+
+
+class ReturnVerificationItemSerializer(serializers.Serializer):
+    return_item_id = serializers.PrimaryKeyRelatedField(
+        source="return_item",
+        queryset=ReturnItem.objects.all(),
+    )
+    condition = serializers.ChoiceField(choices=ReturnItem.Condition.choices)
+    restock_eligible = serializers.BooleanField(default=False)
+    notes = serializers.CharField(required=False, allow_blank=True)
+
+
+class ReturnVerificationSerializer(serializers.Serializer):
+    items = ReturnVerificationItemSerializer(many=True)
+    note = serializers.CharField(required=False, allow_blank=True)
+
+
+class ReturnRefundSerializer(serializers.Serializer):
+    reference = serializers.CharField(max_length=120)
+    note = serializers.CharField(required=False, allow_blank=True)
