@@ -13,7 +13,36 @@ from .models import (
     Supplier,
     Warehouse,
 )
+from .permissions import is_operations_staff
 from .services import approve_return_request, reject_return_request, transition_purchase_order
+
+
+class OperationsAdminPermissionMixin:
+    def has_module_permission(self, request):
+        return is_operations_staff(request.user) and super().has_module_permission(
+            request
+        )
+
+    def has_view_permission(self, request, obj=None):
+        return is_operations_staff(request.user) and super().has_view_permission(
+            request,
+            obj,
+        )
+
+    def has_add_permission(self, request):
+        return is_operations_staff(request.user) and super().has_add_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        return is_operations_staff(request.user) and super().has_change_permission(
+            request,
+            obj,
+        )
+
+    def has_delete_permission(self, request, obj=None):
+        return is_operations_staff(request.user) and super().has_delete_permission(
+            request,
+            obj,
+        )
 
 
 @admin.action(description="Activate selected suppliers")
@@ -50,7 +79,7 @@ def verify_suppliers(modeladmin, request, queryset):
 
 
 @admin.register(Supplier)
-class SupplierAdmin(admin.ModelAdmin):
+class SupplierAdmin(OperationsAdminPermissionMixin, admin.ModelAdmin):
     list_display = (
         "code",
         "company_name",
@@ -110,6 +139,9 @@ class SupplierAdmin(admin.ModelAdmin):
         ("Audit", {"fields": ("created_at", "updated_at")}),
     )
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 class PurchaseOrderItemInline(admin.TabularInline):
     model = PurchaseOrderItem
@@ -165,7 +197,7 @@ def approve_purchase_orders(modeladmin, request, queryset):
 
 
 @admin.register(PurchaseOrder)
-class PurchaseOrderAdmin(admin.ModelAdmin):
+class PurchaseOrderAdmin(OperationsAdminPermissionMixin, admin.ModelAdmin):
     list_display = (
         "purchase_order_number",
         "supplier",
@@ -206,9 +238,15 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
     actions = (submit_purchase_orders, approve_purchase_orders)
     inlines = (PurchaseOrderItemInline, PurchaseOrderStatusHistoryInline)
 
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(Warehouse)
-class WarehouseAdmin(admin.ModelAdmin):
+class WarehouseAdmin(OperationsAdminPermissionMixin, admin.ModelAdmin):
     list_display = ("code", "name", "branch", "is_active", "updated_at")
     list_filter = ("is_active", "branch")
     search_fields = ("code", "name", "branch__name", "address")
@@ -216,7 +254,7 @@ class WarehouseAdmin(admin.ModelAdmin):
 
 
 @admin.register(StorageLocation)
-class StorageLocationAdmin(admin.ModelAdmin):
+class StorageLocationAdmin(OperationsAdminPermissionMixin, admin.ModelAdmin):
     list_display = (
         "code",
         "warehouse",
@@ -231,7 +269,7 @@ class StorageLocationAdmin(admin.ModelAdmin):
 
 
 @admin.register(InventoryTransaction)
-class InventoryTransactionAdmin(admin.ModelAdmin):
+class InventoryTransactionAdmin(OperationsAdminPermissionMixin, admin.ModelAdmin):
     list_display = (
         "created_at",
         "transaction_type",
@@ -276,7 +314,7 @@ class InventoryTransactionAdmin(admin.ModelAdmin):
 
 
 @admin.register(InventoryQualityInspection)
-class InventoryQualityInspectionAdmin(admin.ModelAdmin):
+class InventoryQualityInspectionAdmin(OperationsAdminPermissionMixin, admin.ModelAdmin):
     list_display = ("created_at", "batch", "from_status", "to_status", "inspected_by")
     list_filter = ("from_status", "to_status", "created_at")
     search_fields = (
@@ -372,7 +410,7 @@ def reject_returns(modeladmin, request, queryset):
 
 
 @admin.register(ReturnRequest)
-class ReturnRequestAdmin(admin.ModelAdmin):
+class ReturnRequestAdmin(OperationsAdminPermissionMixin, admin.ModelAdmin):
     list_display = (
         "return_number",
         "order",
@@ -426,4 +464,7 @@ class ReturnRequestAdmin(admin.ModelAdmin):
     inlines = (ReturnItemInline, ReturnStatusHistoryInline)
 
     def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
         return False

@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.utils.html import format_html
+
+from operations.services import inspect_inventory_batch
 
 from .models import (
     Category,
@@ -15,7 +18,17 @@ from .models import (
 class MedicineImageInline(admin.TabularInline):
     model = MedicineImage
     extra = 0
-    fields = ("image", "alt_text", "is_primary")
+    fields = ("image", "image_preview", "alt_text", "is_primary")
+    readonly_fields = ("image_preview",)
+
+    @admin.display(description="Preview")
+    def image_preview(self, obj):
+        if not obj or not obj.image:
+            return "No image"
+        return format_html(
+            '<img src="{}" alt="" style="max-height:80px;max-width:120px;object-fit:contain">',
+            obj.image.url,
+        )
 
 
 @admin.register(Medicine)
@@ -29,10 +42,48 @@ class MedicineAdmin(admin.ModelAdmin):
 
 @admin.register(MedicineImage)
 class MedicineImageAdmin(admin.ModelAdmin):
-    list_display = ("medicine", "is_primary", "alt_text", "updated_at")
+    list_display = ("image_preview", "medicine", "is_primary", "alt_text", "updated_at")
     list_filter = ("is_primary",)
     search_fields = ("medicine__sku", "medicine__brand_name", "alt_text")
     autocomplete_fields = ("medicine",)
+    readonly_fields = ("image_preview", "created_at", "updated_at")
+
+    @admin.display(description="Preview")
+    def image_preview(self, obj):
+        if not obj or not obj.image:
+            return "No image"
+        return format_html(
+            '<img src="{}" alt="" style="max-height:70px;max-width:100px;object-fit:contain">',
+            obj.image.url,
+        )
+
+
+@admin.action(description="Approve selected batches after inspection")
+def approve_inventory_batches(modeladmin, request, queryset):
+    updated = 0
+    for batch in queryset:
+        inspect_inventory_batch(
+            batch=batch,
+            decision=InventoryBatch.QualityStatus.APPROVED,
+            actor=request.user,
+            notes="Approved through Django Admin bulk inspection",
+        )
+        updated += 1
+    modeladmin.message_user(request, f"Approved {updated} inventory batch(es).")
+
+
+@admin.action(description="Quarantine selected batches")
+def quarantine_inventory_batches(modeladmin, request, queryset):
+    updated = 0
+    for batch in queryset:
+        inspect_inventory_batch(
+            batch=batch,
+            decision=InventoryBatch.QualityStatus.QUARANTINED,
+            actor=request.user,
+            notes="Quarantined through Django Admin bulk inspection",
+        )
+        updated += 1
+    modeladmin.message_user(request, f"Quarantined {updated} inventory batch(es).")
 
 
 @admin.register(InventoryBatch)
@@ -60,6 +111,13 @@ class InventoryBatchAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
+    actions = (approve_inventory_batches, quarantine_inventory_batches)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Pharmacy)
