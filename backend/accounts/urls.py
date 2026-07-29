@@ -1,7 +1,9 @@
 from django.urls import path
 
 from .views import (
+    ChangePasswordView,
     CustomerMedicalProfileView,
+    DeactivateAccountView,
     GoogleLoginView,
     LoginView,
     MeView,
@@ -16,6 +18,8 @@ urlpatterns = [
     path("google/", GoogleLoginView.as_view(), name="google-login"),
     path("refresh/", RefreshView.as_view(), name="token-refresh"),
     path("me/", MeView.as_view(), name="me"),
+    path("me/change-password/", ChangePasswordView.as_view(), name="change-password"),
+    path("me/deactivate/", DeactivateAccountView.as_view(), name="deactivate-account"),
     path("staff/customers/", StaffCustomerListView.as_view(), name="staff-customers"),
     path(
         "me/medical-profile/",

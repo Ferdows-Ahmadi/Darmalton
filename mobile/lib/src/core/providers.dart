@@ -81,13 +81,67 @@ class AuthController extends AsyncNotifier<User?> {
     });
   }
 
+  Future<void> updateProfile({
+    required String firstName,
+    required String lastName,
+    required String phone,
+  }) async {
+    final response = await _api.patch<Map<String, dynamic>>(
+      '/auth/me/',
+      data: {
+        'first_name': firstName.trim(),
+        'last_name': lastName.trim(),
+        'phone': phone.trim(),
+      },
+    );
+    state = AsyncData(User.fromJson(response.data!));
+  }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await _api.post(
+      '/auth/me/change-password/',
+      data: {'current_password': currentPassword, 'new_password': newPassword},
+    );
+  }
+
+  Future<void> deactivateAccount({
+    required String currentPassword,
+    required String confirmation,
+  }) async {
+    await _api.post(
+      '/auth/me/deactivate/',
+      data: {
+        'current_password': currentPassword,
+        'confirmation': confirmation.trim(),
+      },
+    );
+    final userId = state.value?.id;
+    if (userId != null) {
+      await ref.read(localCacheProvider).clearPrivateCache(userId);
+    }
+    await _api.clearTokens();
+    await _google.signOut();
+    state = const AsyncData(null);
+  }
+
   Future<void> logout() async {
+    final userId = state.value?.id;
+    if (userId != null) {
+      await ref.read(localCacheProvider).clearPrivateCache(userId);
+    }
     await _api.clearTokens();
     await _google.signOut();
     state = const AsyncData(null);
   }
 
   Future<void> sessionExpired() async {
+    final userId = state.value?.id;
+    if (userId != null) {
+      await ref.read(localCacheProvider).clearPrivateCache(userId);
+    }
     await _api.clearTokens();
     state = const AsyncData(null);
   }
@@ -231,6 +285,26 @@ class RecentSearchesController extends AsyncNotifier<List<String>> {
   Future<void> clear() async {
     state = const AsyncData([]);
     await ref.read(localCacheProvider).writeRecentSearches(const []);
+  }
+}
+
+final recentlyViewedProvider =
+    AsyncNotifierProvider<RecentlyViewedController, List<String>>(
+      RecentlyViewedController.new,
+    );
+
+class RecentlyViewedController extends AsyncNotifier<List<String>> {
+  @override
+  Future<List<String>> build() =>
+      ref.read(localCacheProvider).readRecentlyViewedIds();
+
+  Future<void> remember(String medicineId) async {
+    final next = [
+      medicineId,
+      ...?state.value?.where((id) => id != medicineId),
+    ].take(8).toList();
+    state = AsyncData(next);
+    await ref.read(localCacheProvider).writeRecentlyViewedIds(next);
   }
 }
 
@@ -415,19 +489,31 @@ class GuestAccountPromptController extends AsyncNotifier<bool> {
   }
 }
 
-final addressesProvider = FutureProvider<List<Address>>((ref) async {
+final addressesProvider = StreamProvider<List<Address>>((ref) async* {
+  final user = await ref.watch(authProvider.future);
+  if (user == null) {
+    yield const [];
+    return;
+  }
+  final cache = ref.read(localCacheProvider);
+  final cached = await cache.readAddresses(user.id);
+  if (cached.isNotEmpty) yield cached;
   try {
     final response = await ref
         .read(apiClientProvider)
         .get<Map<String, dynamic>>('/addresses/');
-    return (response.data!['results'] as List<dynamic>)
+    final fresh = (response.data!['results'] as List<dynamic>)
         .map((item) => Address.fromJson(item as Map<String, dynamic>))
         .toList();
+    await cache.writeAddresses(user.id, fresh);
+    ref.read(offlineProvider.notifier).markOnline();
+    yield fresh;
   } on ApiException catch (error) {
     if (error.statusCode == 401) {
       await ref.read(authProvider.notifier).sessionExpired();
     }
-    rethrow;
+    ref.read(offlineProvider.notifier).markOffline();
+    if (cached.isEmpty) rethrow;
   }
 });
 

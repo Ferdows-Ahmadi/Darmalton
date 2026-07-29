@@ -7,7 +7,9 @@ from operations.permissions import IsOperationsStaff
 
 from .models import CustomerProfile, User
 from .serializers import (
+    ChangePasswordSerializer,
     CustomerMedicalProfileSerializer,
+    DeactivateAccountSerializer,
     GoogleLoginSerializer,
     LoginSerializer,
     RegisterSerializer,
@@ -50,11 +52,35 @@ class GoogleLoginView(generics.GenericAPIView):
         return response.Response(token_payload(user))
 
 
-class MeView(generics.GenericAPIView):
+class MeView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
 
-    def get(self, request):
-        return response.Response(UserSerializer(request.user).data)
+    def get_object(self):
+        return self.request.user
+
+
+class ChangePasswordView(generics.GenericAPIView):
+    serializer_class = ChangePasswordSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response.Response(
+            {"detail": "Password changed successfully."},
+            status=status.HTTP_200_OK,
+        )
+
+
+class DeactivateAccountView(generics.GenericAPIView):
+    serializer_class = DeactivateAccountSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        request.user.is_active = False
+        request.user.save(update_fields=("is_active", "updated_at"))
+        return response.Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class StaffCustomerListView(generics.ListAPIView):
@@ -66,16 +92,13 @@ class StaffCustomerListView(generics.ListAPIView):
     ordering = ("-created_at",)
 
     def get_queryset(self):
-        return (
-            User.objects.filter(role=User.Role.CUSTOMER)
-            .annotate(
-                order_count=Count("orders", distinct=True),
-                total_spent=Coalesce(
-                    Sum("orders__grand_total"),
-                    Value(0),
-                    output_field=DecimalField(max_digits=16, decimal_places=2),
-                ),
-            )
+        return User.objects.filter(role=User.Role.CUSTOMER).annotate(
+            order_count=Count("orders", distinct=True),
+            total_spent=Coalesce(
+                Sum("orders__grand_total"),
+                Value(0),
+                output_field=DecimalField(max_digits=16, decimal_places=2),
+            ),
         )
 
 

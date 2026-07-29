@@ -239,6 +239,17 @@ class Address {
   final String city;
   final String streetAddress;
   final bool isDefault;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'label': label,
+    'recipient_name': recipientName,
+    'recipient_phone': recipientPhone,
+    'province': province,
+    'city': city,
+    'street_address': streetAddress,
+    'is_default': isDefault,
+  };
 }
 
 class OrderStatus {

@@ -20,6 +20,8 @@ import 'features/orders/order_detail_screen.dart';
 import 'features/orders/order_history_screen.dart';
 import 'features/prescription/prescription_screen.dart';
 import 'features/profile/profile_screen.dart';
+import 'features/settings/account_settings_screen.dart';
+import 'features/settings/settings_info_screen.dart';
 import 'features/settings/settings_screen.dart';
 
 final routerProvider = Provider<GoRouter>(
@@ -43,6 +45,7 @@ final routerProvider = Provider<GoRouter>(
         path: '/search',
         builder: (_, state) => SearchResultsScreen(
           initialCategory: state.uri.queryParameters['category'] ?? '',
+          initialQuery: state.uri.queryParameters['query'] ?? '',
         ),
       ),
       GoRoute(
@@ -88,7 +91,52 @@ final routerProvider = Provider<GoRouter>(
           child: ProfileScreen(),
         ),
       ),
-      GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
+      GoRoute(
+        path: '/settings',
+        builder: (_, _) => const ProtectedRoute(
+          destination: '/settings',
+          child: SettingsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/settings/profile',
+        builder: (_, _) => const ProtectedRoute(
+          destination: '/settings/profile',
+          child: ProfileEditScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/settings/security',
+        builder: (_, _) => const ProtectedRoute(
+          destination: '/settings/security',
+          child: SecuritySettingsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/settings/about',
+        builder: (_, _) =>
+            const SettingsInfoScreen(kind: SettingsInfoKind.about),
+      ),
+      GoRoute(
+        path: '/settings/terms',
+        builder: (_, _) =>
+            const SettingsInfoScreen(kind: SettingsInfoKind.terms),
+      ),
+      GoRoute(
+        path: '/settings/privacy',
+        builder: (_, _) =>
+            const SettingsInfoScreen(kind: SettingsInfoKind.privacy),
+      ),
+      GoRoute(
+        path: '/settings/help',
+        builder: (_, _) =>
+            const SettingsInfoScreen(kind: SettingsInfoKind.help),
+      ),
+      GoRoute(
+        path: '/settings/contact',
+        builder: (_, _) =>
+            const SettingsInfoScreen(kind: SettingsInfoKind.contact),
+      ),
     ],
   ),
 );

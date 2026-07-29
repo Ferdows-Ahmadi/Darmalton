@@ -84,7 +84,7 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       _ProfileHeader(
                         user: user,
-                        onEdit: () => _comingSoon(context, 'ویرایش پروفایل'),
+                        onEdit: () => context.push('/settings/profile'),
                       ),
                       const SizedBox(height: 14),
                       _AccountStats(orders: orders),
@@ -104,14 +104,12 @@ class ProfileScreen extends ConsumerWidget {
                       _ProfileRow(
                         icon: Icons.receipt_long_outlined,
                         label: 'نسخه‌های من',
-                        trailing: DariStrings.comingSoon,
                         onTap: () => context.push('/prescription'),
                       ),
                       _ProfileRow(
                         icon: Icons.notifications_none_rounded,
                         label: 'اعلان‌ها',
-                        trailing: DariStrings.comingSoon,
-                        onTap: () => _comingSoon(context, 'اعلان‌ها'),
+                        onTap: () => context.push('/settings'),
                       ),
                       _ProfileRow(
                         icon: Icons.support_agent_rounded,

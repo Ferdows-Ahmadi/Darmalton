@@ -30,6 +30,7 @@ flutter:
   assets:
     - assets/branding/darmalton-wordmark.png
     - assets/branding/google-g.png
+    - assets/branding/landing-hero.png
   fonts:
     - family: Vazirmatn
       fonts:

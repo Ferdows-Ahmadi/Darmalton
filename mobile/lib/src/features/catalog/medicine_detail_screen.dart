@@ -92,6 +92,14 @@ class _MedicineDetailState extends ConsumerState<_MedicineDetail> {
   Medicine get medicine => widget.medicine;
   bool get canOrder => medicine.inStock && !medicine.prescriptionRequired;
 
+  @override
+  void initState() {
+    super.initState();
+    Future<void>.microtask(
+      () => ref.read(recentlyViewedProvider.notifier).remember(medicine.id),
+    );
+  }
+
   Future<void> _add({bool checkout = false}) async {
     if (!canOrder) {
       if (medicine.prescriptionRequired) {

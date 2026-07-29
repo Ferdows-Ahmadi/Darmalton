@@ -96,6 +96,8 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     const query = CatalogueQuery();
     final medicines = ref.watch(medicinesProvider(query));
     final categories = ref.watch(categoriesProvider);
+    final recentlyViewed =
+        ref.watch(recentlyViewedProvider).value ?? const <String>[];
     final auth = ref.watch(authProvider);
     final AsyncValue<List<Address>> addresses = auth.value == null
         ? const AsyncData([])
@@ -162,6 +164,15 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                 ),
               ),
               SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                sliver: SliverToBoxAdapter(
+                  child: _QuickActions(
+                    onPrescription: () => context.push('/prescription'),
+                    onNearby: () => _showNearbyPlaceholder(context),
+                  ),
+                ),
+              ),
+              SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                 sliver: SliverToBoxAdapter(
                   child: SectionTitle(
@@ -213,7 +224,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 22, 16, 8),
                 sliver: SliverToBoxAdapter(
                   child: SectionTitle(
-                    title: 'پیشنهادهای درملتون',
+                    title: 'دواهای پرطرفدار',
                     action: DariStrings.seeAll,
                     onAction: () => context.push('/search'),
                   ),
@@ -243,7 +254,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                         : ListView.separated(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             scrollDirection: Axis.horizontal,
-                            itemCount: items.length,
+                            itemCount: items.take(8).length,
                             separatorBuilder: (_, _) =>
                                 const SizedBox(width: 12),
                             itemBuilder: (_, index) => CompactMedicineCard(
@@ -257,9 +268,54 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                   ),
                 ),
               ),
+              SliverToBoxAdapter(
+                child: medicines.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
+                  data: (items) => _DiscoverySections(
+                    medicines: items,
+                    recentlyViewedIds: recentlyViewed,
+                    onAdd: (medicine) => _addToCart(context, ref, medicine),
+                  ),
+                ),
+              ),
               const SliverPadding(
                 padding: EdgeInsets.fromLTRB(16, 24, 16, 28),
                 sliver: SliverToBoxAdapter(child: _BenefitStrip()),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showNearbyPlaceholder(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => const SafeArea(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(24, 4, 24, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: DarmaltonColors.mint,
+                foregroundColor: DarmaltonColors.teal,
+                child: Icon(Icons.store_mall_directory_outlined, size: 32),
+              ),
+              SizedBox(height: 14),
+              Text(
+                'داروخانه نزدیک شما',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+              ),
+              SizedBox(height: 6),
+              Text(
+                'یافتن شعبه نزدیک پس از فعال‌شدن موقعیت مکانی و ثبت شعبه‌ها '
+                'در نسخه آینده در دسترس خواهد بود.',
+                textAlign: TextAlign.center,
               ),
             ],
           ),
@@ -317,7 +373,7 @@ class _PromotionBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     height: 244,
-    padding: const EdgeInsets.all(22),
+    padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
       gradient: const LinearGradient(
         colors: [Color(0xFFE9F8F7), Color(0xFFD8F2F0)],
@@ -329,25 +385,17 @@ class _PromotionBanner extends StatelessWidget {
     child: Stack(
       children: [
         Positioned(
-          left: -8,
-          bottom: -12,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Transform.rotate(
-                angle: -0.14,
-                child: const Icon(
-                  Icons.medication_rounded,
-                  size: 88,
-                  color: Color(0xFF53C8C3),
-                ),
-              ),
-              const Icon(
-                Icons.local_pharmacy_rounded,
-                size: 110,
-                color: DarmaltonColors.teal,
-              ),
-            ],
+          left: -45,
+          bottom: -10,
+          width: 270,
+          height: 220,
+          child: ExcludeSemantics(
+            child: Image.asset(
+              'assets/branding/landing-hero.png',
+              fit: BoxFit.contain,
+              alignment: Alignment.bottomLeft,
+              cacheWidth: 720,
+            ),
           ),
         ),
         Align(
@@ -371,6 +419,470 @@ class _PromotionBanner extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _QuickActions extends StatelessWidget {
+  const _QuickActions({required this.onPrescription, required this.onNearby});
+
+  final VoidCallback onPrescription;
+  final VoidCallback onNearby;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Expanded(
+        child: _QuickActionCard(
+          icon: Icons.receipt_long_outlined,
+          title: 'ارسال نسخه',
+          subtitle: 'بررسی توسط فارمسست',
+          onTap: onPrescription,
+        ),
+      ),
+      const SizedBox(width: 10),
+      Expanded(
+        child: _QuickActionCard(
+          icon: Icons.store_mall_directory_outlined,
+          title: 'داروخانه نزدیک',
+          subtitle: DariStrings.comingSoon,
+          onTap: onNearby,
+        ),
+      ),
+    ],
+  );
+}
+
+class _QuickActionCard extends StatelessWidget {
+  const _QuickActionCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => DarmaltonCard(
+    padding: const EdgeInsets.all(12),
+    onTap: onTap,
+    child: Row(
+      children: [
+        CircleAvatar(
+          backgroundColor: DarmaltonColors.mint,
+          foregroundColor: DarmaltonColors.teal,
+          child: Icon(icon),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                maxLines: 1,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _DiscoverySections extends StatelessWidget {
+  const _DiscoverySections({
+    required this.medicines,
+    required this.recentlyViewedIds,
+    required this.onAdd,
+  });
+
+  final List<Medicine> medicines;
+  final List<String> recentlyViewedIds;
+  final ValueChanged<Medicine> onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final recommended = medicines.skip(4).take(6).toList();
+    final today = medicines
+        .where((item) => !item.prescriptionRequired)
+        .take(4)
+        .toList();
+    final recentById = {for (final item in medicines) item.id: item};
+    final recent = recentlyViewedIds
+        .map((id) => recentById[id])
+        .whereType<Medicine>()
+        .toList();
+    final brands =
+        medicines
+            .map((item) => item.manufacturer)
+            .where((name) => name.isNotEmpty && name != 'Not listed')
+            .toSet()
+            .take(8)
+            .toList()
+          ..sort();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (recommended.isNotEmpty)
+          _MedicineShelf(
+            title: 'پیشنهاد برای شما',
+            medicines: recommended,
+            onAdd: onAdd,
+          ),
+        if (recent.isNotEmpty)
+          _MedicineShelf(
+            title: 'ادامه خرید',
+            subtitle: 'محصولاتی که اخیراً دیدید',
+            medicines: recent,
+            onAdd: onAdd,
+          ),
+        if (today.isNotEmpty) _TodayOffers(medicines: today, onAdd: onAdd),
+        if (brands.isNotEmpty) _TopBrands(brands: brands),
+        const _SeasonalCampaign(),
+        const _HealthArticles(),
+      ],
+    );
+  }
+}
+
+class _MedicineShelf extends StatelessWidget {
+  const _MedicineShelf({
+    required this.title,
+    required this.medicines,
+    required this.onAdd,
+    this.subtitle,
+  });
+
+  final String title;
+  final String? subtitle;
+  final List<Medicine> medicines;
+  final ValueChanged<Medicine> onAdd;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 24),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: SectionTitle(title: title, action: subtitle),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 300,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            itemCount: medicines.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (_, index) {
+              final medicine = medicines[index];
+              return CompactMedicineCard(
+                medicine: medicine,
+                onAdd: medicine.prescriptionRequired
+                    ? null
+                    : () => onAdd(medicine),
+              );
+            },
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _TodayOffers extends StatelessWidget {
+  const _TodayOffers({required this.medicines, required this.onAdd});
+
+  final List<Medicine> medicines;
+  final ValueChanged<Medicine> onAdd;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle(
+          title: 'پیشنهادهای امروز',
+          action: 'قیمت زنده از سرور',
+        ),
+        const SizedBox(height: 8),
+        ...medicines.map(
+          (medicine) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: DarmaltonCard(
+              padding: const EdgeInsets.all(10),
+              onTap: () => context.push('/medicines/${medicine.id}'),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 74,
+                    height: 74,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: MedicineImage(
+                        medicine: medicine,
+                        padding: const EdgeInsets.all(6),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          medicine.displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        Text(
+                          '${medicine.strength} · ${medicine.displayDosageForm}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        Text(
+                          medicine.price == null
+                              ? DariStrings.unavailable
+                              : '${medicine.price} ${DariStrings.afn}',
+                          style: const TextStyle(
+                            color: DarmaltonColors.teal,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton.filledTonal(
+                    tooltip: DariStrings.addToCart,
+                    onPressed: medicine.inStock ? () => onAdd(medicine) : null,
+                    icon: const Icon(Icons.add_shopping_cart_rounded),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _TopBrands extends StatelessWidget {
+  const _TopBrands({required this.brands});
+
+  final List<String> brands;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle(title: 'برندهای برتر'),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: brands
+              .map(
+                (brand) => ActionChip(
+                  avatar: const Icon(Icons.verified_outlined, size: 18),
+                  label: LtrText(brand),
+                  onPressed: () => context.push(
+                    '/search?query=${Uri.encodeQueryComponent(brand)}',
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+      ],
+    ),
+  );
+}
+
+class _SeasonalCampaign extends StatelessWidget {
+  const _SeasonalCampaign();
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+    child: Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFF8E7), Color(0xFFEAF8F6)],
+        ),
+        borderRadius: BorderRadius.circular(DarmaltonRadius.large),
+        border: Border.all(color: DarmaltonColors.line),
+      ),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.white,
+            foregroundColor: DarmaltonColors.teal,
+            child: Icon(Icons.air_rounded, size: 32),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'آمادگی برای فصل حساسیت',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const Text(
+                  'محصولات حساسیت و تنفسی را ببینید؛ برای علایم شدید با داکتر مشوره کنید.',
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'مشاهده محصولات حساسیت',
+            onPressed: () => context.push('/search?category=allergy'),
+            icon: const Icon(Icons.arrow_back_rounded),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _HealthArticles extends StatelessWidget {
+  const _HealthArticles();
+
+  static const articles = [
+    (
+      'مصرف امن دوا',
+      'پنج نکته برای خواندن برچسب و زمان‌بندی درست.',
+      Icons.schedule_rounded,
+    ),
+    (
+      'نسخه شما چگونه بررسی می‌شود؟',
+      'روند محرمانه بررسی توسط فارمسست درملتون.',
+      Icons.receipt_long_outlined,
+    ),
+    (
+      'نگهداری دوا در خانه',
+      'دواها را دور از گرما، رطوبت و دسترس کودکان نگه دارید.',
+      Icons.home_outlined,
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionTitle(title: 'مقاله‌های سلامت'),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 184,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: articles.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final article = articles[index];
+              return SizedBox(
+                width: 252,
+                child: DarmaltonCard(
+                  padding: EdgeInsets.zero,
+                  onTap: () => showDialog<void>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      icon: Icon(article.$3, color: DarmaltonColors.teal),
+                      title: Text(article.$1),
+                      content: Text(
+                        '${article.$2}\n\nاین مطلب آموزشی است و جای مشوره داکتر یا فارمسست را نمی‌گیرد.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('بستن'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(DarmaltonRadius.medium),
+                          ),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.asset(
+                                'assets/branding/landing-hero.png',
+                                fit: BoxFit.cover,
+                                alignment: Alignment.centerRight,
+                                cacheWidth: 600,
+                              ),
+                              ColoredBox(
+                                color: DarmaltonColors.teal.withValues(
+                                  alpha: 0.12,
+                                ),
+                              ),
+                              Center(
+                                child: Icon(
+                                  article.$3,
+                                  size: 40,
+                                  color: DarmaltonColors.tealDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              article.$1,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              article.$2,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ],

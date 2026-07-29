@@ -7,6 +7,7 @@ import 'models.dart';
 const _categoriesKey = 'cache_public_categories_v1';
 const _favoritesKey = 'cache_favorite_medicine_ids_v1';
 const _recentSearchesKey = 'cache_recent_searches_v1';
+const _recentlyViewedKey = 'cache_recently_viewed_medicine_ids_v1';
 const _settingsKey = 'cache_app_settings_v1';
 
 class LocalCacheStore {
@@ -17,6 +18,7 @@ class LocalCacheStore {
 
   String _medicinesKey(String search, String category) =>
       'cache_public_medicines_v1_${search.trim().toLowerCase()}_${category.trim().toLowerCase()}';
+  String _addressesKey(String userId) => 'cache_private_addresses_v1_$userId';
 
   Future<List<Category>> readCategories() async {
     final decoded = await _readList(_categoriesKey);
@@ -56,6 +58,26 @@ class LocalCacheStore {
 
   Future<void> writeRecentSearches(List<String> searches) =>
       _writeStringList(_recentSearchesKey, searches.take(8).toList());
+
+  Future<List<String>> readRecentlyViewedIds() =>
+      _readStringList(_recentlyViewedKey);
+
+  Future<void> writeRecentlyViewedIds(List<String> ids) =>
+      _writeStringList(_recentlyViewedKey, ids.take(8).toList());
+
+  Future<List<Address>> readAddresses(String userId) async {
+    final decoded = await _readList(_addressesKey(userId));
+    return decoded.map(Address.fromJson).toList();
+  }
+
+  Future<void> writeAddresses(String userId, List<Address> addresses) =>
+      _writeList(
+        _addressesKey(userId),
+        addresses.map((item) => item.toJson()).toList(),
+      );
+
+  Future<void> clearPrivateCache(String userId) =>
+      _storage.delete(key: _addressesKey(userId));
 
   Future<Map<String, dynamic>> readSettings() async {
     final raw = await _storage.read(key: _settingsKey);

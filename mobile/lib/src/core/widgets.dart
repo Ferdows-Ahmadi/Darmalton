@@ -122,6 +122,10 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
 
   void _handleBack(bool didPop, Object? result) {
     if (didPop) return;
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
     if (widget.index != 2) {
       context.go('/catalogue');
       return;

@@ -11,9 +11,14 @@ import '../../core/widgets.dart';
 enum _SortMode { name, priceLow, priceHigh }
 
 class SearchResultsScreen extends ConsumerStatefulWidget {
-  const SearchResultsScreen({this.initialCategory = '', super.key});
+  const SearchResultsScreen({
+    this.initialCategory = '',
+    this.initialQuery = '',
+    super.key,
+  });
 
   final String initialCategory;
+  final String initialQuery;
 
   @override
   ConsumerState<SearchResultsScreen> createState() =>
@@ -21,7 +26,7 @@ class SearchResultsScreen extends ConsumerStatefulWidget {
 }
 
 class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
-  final _search = TextEditingController();
+  late final _search = TextEditingController(text: widget.initialQuery);
   late String _category = widget.initialCategory;
   _SortMode _sort = _SortMode.name;
   bool _inStockOnly = false;

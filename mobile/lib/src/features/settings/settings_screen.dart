@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/app_settings.dart';
 import '../../core/design_system.dart';
@@ -26,6 +27,51 @@ class SettingsScreen extends ConsumerWidget {
         data: (current) => ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [
+            const _SettingsHeading(
+              icon: Icons.manage_accounts_outlined,
+              title: 'حساب و امنیت',
+              subtitle: 'معلومات حساب، آدرس‌ها و گزینه‌های امنیتی.',
+            ),
+            DarmaltonCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(
+                      Icons.person_outline_rounded,
+                      color: DarmaltonColors.teal,
+                    ),
+                    title: const Text('پروفایل'),
+                    subtitle: const Text('نام و شماره تماس'),
+                    trailing: const Icon(Icons.chevron_left_rounded),
+                    onTap: () => context.push('/settings/profile'),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.location_on_outlined,
+                      color: DarmaltonColors.teal,
+                    ),
+                    title: const Text('آدرس‌ها'),
+                    subtitle: const Text('مشاهده و افزودن هنگام پرداخت'),
+                    trailing: const Icon(Icons.chevron_left_rounded),
+                    onTap: () => context.go('/profile'),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.shield_outlined,
+                      color: DarmaltonColors.teal,
+                    ),
+                    title: const Text('امنیت و رمز عبور'),
+                    subtitle: const Text('تغییر رمز و غیرفعال‌کردن حساب'),
+                    trailing: const Icon(Icons.chevron_left_rounded),
+                    onTap: () => context.push('/settings/security'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 22),
             const _SettingsHeading(
               icon: Icons.language_rounded,
               title: 'زبان و خوانایی',
@@ -177,6 +223,48 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 22),
+            const _SettingsHeading(
+              icon: Icons.help_outline_rounded,
+              title: 'راهنما و معلومات',
+              subtitle: 'سیاست‌ها، پشتیبانی و معلومات برنامه.',
+            ),
+            DarmaltonCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  _SettingsLink(
+                    icon: Icons.support_agent_rounded,
+                    title: 'مرکز کمک',
+                    onTap: () => context.push('/settings/help'),
+                  ),
+                  const Divider(height: 1),
+                  _SettingsLink(
+                    icon: Icons.contact_support_outlined,
+                    title: 'تماس با ما',
+                    onTap: () => context.push('/settings/contact'),
+                  ),
+                  const Divider(height: 1),
+                  _SettingsLink(
+                    icon: Icons.info_outline_rounded,
+                    title: 'درباره درملتون',
+                    onTap: () => context.push('/settings/about'),
+                  ),
+                  const Divider(height: 1),
+                  _SettingsLink(
+                    icon: Icons.gavel_outlined,
+                    title: 'شرایط استفاده',
+                    onTap: () => context.push('/settings/terms'),
+                  ),
+                  const Divider(height: 1),
+                  _SettingsLink(
+                    icon: Icons.privacy_tip_outlined,
+                    title: 'سیاست حریم خصوصی',
+                    onTap: () => context.push('/settings/privacy'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 22),
             const DarmaltonCard(
               child: ListTile(
                 leading: Icon(
@@ -192,6 +280,26 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _SettingsLink extends StatelessWidget {
+  const _SettingsLink({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    leading: Icon(icon, color: DarmaltonColors.teal),
+    title: Text(title),
+    trailing: const Icon(Icons.chevron_left_rounded),
+    onTap: onTap,
+  );
 }
 
 class _SettingsHeading extends StatelessWidget {
