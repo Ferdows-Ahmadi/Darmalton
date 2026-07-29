@@ -1,6 +1,8 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, mixins, response, status, viewsets
+from rest_framework import filters, generics, mixins, response, status, viewsets
 from rest_framework.decorators import action
+
+from operations.permissions import IsOperationsStaff
 
 from .models import CartItem, CustomerAddress, Order
 from .serializers import (
@@ -10,8 +12,9 @@ from .serializers import (
     CheckoutSerializer,
     OrderSerializer,
     OrderStatusHistorySerializer,
+    StaffOrderSerializer,
 )
-from .services import get_or_create_cart
+from .services import get_or_create_cart, transition_order_status
 
 
 class CartView(generics.GenericAPIView):
@@ -120,3 +123,51 @@ class OrderViewSet(
         return response.Response(
             OrderStatusHistorySerializer(order.status_history.all(), many=True).data
         )
+
+
+class StaffOrderViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+):
+    permission_classes = (IsOperationsStaff,)
+    serializer_class = StaffOrderSerializer
+    queryset = Order.objects.all()
+    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
+    search_fields = (
+        "order_number",
+        "customer__email",
+        "customer__phone",
+        "delivery_address",
+    )
+    ordering_fields = ("placed_at", "grand_total", "updated_at")
+    ordering = ("-placed_at",)
+
+    def get_queryset(self):
+        queryset = (
+            super()
+            .get_queryset()
+            .select_related("customer", "branch", "prescription")
+            .prefetch_related("items", "status_history")
+        )
+        for field in ("status", "payment_status", "branch"):
+            value = self.request.query_params.get(field)
+            if value:
+                queryset = queryset.filter(**{field: value})
+        return queryset
+
+    @action(detail=True, methods=("post",))
+    def transition(self, request, pk=None):
+        new_status = str(request.data.get("status", "")).strip().upper()
+        if new_status not in Order.Status.values:
+            return response.Response(
+                {"status": ["Choose a valid order status."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        order = transition_order_status(
+            order=self.get_object(),
+            new_status=new_status,
+            actor=request.user,
+            note=str(request.data.get("note", "")).strip(),
+        )
+        return response.Response(self.get_serializer(order).data)

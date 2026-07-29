@@ -1,12 +1,17 @@
-from rest_framework import generics, permissions, response, status
+from django.db.models import Count, DecimalField, Sum, Value
+from django.db.models.functions import Coalesce
+from rest_framework import filters, generics, permissions, response, status
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .models import CustomerProfile
+from operations.permissions import IsOperationsStaff
+
+from .models import CustomerProfile, User
 from .serializers import (
     CustomerMedicalProfileSerializer,
     GoogleLoginSerializer,
     LoginSerializer,
     RegisterSerializer,
+    StaffCustomerSerializer,
     UserSerializer,
     token_payload,
 )
@@ -50,6 +55,28 @@ class MeView(generics.GenericAPIView):
 
     def get(self, request):
         return response.Response(UserSerializer(request.user).data)
+
+
+class StaffCustomerListView(generics.ListAPIView):
+    serializer_class = StaffCustomerSerializer
+    permission_classes = (IsOperationsStaff,)
+    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
+    search_fields = ("email", "phone", "first_name", "last_name")
+    ordering_fields = ("created_at", "email", "order_count", "total_spent")
+    ordering = ("-created_at",)
+
+    def get_queryset(self):
+        return (
+            User.objects.filter(role=User.Role.CUSTOMER)
+            .annotate(
+                order_count=Count("orders", distinct=True),
+                total_spent=Coalesce(
+                    Sum("orders__grand_total"),
+                    Value(0),
+                    output_field=DecimalField(max_digits=16, decimal_places=2),
+                ),
+            )
+        )
 
 
 class CustomerMedicalProfileView(generics.RetrieveUpdateAPIView):

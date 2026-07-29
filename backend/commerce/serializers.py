@@ -217,6 +217,23 @@ class OrderSerializer(serializers.ModelSerializer):
         )
 
 
+class StaffOrderSerializer(OrderSerializer):
+    customer_id = serializers.UUIDField(source="customer.id", read_only=True)
+    customer_email = serializers.EmailField(source="customer.email", read_only=True)
+    customer_phone = serializers.CharField(
+        source="customer.phone", allow_null=True, read_only=True
+    )
+    branch_name = serializers.CharField(source="branch.name", read_only=True)
+
+    class Meta(OrderSerializer.Meta):
+        fields = OrderSerializer.Meta.fields + (
+            "customer_id",
+            "customer_email",
+            "customer_phone",
+            "branch_name",
+        )
+
+
 class CheckoutSerializer(serializers.Serializer):
     address_id = serializers.PrimaryKeyRelatedField(
         source="address", queryset=CustomerAddress.objects.none()

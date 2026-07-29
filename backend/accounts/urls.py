@@ -7,6 +7,7 @@ from .views import (
     MeView,
     RefreshView,
     RegisterView,
+    StaffCustomerListView,
 )
 
 urlpatterns = [
@@ -15,6 +16,7 @@ urlpatterns = [
     path("google/", GoogleLoginView.as_view(), name="google-login"),
     path("refresh/", RefreshView.as_view(), name="token-refresh"),
     path("me/", MeView.as_view(), name="me"),
+    path("staff/customers/", StaffCustomerListView.as_view(), name="staff-customers"),
     path(
         "me/medical-profile/",
         CustomerMedicalProfileView.as_view(),

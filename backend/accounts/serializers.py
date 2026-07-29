@@ -13,6 +13,22 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "role")
 
 
+class StaffCustomerSerializer(UserSerializer):
+    order_count = serializers.IntegerField(read_only=True)
+    total_spent = serializers.DecimalField(
+        max_digits=16, decimal_places=2, read_only=True
+    )
+
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + (
+            "is_active",
+            "created_at",
+            "order_count",
+            "total_spent",
+        )
+        read_only_fields = fields
+
+
 class CustomerMedicalProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerProfile
