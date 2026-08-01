@@ -77,30 +77,32 @@ Demo-only credentials:
 
 Never reuse these credentials outside local development.
 
-Run the Flutter app separately after installing Flutter stable. The most
-reliable physical-device workflow uses USB forwarding and does not depend on
-the laptop's changing Wi-Fi address:
+Run the Flutter app separately after installing Flutter stable. For normal
+Docker and physical-device development, use the idempotent startup command:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-up.ps1
+```
+
+Run it once from an Administrator PowerShell with `-ConfigureFirewall` to add
+Private-profile rules for TCP 8000 and UDP 53535. It starts PostgreSQL, Django,
+the website, and the development discovery responder; updates the current
+private LAN address in the ignored `.env`; verifies backend health; and applies
+`adb reverse tcp:8000 tcp:8000` to every connected authorized Android device.
+
+Install the debug application once:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\android-device.ps1 -Mode usb -Build -Install -Launch
 ```
 
-That command establishes `adb reverse tcp:8000 tcp:8000` and builds with
-`API_BASE_URL=http://127.0.0.1:8000/api/v1`. For an emulator, use
-`http://10.0.2.2:8000/api/v1`.
-
-For Wi-Fi testing, first add the active private IPv4 address to
-`DJANGO_ALLOWED_HOSTS` in the ignored `.env`, recreate the backend, and then use:
-
-```powershell
-Get-NetIPConfiguration | Where-Object IPv4DefaultGateway
-docker compose up -d --force-recreate backend
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\android-device.ps1 -Mode lan -Build -Install -Launch
-```
-
-The LAN helper ignores Radmin/VPN adapters and reports the URL it selected.
-Keep the Windows network profile Private and restrict the `Darmalton Django
-8000` inbound rule to that profile.
+That APK first probes the stable USB localhost tunnel, then performs one bounded
+development-service broadcast, then retries the last successful LAN endpoint
+and any explicit developer override. It therefore survives laptop DHCP changes
+without rebuilding. Debug Settings and the sign-in screen expose connection
+diagnostics, health, last success, rediscovery, and a manual private endpoint.
+Release builds never run LAN discovery and require an explicit HTTPS
+`API_BASE_URL`.
 
 ## Verification
 

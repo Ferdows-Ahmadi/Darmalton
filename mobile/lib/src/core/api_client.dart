@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'api_endpoint_manager.dart';
+
 class ApiException implements Exception {
   const ApiException(this.message, {this.fields = const {}, this.statusCode});
   final String message;
@@ -12,27 +14,28 @@ class ApiException implements Exception {
 }
 
 class ApiClient {
-  ApiClient({Dio? dio, FlutterSecureStorage? storage, String? baseUrl})
-    : _storage = storage ?? const FlutterSecureStorage(),
-      _dio =
-          dio ??
-          Dio(
-            BaseOptions(
-              baseUrl: normalizeApiBaseUrl(
-                baseUrl ??
-                    const String.fromEnvironment(
-                      'API_BASE_URL',
-                      defaultValue: 'http://10.0.2.2:8000/api/v1',
-                    ),
-              ),
-              connectTimeout: const Duration(seconds: 12),
-              receiveTimeout: const Duration(seconds: 20),
-              headers: {'Accept': 'application/json'},
-            ),
-          ) {
+  ApiClient({
+    Dio? dio,
+    FlutterSecureStorage? storage,
+    String? baseUrl,
+    ApiEndpointManager? endpointManager,
+  }) : _storage = storage ?? const FlutterSecureStorage(),
+       _endpointManager =
+           endpointManager ?? ApiEndpointManager(configuredEndpoint: baseUrl),
+       _dio =
+           dio ??
+           Dio(
+             BaseOptions(
+               baseUrl: ApiEndpointManager.usbEndpoint,
+               connectTimeout: const Duration(seconds: 12),
+               receiveTimeout: const Duration(seconds: 20),
+               headers: {'Accept': 'application/json'},
+             ),
+           ) {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          options.baseUrl = await _endpointManager.ensureResolved();
           final token = await _storage.read(key: 'access_token');
           if (token != null) options.headers['Authorization'] = 'Bearer $token';
           handler.next(options);
@@ -59,7 +62,15 @@ class ApiClient {
               }
             }
           }
+          if (error.type == DioExceptionType.connectionError ||
+              error.type == DioExceptionType.connectionTimeout) {
+            _endpointManager.markRequestFailure();
+          }
           handler.next(error);
+        },
+        onResponse: (response, handler) {
+          _endpointManager.markRequestSuccess();
+          handler.next(response);
         },
       ),
     );
@@ -67,19 +78,10 @@ class ApiClient {
 
   final Dio _dio;
   final FlutterSecureStorage _storage;
+  final ApiEndpointManager _endpointManager;
 
   static String normalizeApiBaseUrl(String value) {
-    final trimmed = value.trim().replaceAll(RegExp(r'/+$'), '');
-    if (trimmed.isEmpty) {
-      throw ArgumentError.value(value, 'baseUrl', 'must not be empty');
-    }
-    final uri = Uri.tryParse(trimmed);
-    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
-      throw ArgumentError.value(value, 'baseUrl', 'must be an absolute URL');
-    }
-    if (trimmed.endsWith('/api/v1')) return trimmed;
-    if (trimmed.endsWith('/api')) return '$trimmed/v1';
-    return '$trimmed/api/v1';
+    return ApiEndpointManager.normalizeApiBaseUrl(value);
   }
 
   Future<Response<T>> get<T>(String path, {Map<String, dynamic>? query}) async {

@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/app_settings.dart';
+import '../../core/api_endpoint_manager.dart';
 import '../../core/design_system.dart';
 import '../../core/providers.dart';
 import '../../core/widgets.dart';
@@ -265,6 +267,12 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 22),
+            if (kDebugMode) ...[
+              DevelopmentDiagnosticsCard(
+                manager: ref.watch(apiEndpointManagerProvider),
+              ),
+              const SizedBox(height: 22),
+            ],
             const DarmaltonCard(
               child: ListTile(
                 leading: Icon(
@@ -280,6 +288,174 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+class DevelopmentDiagnosticsScreen extends ConsumerWidget {
+  const DevelopmentDiagnosticsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => Scaffold(
+    appBar: AppBar(title: const Text('تشخیص اتصال توسعه')),
+    body: ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        DevelopmentDiagnosticsCard(
+          manager: ref.watch(apiEndpointManagerProvider),
+        ),
+      ],
+    ),
+  );
+}
+
+class DevelopmentDiagnosticsCard extends StatefulWidget {
+  const DevelopmentDiagnosticsCard({required this.manager, super.key});
+
+  final ApiEndpointManager manager;
+
+  @override
+  State<DevelopmentDiagnosticsCard> createState() =>
+      _DevelopmentDiagnosticsState();
+}
+
+class _DevelopmentDiagnosticsState extends State<DevelopmentDiagnosticsCard> {
+  String _methodLabel(ApiConnectionMethod method) => switch (method) {
+    ApiConnectionMethod.usb => 'USB',
+    ApiConnectionMethod.lan => 'LAN',
+    ApiConnectionMethod.rememberedLan => 'LAN ذخیره‌شده',
+    ApiConnectionMethod.manual => 'دستی',
+    ApiConnectionMethod.production => 'تولید',
+    ApiConnectionMethod.offline => 'آفلاین',
+  };
+
+  Future<void> _editOverride() async {
+    final controller = TextEditingController(
+      text: await widget.manager.getManualEndpoint() ?? '',
+    );
+    if (!mounted) return;
+    final value = await showDialog<String?>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('نشانی دستی برای توسعه'),
+        content: TextField(
+          controller: controller,
+          textDirection: TextDirection.ltr,
+          keyboardType: TextInputType.url,
+          decoration: const InputDecoration(
+            hintText: 'http://192.168.x.x:8000/api/v1',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('لغو'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, ''),
+            child: const Text('پاک‌کردن'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: const Text('ذخیره'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (value == null || !mounted) return;
+    try {
+      await widget.manager.setManualEndpoint(value);
+    } on FormatException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: widget.manager,
+    builder: (context, _) {
+      final state = widget.manager.snapshot;
+      final lastSuccess = state.lastSuccessfulConnection?.toLocal();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const _SettingsHeading(
+            icon: Icons.developer_mode_rounded,
+            title: 'تشخیص اتصال توسعه',
+            subtitle:
+                'این بخش فقط در نسخهٔ دیباگ دیده می‌شود و در نسخهٔ تولید غیرفعال است.',
+          ),
+          DarmaltonCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Icon(
+                    state.healthy
+                        ? Icons.cloud_done_outlined
+                        : Icons.cloud_off_outlined,
+                    color: state.healthy
+                        ? DarmaltonColors.teal
+                        : Theme.of(context).colorScheme.error,
+                  ),
+                  title: Text(
+                    state.resolving
+                        ? 'در حال بررسی اتصال…'
+                        : state.healthy
+                        ? 'بک‌اند در دسترس است'
+                        : 'بک‌اند در دسترس نیست',
+                  ),
+                  subtitle: Text(
+                    '${_methodLabel(state.method)}\n${state.endpoint}',
+                    textDirection: TextDirection.ltr,
+                  ),
+                  isThreeLine: true,
+                ),
+                if (lastSuccess != null) ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.schedule_rounded,
+                      color: DarmaltonColors.teal,
+                    ),
+                    title: const Text('آخرین اتصال موفق'),
+                    subtitle: Text(
+                      lastSuccess.toIso8601String(),
+                      textDirection: TextDirection.ltr,
+                    ),
+                  ),
+                ],
+                const Divider(height: 1),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: state.resolving
+                            ? null
+                            : widget.manager.retryAndDiscover,
+                        icon: const Icon(Icons.sync_rounded),
+                        label: const Text('تلاش و کشف دوباره'),
+                      ),
+                    ),
+                    Expanded(
+                      child: TextButton.icon(
+                        onPressed: _editOverride,
+                        icon: const Icon(Icons.tune_rounded),
+                        label: const Text('نشانی دستی'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 class _SettingsLink extends StatelessWidget {

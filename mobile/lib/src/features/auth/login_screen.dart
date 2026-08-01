@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -227,6 +228,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           : () => context.go('/catalogue'),
                       child: const Text('ادامه بدون ورود'),
                     ),
+                    if (kDebugMode)
+                      TextButton.icon(
+                        onPressed: () => context.push('/dev-diagnostics'),
+                        icon: const Icon(Icons.developer_mode_rounded),
+                        label: const Text('تشخیص اتصال توسعه'),
+                      ),
                     const SizedBox(height: 16),
                     const Text(
                       'با ورود، استفاده از معلومات شخصی صرفاً برای انجام سفارش پذیرفته می‌شود.',

@@ -39,10 +39,12 @@ invoke them with:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\<script-name>.ps1
 ```
 
-The verified device path uses `adb reverse tcp:8000 tcp:8000` and a debug APK
-built with `API_BASE_URL=http://127.0.0.1:8000/api/v1`. Wi-Fi testing uses the
-active non-VPN private address and the Private-profile `Darmalton Django 8000`
-firewall rule.
+The verified device path uses `scripts/dev-up.ps1`, which configures
+`adb reverse tcp:8000 tcp:8000` for authorized devices and publishes a bounded
+development-only LAN discovery response. The same debug APK selects USB first,
+then the discovered or remembered private address without rebuilding. Wi-Fi
+testing uses Private-profile TCP 8000 and UDP 53535 firewall rules; release
+builds never use development discovery and require explicit HTTPS configuration.
 
 Google sign-in additionally requires `GOOGLE_CLIENT_ID` at Django/Next runtime
 and as a Flutter `--dart-define`. `GOOGLE_CLIENT_SECRET` is server-only. The

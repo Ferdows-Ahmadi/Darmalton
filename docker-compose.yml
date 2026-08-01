@@ -73,6 +73,21 @@ services:
       retries: 12
     restart: unless-stopped
 
+  dev-discovery:
+    profiles: ["dev"]
+    build:
+      context: ./backend
+      dockerfile: ../infrastructure/backend.Dockerfile
+    environment:
+      DARMALTON_DEV_API_HOST: ${DARMALTON_DEV_API_HOST:-}
+    command: ["python", "-m", "pharmacy.dev_discovery"]
+    ports:
+      - "53535:53535/udp"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   pharmacy_postgres_data:
   pharmacy_media:

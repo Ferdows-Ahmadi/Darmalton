@@ -1,5 +1,28 @@
 # Build Log
 
+## 2026-08-01 - Automatic local mobile connectivity
+
+- Added a public database-backed `/api/v1/health/` endpoint and a
+  development-only Docker UDP responder that advertises the active private LAN
+  API without scanning arbitrary addresses.
+- Added `scripts/dev-up.ps1` to update the ignored development host allowance,
+  start/recreate the required Docker services, verify health, configure all
+  connected Android ADB reverse tunnels, and create/check Private-profile TCP
+  8000 and UDP 53535 rules when run with administrator permission.
+- Added a debug-only Flutter endpoint manager with deterministic USB, discovered
+  LAN, remembered LAN, and manual-override resolution. The last successful
+  endpoint/time is persisted; release builds cannot execute discovery and fall
+  back safely when no production HTTPS endpoint is compiled.
+- Added public debug diagnostics from sign-in and authenticated Settings,
+  including endpoint, method, health, last success, retry/discovery, and bounded
+  manual override.
+- Verification passed Ruff, Django checks, the public health test, Compose dev
+  profile validation, live Docker health and UDP responses, Flutter analysis,
+  and 9 focused Flutter tests. On the connected Pixel 10, the same APK selected
+  USB localhost with ADB reverse and then healthy LAN `192.168.0.113` after all
+  reverse mappings were removed, without rebuilding; no Flutter/FATAL crash
+  markers appeared.
+
 ## 2026-07-23 - Environment and design audit
 
 - Confirmed 64-bit Windows build 26200 on x64 hardware with about 16 GB RAM.

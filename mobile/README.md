@@ -6,20 +6,27 @@ secure storage for authentication tokens.
 
 ## Android development
 
-From the repository root, use the USB helper for a physical device. It configures
-`adb reverse`, builds against `127.0.0.1`, installs, and launches:
+Start the local stack and automatic connectivity support with:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\android-device.ps1 -Mode usb -Build -Install -Launch
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-up.ps1
 ```
 
-Use `-Mode lan` to discover an active private Wi-Fi address. Add that reported
-address to `DJANGO_ALLOWED_HOSTS` in the ignored root `.env` before recreating
-the backend. `10.0.2.2` remains the Android-emulator host alias.
+Use `-ConfigureFirewall` once from an Administrator PowerShell. The command
+starts the Docker services, publishes a development-only UDP discovery service,
+updates the current private address in the ignored `.env`, verifies health, and
+configures ADB reverse for connected devices.
+
+The same installed debug APK resolves endpoints in a bounded order: USB
+localhost, discovered LAN server, last successful LAN server, then an explicit
+manual override. The debug diagnostics screen shows the selected endpoint,
+method, health, and last success. It is available from Settings and from sign-in
+when account/API access is unavailable.
 
 The API client accepts a host URL, `/api`, or `/api/v1` form and normalizes it to
 one trailing-slash-free `/api/v1` base. Debug builds permit local cleartext HTTP;
-release builds do not opt into cleartext and must use HTTPS.
+release builds do not opt into cleartext, never run discovery, and must receive
+an explicit HTTPS production URL.
 
 ## Brand assets and typography
 

@@ -1,12 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'api_client.dart';
+import 'api_endpoint_manager.dart';
 import 'app_settings.dart';
 import 'google_identity_service.dart';
 import 'guest_session.dart';
 import 'models.dart';
 
-final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
+final apiEndpointManagerProvider = Provider<ApiEndpointManager>((ref) {
+  final manager = ApiEndpointManager();
+  ref.onDispose(manager.dispose);
+  return manager;
+});
+final apiClientProvider = Provider<ApiClient>(
+  (ref) => ApiClient(endpointManager: ref.watch(apiEndpointManagerProvider)),
+);
 final guestSessionStoreProvider = Provider<GuestSessionStore>(
   (ref) => SecureGuestSessionStore(),
 );

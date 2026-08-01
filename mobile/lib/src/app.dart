@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -137,6 +138,11 @@ final routerProvider = Provider<GoRouter>(
         builder: (_, _) =>
             const SettingsInfoScreen(kind: SettingsInfoKind.contact),
       ),
+      if (kDebugMode)
+        GoRoute(
+          path: '/dev-diagnostics',
+          builder: (_, _) => const DevelopmentDiagnosticsScreen(),
+        ),
     ],
   ),
 );

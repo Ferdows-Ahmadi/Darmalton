@@ -10,10 +10,10 @@
   verified-claim paths are covered by deterministic backend/client tests.
 - Debug Android builds permit cleartext HTTP solely for private-LAN development.
   Release builds require HTTPS and production secrets/configuration.
-- Wi-Fi device builds depend on the laptop's current private-LAN address being
-  listed in the ignored `.env` `DJANGO_ALLOWED_HOSTS`. The USB helper is the
-  preferred address-independent workflow; rerun the LAN helper after DHCP
-  changes.
+- Automatic LAN discovery is development-only and requires a Private Windows
+  network plus inbound TCP 8000 and UDP 53535 firewall rules. Guest Wi-Fi or
+  access points with client isolation can still prevent phone-to-laptop access;
+  USB ADB reverse remains the deterministic fallback.
 - Wallets, stored payment methods, ratings/reviews, live GPS, and courier chat
   remain outside the current milestone and must stay labeled or disabled rather
   than simulated.
@@ -50,12 +50,9 @@
   favorites, searches, recently viewed items, guest-cart item IDs/quantities,
   preferences, and the signed-in user's addresses. It deliberately omits live
   prices, stock, order, prescription, and payment status. Authenticated server
-  carts are not available offline, and automatic connection detection still
-  relies on a refresh/retry rather than a background connectivity listener.
-- The latest Flutter source passes analysis and widget tests, but this product
-  quality session did not create another APK or complete a visual pass of the
-  new long home/settings screens on the connected Pixel. The last known debug
-  APK verification predates those screens.
+  carts are not available offline. Endpoint rediscovery runs at startup and on
+  explicit retry; continuous background reachability monitoring is deferred to
+  the dedicated offline-sync phase.
 - OpenAPI generation succeeds with one non-blocking warning because multiple
   resources expose different choice sets named `payment_status`; add a
   `SPECTACULAR_SETTINGS.ENUM_NAME_OVERRIDES` entry before publishing a generated
