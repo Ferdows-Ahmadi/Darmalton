@@ -10,7 +10,7 @@ export default function StaffSuppliersPage() {
         { key: "code", label: "کد" },
         { key: "company_name", label: "شرکت" },
         { key: "contact_name", label: "مسئول تماس" },
-        { key: "primary_phone", label: "تلفن" },
+        { key: "primary_phone", label: "تلفن", kind: "phone" },
         { key: "payment_terms_days", label: "مهلت پرداخت" },
         { key: "rating", label: "امتیاز" },
         { key: "is_verified", label: "تأییدشده", kind: "boolean" },

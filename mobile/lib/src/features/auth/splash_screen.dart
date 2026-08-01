@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system.dart';
 import '../../core/providers.dart';
+import '../../core/localized_text.dart';
 import '../../core/widgets.dart';
 
 class SplashScreen extends ConsumerWidget {

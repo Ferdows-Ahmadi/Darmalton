@@ -1,3 +1,5 @@
+import 'strings.dart';
+
 class User {
   const User({
     required this.id,
@@ -5,6 +7,7 @@ class User {
     required this.firstName,
     required this.lastName,
     required this.role,
+    this.preferredLanguage = 'fa',
     this.phone,
   });
 
@@ -14,6 +17,9 @@ class User {
     firstName: json['first_name'] as String? ?? '',
     lastName: json['last_name'] as String? ?? '',
     role: json['role'] as String? ?? 'CUSTOMER',
+    preferredLanguage: (json['preferred_language'] as String?) == 'en'
+        ? 'en'
+        : 'fa',
     phone: json['phone'] as String?,
   );
 
@@ -22,6 +28,7 @@ class User {
   final String firstName;
   final String lastName;
   final String role;
+  final String preferredLanguage;
   final String? phone;
 
   String get displayName {
@@ -50,7 +57,8 @@ class Category {
   final String nameDari;
   final String slug;
 
-  String get displayName => nameDari.isEmpty ? name : nameDari;
+  String get displayName =>
+      DariStrings.isEnglish || nameDari.isEmpty ? name : nameDari;
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -156,13 +164,21 @@ class Medicine {
   final String? price;
 
   bool get inStock => availableQuantity > 0 && price != null;
-  String get displayName => brandNameDari.isEmpty ? brandName : brandNameDari;
+  String get displayName => DariStrings.isEnglish || brandNameDari.isEmpty
+      ? brandName
+      : brandNameDari;
   String get displayDescription =>
-      descriptionDari.isEmpty ? description : descriptionDari;
+      DariStrings.isEnglish || descriptionDari.isEmpty
+      ? description
+      : descriptionDari;
   String get displayDosageForm =>
-      dosageFormDari.isEmpty ? dosageForm : dosageFormDari;
+      DariStrings.isEnglish || dosageFormDari.isEmpty
+      ? dosageForm
+      : dosageFormDari;
   String get displayCategory =>
-      categoryNameDari.isEmpty ? categoryName : categoryNameDari;
+      DariStrings.isEnglish || categoryNameDari.isEmpty
+      ? categoryName
+      : categoryNameDari;
 }
 
 class CartItem {
@@ -216,8 +232,13 @@ class Address {
     required this.recipientPhone,
     required this.province,
     required this.city,
+    required this.district,
     required this.streetAddress,
+    required this.landmark,
+    required this.deliveryInstructions,
     required this.isDefault,
+    this.latitude,
+    this.longitude,
   });
 
   factory Address.fromJson(Map<String, dynamic> json) => Address(
@@ -227,8 +248,13 @@ class Address {
     recipientPhone: json['recipient_phone'] as String,
     province: json['province'] as String,
     city: json['city'] as String,
+    district: json['district'] as String? ?? '',
     streetAddress: json['street_address'] as String,
+    landmark: json['landmark'] as String? ?? '',
+    deliveryInstructions: json['delivery_instructions'] as String? ?? '',
     isDefault: json['is_default'] as bool? ?? false,
+    latitude: double.tryParse('${json['latitude'] ?? ''}'),
+    longitude: double.tryParse('${json['longitude'] ?? ''}'),
   );
 
   final String id;
@@ -237,8 +263,13 @@ class Address {
   final String recipientPhone;
   final String province;
   final String city;
+  final String district;
   final String streetAddress;
+  final String landmark;
+  final String deliveryInstructions;
   final bool isDefault;
+  final double? latitude;
+  final double? longitude;
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -247,8 +278,13 @@ class Address {
     'recipient_phone': recipientPhone,
     'province': province,
     'city': city,
+    'district': district,
     'street_address': streetAddress,
+    'landmark': landmark,
+    'delivery_instructions': deliveryInstructions,
     'is_default': isDefault,
+    'latitude': latitude,
+    'longitude': longitude,
   };
 }
 
@@ -467,12 +503,15 @@ class Prescription {
 }
 
 String prescriptionStatusLabel(String status) => switch (status) {
-  'SUBMITTED' => 'ارسال‌شده',
-  'UNDER_REVIEW' => 'در حال بررسی',
-  'CLARIFICATION_REQUESTED' => 'نیازمند توضیح',
-  'APPROVED' => 'تأییدشده',
-  'REJECTED' => 'ردشده',
-  'EXPIRED' => 'منقضی‌شده',
-  'CANCELLED' => 'لغوشده',
+  'SUBMITTED' => DariStrings.t('ارسال‌شده', 'Submitted'),
+  'UNDER_REVIEW' => DariStrings.t('در حال بررسی', 'Under review'),
+  'CLARIFICATION_REQUESTED' => DariStrings.t(
+    'نیازمند توضیح',
+    'Clarification requested',
+  ),
+  'APPROVED' => DariStrings.t('تأییدشده', 'Approved'),
+  'REJECTED' => DariStrings.t('ردشده', 'Rejected'),
+  'EXPIRED' => DariStrings.t('منقضی‌شده', 'Expired'),
+  'CANCELLED' => DariStrings.t('لغوشده', 'Cancelled'),
   _ => readableStatus(status),
 };

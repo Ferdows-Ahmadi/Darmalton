@@ -1,21 +1,18 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system.dart';
+import '../../core/localized_text.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
+import '../../core/phone_number.dart';
 import '../../core/strings.dart';
 import '../../core/widgets.dart';
+import '../addresses/address_selector.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
-
-  void _comingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$feature در نسخه بعدی فعال می‌شود.')),
-    );
-  }
 
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
@@ -44,171 +41,78 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authProvider);
     final orders = ref.watch(ordersProvider);
-    final addresses = ref.watch(addressesProvider);
 
-    return MainScaffold(
-      index: 4,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(DariStrings.profile),
-          actions: [
-            IconButton(
-              tooltip: 'تنظیمات',
-              onPressed: () => context.push('/settings'),
-              icon: const Icon(Icons.settings_outlined),
-            ),
-          ],
+    return Scaffold(
+      appBar: AppBar(title: Text(DariStrings.profile)),
+      body: auth.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => AsyncMessage(
+          message: '$error',
+          onRetry: () => ref.invalidate(authProvider),
         ),
-        body: auth.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => AsyncMessage(
-            message: '$error',
-            onRetry: () => ref.invalidate(authProvider),
-          ),
-          data: (user) => user == null
-              ? EmptyMessage(
-                  'از حساب خارج شده‌اید',
-                  'برای مشاهده حساب کاربری دوباره وارد شوید.',
-                  icon: Icons.person_off_outlined,
-                  actionLabel: 'ورود',
-                  onAction: () => context.go('/login'),
-                )
-              : RefreshIndicator(
-                  onRefresh: () async {
-                    ref.invalidate(authProvider);
-                    ref.invalidate(ordersProvider);
-                    ref.invalidate(addressesProvider);
-                  },
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
-                    children: [
-                      _ProfileHeader(
-                        user: user,
-                        onEdit: () => context.push('/settings/profile'),
-                      ),
-                      const SizedBox(height: 14),
-                      _AccountStats(orders: orders),
-                      const SizedBox(height: 14),
-                      _ProfileRow(
-                        icon: Icons.location_on_outlined,
-                        label: 'آدرس‌های من',
-                        onTap: () => _showAddresses(context, addresses),
-                      ),
-                      _ProfileRow(
-                        icon: Icons.credit_card_outlined,
-                        label: 'روش‌های پرداخت',
-                        trailing: DariStrings.comingSoon,
-                        onTap: () =>
-                            _comingSoon(context, 'روش‌های پرداخت ذخیره‌شده'),
-                      ),
-                      _ProfileRow(
-                        icon: Icons.receipt_long_outlined,
-                        label: 'نسخه‌های من',
-                        onTap: () => context.push('/prescription'),
-                      ),
-                      _ProfileRow(
-                        icon: Icons.notifications_none_rounded,
-                        label: 'اعلان‌ها',
-                        onTap: () => context.push('/settings'),
-                      ),
-                      _ProfileRow(
-                        icon: Icons.support_agent_rounded,
-                        label: 'مرکز کمک',
-                        onTap: () => showDialog<void>(
-                          context: context,
-                          builder: (context) => const AlertDialog(
-                            title: Text('مرکز کمک'),
-                            content: Text(
-                              'برای مشکلات سفارش با داروخانه تماس بگیرید. '
-                              'سیستم تکت پشتیبانی در نسخه بعدی افزوده می‌شود.',
-                            ),
+        data: (user) => user == null
+            ? EmptyMessage(
+                'از حساب خارج شده‌اید',
+                'برای مشاهده حساب کاربری دوباره وارد شوید.',
+                icon: Icons.person_off_outlined,
+                actionLabel: 'ورود',
+                onAction: () => context.go('/login'),
+              )
+            : RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(authProvider);
+                  ref.invalidate(ordersProvider);
+                  ref.invalidate(addressesProvider);
+                },
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
+                  children: [
+                    _ProfileHeader(
+                      user: user,
+                      onEdit: () => context.push('/settings/profile'),
+                    ),
+                    const SizedBox(height: 14),
+                    _AccountStats(orders: orders),
+                    const SizedBox(height: 14),
+                    _ProfileRow(
+                      icon: Icons.location_on_outlined,
+                      label: 'آدرس‌های من',
+                      onTap: () => showAddressSelector(context, ref),
+                    ),
+                    _ProfileRow(
+                      icon: Icons.receipt_long_outlined,
+                      label: 'نسخه‌های من',
+                      onTap: () => context.push('/prescription'),
+                    ),
+                    _ProfileRow(
+                      icon: Icons.support_agent_rounded,
+                      label: 'مرکز کمک',
+                      onTap: () => context.push('/settings/help'),
+                    ),
+                    _ProfileRow(
+                      icon: Icons.info_outline_rounded,
+                      label: 'درباره درملتون',
+                      onTap: () => showAboutDialog(
+                        context: context,
+                        applicationName: DariStrings.appName,
+                        applicationVersion: '1.0.0',
+                        children: const [
+                          Text(
+                            'نسخه نمایشی فروشگاه آنلاین دوا با قیمت و موجودی کنترل‌شده توسط سرور.',
                           ),
-                        ),
+                        ],
                       ),
-                      _ProfileRow(
-                        icon: Icons.info_outline_rounded,
-                        label: 'درباره درملتون',
-                        onTap: () => showAboutDialog(
-                          context: context,
-                          applicationName: DariStrings.appName,
-                          applicationVersion: '1.0.0',
-                          children: const [
-                            Text(
-                              'نسخه نمایشی فروشگاه آنلاین دوا با قیمت و موجودی کنترل‌شده توسط سرور.',
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      _ProfileRow(
-                        icon: Icons.logout_rounded,
-                        label: 'خروج',
-                        danger: true,
-                        onTap: () => _logout(context, ref),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 6),
+                    _ProfileRow(
+                      icon: Icons.logout_rounded,
+                      label: 'خروج',
+                      danger: true,
+                      onTap: () => _logout(context, ref),
+                    ),
+                  ],
                 ),
-        ),
-      ),
-    );
-  }
-
-  void _showAddresses(
-    BuildContext context,
-    AsyncValue<List<Address>> addresses,
-  ) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'آدرس‌های من',
-                style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: 12),
-              addresses.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => Text('$error'),
-                data: (items) => items.isEmpty
-                    ? const Text(
-                        'هنوز آدرسی ندارید. هنگام پرداخت آدرس اضافه کنید.',
-                      )
-                    : Column(
-                        children: items
-                            .map(
-                              (address) => ListTile(
-                                leading: Icon(
-                                  address.isDefault
-                                      ? Icons.home_rounded
-                                      : Icons.location_on_outlined,
-                                  color: DarmaltonColors.teal,
-                                ),
-                                title: Text(
-                                  address.label.isEmpty
-                                      ? 'آدرس تحویل'
-                                      : address.label,
-                                ),
-                                subtitle: Text(
-                                  '${address.city}، ${address.streetAddress}',
-                                ),
-                                trailing: address.isDefault
-                                    ? const Chip(label: Text('پیش‌فرض'))
-                                    : null,
-                              ),
-                            )
-                            .toList(),
-                      ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -244,7 +148,9 @@ class _ProfileHeader extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               LtrText(
-                user.phone?.isNotEmpty == true ? user.phone! : user.email,
+                user.phone?.isNotEmpty == true
+                    ? formatAfghanPhone(user.phone!)
+                    : user.email,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 10),
@@ -268,30 +174,15 @@ class _AccountStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DarmaltonCard(
-    child: Row(
-      children: [
-        Expanded(
-          child: _Stat(
-            icon: Icons.shopping_bag_outlined,
-            label: 'سفارش‌های من',
-            value: orders.when(
-              data: (items) => '${items.length}',
-              loading: () => '...',
-              error: (_, _) => '—',
-            ),
-            subtitle: 'همه سفارش‌ها',
-          ),
-        ),
-        const SizedBox(height: 76, child: VerticalDivider()),
-        const Expanded(
-          child: _Stat(
-            icon: Icons.account_balance_wallet_outlined,
-            label: 'موجودی کیف پول',
-            value: '—',
-            subtitle: DariStrings.comingSoon,
-          ),
-        ),
-      ],
+    child: _Stat(
+      icon: Icons.shopping_bag_outlined,
+      label: 'سفارش‌های من',
+      value: orders.when(
+        data: (items) => '${items.length}',
+        loading: () => '...',
+        error: (_, _) => '—',
+      ),
+      subtitle: 'همه سفارش‌ها',
     ),
   );
 }
@@ -343,14 +234,12 @@ class _ProfileRow extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
-    this.trailing,
     this.danger = false,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  final String? trailing;
   final bool danger;
 
   @override
@@ -381,15 +270,7 @@ class _ProfileRow extends StatelessWidget {
             color: danger ? DarmaltonColors.danger : null,
           ),
         ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (trailing != null)
-              Text(trailing!, style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(width: 6),
-            const Icon(Icons.chevron_left_rounded),
-          ],
-        ),
+        trailing: const Icon(Icons.chevron_left_rounded),
       ),
     ),
   );

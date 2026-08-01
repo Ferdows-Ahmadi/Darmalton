@@ -51,6 +51,12 @@
 	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>موقعیت شما فقط برای انتخاب دقیق آدرس تحویل استفاده می‌شود.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>دوربین فقط پس از انتخاب شما برای عکس گرفتن از نسخه استفاده می‌شود.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>گالری فقط پس از انتخاب شما برای انتخاب عکس نسخه استفاده می‌شود.</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>

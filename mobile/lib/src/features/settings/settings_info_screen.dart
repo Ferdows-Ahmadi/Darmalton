@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 
 import '../../core/design_system.dart';
+import '../../core/localized_text.dart';
 import '../../core/strings.dart';
 
 enum SettingsInfoKind { about, terms, privacy, help, contact }

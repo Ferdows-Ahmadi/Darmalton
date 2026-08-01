@@ -1,9 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system.dart';
+import '../../core/localized_text.dart';
 import '../../core/providers.dart';
+import '../../core/phone_number.dart';
+import '../../core/strings.dart';
 
 class ProfileEditScreen extends ConsumerStatefulWidget {
   const ProfileEditScreen({super.key});
@@ -45,7 +48,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           .updateProfile(
             firstName: _firstName.text,
             lastName: _lastName.text,
-            phone: _phone.text,
+            phone: _phone.text.trim().isEmpty
+                ? ''
+                : normalizeAfghanPhone(_phone.text),
           );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -81,9 +86,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           TextFormField(
             controller: _firstName,
             textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(
-              labelText: 'نام',
-              prefixIcon: Icon(Icons.person_outline_rounded),
+            decoration: InputDecoration(
+              labelText: DariStrings.translate('نام'),
+              prefixIcon: const Icon(Icons.person_outline_rounded),
             ),
             validator: (value) =>
                 value?.trim().isEmpty == true ? 'نام را وارد کنید.' : null,
@@ -92,20 +97,27 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           TextFormField(
             controller: _lastName,
             textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(
-              labelText: 'نام خانوادگی',
-              prefixIcon: Icon(Icons.badge_outlined),
+            decoration: InputDecoration(
+              labelText: DariStrings.translate('نام خانوادگی'),
+              prefixIcon: const Icon(Icons.badge_outlined),
             ),
+            validator: (value) => value?.trim().isEmpty == true
+                ? DariStrings.t(
+                    'نام خانوادگی را وارد کنید.',
+                    'Enter a last name.',
+                  )
+                : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: _phone,
             keyboardType: TextInputType.phone,
             textDirection: TextDirection.ltr,
-            decoration: const InputDecoration(
-              labelText: 'شماره تماس',
-              prefixIcon: Icon(Icons.phone_outlined),
+            decoration: InputDecoration(
+              labelText: DariStrings.translate('شماره تماس'),
+              prefixIcon: const Icon(Icons.phone_outlined),
             ),
+            validator: (value) => validateAfghanPhone(value, optional: true),
           ),
           const SizedBox(height: 22),
           GradientButton(
@@ -203,7 +215,9 @@ class _SecuritySettingsScreenState
               controller: password,
               obscureText: true,
               textDirection: TextDirection.ltr,
-              decoration: const InputDecoration(labelText: 'رمز عبور فعلی'),
+              decoration: InputDecoration(
+                labelText: DariStrings.t('رمز عبور فعلی', 'Current password'),
+              ),
             ),
           ],
         ),
@@ -265,7 +279,9 @@ class _SecuritySettingsScreenState
             controller: _current,
             obscureText: true,
             textDirection: TextDirection.ltr,
-            decoration: const InputDecoration(labelText: 'رمز عبور فعلی'),
+            decoration: InputDecoration(
+              labelText: DariStrings.t('رمز عبور فعلی', 'Current password'),
+            ),
             validator: (value) =>
                 value?.isEmpty == true ? 'رمز فعلی را وارد کنید.' : null,
           ),
@@ -274,7 +290,9 @@ class _SecuritySettingsScreenState
             controller: _next,
             obscureText: true,
             textDirection: TextDirection.ltr,
-            decoration: const InputDecoration(labelText: 'رمز عبور جدید'),
+            decoration: InputDecoration(
+              labelText: DariStrings.t('رمز عبور جدید', 'New password'),
+            ),
             validator: (value) => (value?.length ?? 0) < 8
                 ? 'رمز جدید باید حداقل هشت حرف باشد.'
                 : null,
@@ -284,7 +302,9 @@ class _SecuritySettingsScreenState
             controller: _confirm,
             obscureText: true,
             textDirection: TextDirection.ltr,
-            decoration: const InputDecoration(labelText: 'تکرار رمز جدید'),
+            decoration: InputDecoration(
+              labelText: DariStrings.translate('تکرار رمز جدید'),
+            ),
             validator: (value) =>
                 value != _next.text ? 'دو رمز جدید یکسان نیست.' : null,
           ),

@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system.dart';
+import '../../core/localized_text.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/strings.dart';
@@ -31,6 +32,9 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
   _SortMode _sort = _SortMode.name;
   bool _inStockOnly = false;
   bool? _prescriptionFilter;
+  String _manufacturer = '';
+  double? _minPrice;
+  double? _maxPrice;
 
   Future<void> _submitSearch(String value) async {
     await ref.read(recentSearchesProvider.notifier).remember(value);
@@ -60,88 +64,153 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
     }
   }
 
-  void _showFilters() {
+  Future<void> _showFilters() async {
     var stock = _inStockOnly;
     var prescription = _prescriptionFilter;
-    showModalBottomSheet<void>(
+    var manufacturer = _manufacturer;
+    final minPrice = TextEditingController(
+      text: _minPrice?.toStringAsFixed(0) ?? '',
+    );
+    final maxPrice = TextEditingController(
+      text: _maxPrice?.toStringAsFixed(0) ?? '',
+    );
+    final manufacturers = ref.read(manufacturersProvider).value ?? const [];
+    await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (context) => StatefulBuilder(
         builder: (context, setSheetState) => SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'فیلتر محصولات',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('فقط محصولات موجود'),
-                  value: stock,
-                  onChanged: (value) => setSheetState(() => stock = value),
-                ),
-                const Text('نیاز به نسخه'),
-                const SizedBox(height: 8),
-                SegmentedButton<bool?>(
-                  segments: const [
-                    ButtonSegment(value: null, label: Text('همه')),
-                    ButtonSegment(value: false, label: Text('بدون نسخه')),
-                    ButtonSegment(value: true, label: Text('نسخه‌ای')),
+            padding: EdgeInsets.fromLTRB(
+              20,
+              0,
+              20,
+              MediaQuery.viewInsetsOf(context).bottom + 24,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'فیلتر محصولات',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('فقط محصولات موجود'),
+                    value: stock,
+                    onChanged: (value) => setSheetState(() => stock = value),
+                  ),
+                  const Text('نیاز به نسخه'),
+                  const SizedBox(height: 8),
+                  SegmentedButton<bool?>(
+                    segments: const [
+                      ButtonSegment(value: null, label: Text('همه')),
+                      ButtonSegment(value: false, label: Text('بدون نسخه')),
+                      ButtonSegment(value: true, label: Text('نسخه‌ای')),
+                    ],
+                    selected: {prescription},
+                    onSelectionChanged: (value) =>
+                        setSheetState(() => prescription = value.first),
+                  ),
+                  if (manufacturers.isNotEmpty) ...[
+                    const SizedBox(height: 14),
+                    DropdownButtonFormField<String>(
+                      initialValue: manufacturer,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        labelText: DariStrings.translate('تولیدکننده'),
+                        prefixIcon: const Icon(Icons.factory_outlined),
+                      ),
+                      items: [
+                        const DropdownMenuItem(value: '', child: Text('همه')),
+                        ...manufacturers.map(
+                          (item) => DropdownMenuItem(
+                            value: item.id,
+                            child: Text(item.name),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) =>
+                          setSheetState(() => manufacturer = value ?? ''),
+                    ),
                   ],
-                  selected: {prescription},
-                  onSelectionChanged: (value) =>
-                      setSheetState(() => prescription = value.first),
-                ),
-                const SizedBox(height: 18),
-                GradientButton(
-                  label: 'اعمال فیلتر',
-                  icon: Icons.filter_alt_outlined,
-                  onPressed: () {
-                    setState(() {
-                      _inStockOnly = stock;
-                      _prescriptionFilter = prescription;
-                    });
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: minPrice,
+                          keyboardType: TextInputType.number,
+                          textDirection: TextDirection.ltr,
+                          decoration: InputDecoration(
+                            labelText: DariStrings.translate('حداقل قیمت'),
+                            suffixText: DariStrings.afn,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: maxPrice,
+                          keyboardType: TextInputType.number,
+                          textDirection: TextDirection.ltr,
+                          decoration: InputDecoration(
+                            labelText: DariStrings.translate('حداکثر قیمت'),
+                            suffixText: DariStrings.afn,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  GradientButton(
+                    label: 'اعمال فیلتر',
+                    icon: Icons.filter_alt_outlined,
+                    onPressed: () {
+                      final minimum = minPrice.text.trim().isEmpty
+                          ? null
+                          : double.tryParse(minPrice.text.trim());
+                      final maximum = maxPrice.text.trim().isEmpty
+                          ? null
+                          : double.tryParse(maxPrice.text.trim());
+                      if ((minPrice.text.trim().isNotEmpty &&
+                              minimum == null) ||
+                          (maxPrice.text.trim().isNotEmpty &&
+                              maximum == null) ||
+                          (minimum != null && minimum < 0) ||
+                          (maximum != null && maximum < 0) ||
+                          (minimum != null &&
+                              maximum != null &&
+                              minimum > maximum)) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('محدوده قیمت را درست وارد کنید.'),
+                          ),
+                        );
+                        return;
+                      }
+                      setState(() {
+                        _inStockOnly = stock;
+                        _prescriptionFilter = prescription;
+                        _manufacturer = manufacturer;
+                        _minPrice = minimum;
+                        _maxPrice = maximum;
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
-  }
-
-  List<Medicine> _filtered(List<Medicine> items) {
-    final filtered = items.where((medicine) {
-      if (_inStockOnly && !medicine.inStock) return false;
-      if (_prescriptionFilter != null &&
-          medicine.prescriptionRequired != _prescriptionFilter) {
-        return false;
-      }
-      return true;
-    }).toList();
-
-    switch (_sort) {
-      case _SortMode.name:
-        filtered.sort((a, b) => a.displayName.compareTo(b.displayName));
-      case _SortMode.priceLow:
-        filtered.sort(
-          (a, b) => (double.tryParse(a.price ?? '') ?? double.infinity)
-              .compareTo(double.tryParse(b.price ?? '') ?? double.infinity),
-        );
-      case _SortMode.priceHigh:
-        filtered.sort(
-          (a, b) => (double.tryParse(b.price ?? '') ?? -1).compareTo(
-            double.tryParse(a.price ?? '') ?? -1,
-          ),
-        );
-    }
-    return filtered;
+    minPrice.dispose();
+    maxPrice.dispose();
   }
 
   @override
@@ -149,14 +218,25 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
     final query = CatalogueQuery(
       search: _search.text.trim(),
       category: _category,
+      manufacturer: _manufacturer,
+      prescriptionRequired: _prescriptionFilter,
+      inStock: _inStockOnly ? true : null,
+      minPrice: _minPrice,
+      maxPrice: _maxPrice,
+      ordering: switch (_sort) {
+        _SortMode.name => 'name',
+        _SortMode.priceLow => 'price',
+        _SortMode.priceHigh => '-price',
+      },
     );
     final medicines = ref.watch(medicinesProvider(query));
     final categories = ref.watch(categoriesProvider);
+    ref.watch(manufacturersProvider);
     final recentSearches = ref.watch(recentSearchesProvider);
     final favorites = ref.watch(favoritesProvider).value ?? const <String>{};
 
     return Scaffold(
-      appBar: AppBar(title: const Text(DariStrings.search)),
+      appBar: AppBar(title: Text(DariStrings.search)),
       body: Column(
         children: [
           Padding(
@@ -172,7 +252,7 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                 suffixIcon: _search.text.isEmpty
                     ? null
                     : IconButton(
-                        tooltip: 'پاک کردن',
+                        tooltip: DariStrings.translate('پاک کردن'),
                         onPressed: () {
                           _search.clear();
                           setState(() {});
@@ -308,7 +388,7 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                 onRetry: () => ref.invalidate(medicinesProvider(query)),
               ),
               data: (items) {
-                final displayed = _filtered(items);
+                final displayed = items;
                 if (displayed.isEmpty) {
                   return EmptyMessage(
                     'نتیجه‌ای پیدا نشد',
@@ -321,6 +401,9 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                         _category = '';
                         _inStockOnly = false;
                         _prescriptionFilter = null;
+                        _manufacturer = '';
+                        _minPrice = null;
+                        _maxPrice = null;
                       });
                     },
                   );

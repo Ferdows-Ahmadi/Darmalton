@@ -8,7 +8,7 @@ import type { PageResult } from "@/lib/types";
 export type StaffColumn = {
   key: string;
   label: string;
-  kind?: "date" | "money" | "status" | "boolean";
+  kind?: "date" | "money" | "status" | "boolean" | "phone";
 };
 
 type RecordValue = string | number | boolean | null | undefined;
@@ -160,6 +160,10 @@ export function StaffResourcePage({
                           <span className={`staff-status status-${record[column.key]}`}>
                             {displayValue(record[column.key], column.kind)}
                           </span>
+                        ) : column.kind === "phone" ? (
+                          <bdi dir="ltr">
+                            {displayValue(record[column.key], column.kind)}
+                          </bdi>
                         ) : (
                           displayValue(record[column.key], column.kind)
                         )}

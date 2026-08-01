@@ -19,6 +19,8 @@ class LocalCacheStore {
   String _medicinesKey(String search, String category) =>
       'cache_public_medicines_v1_${search.trim().toLowerCase()}_${category.trim().toLowerCase()}';
   String _addressesKey(String userId) => 'cache_private_addresses_v1_$userId';
+  String _selectedAddressKey(String userId) =>
+      'cache_private_selected_address_v1_$userId';
 
   Future<List<Category>> readCategories() async {
     final decoded = await _readList(_categoriesKey);
@@ -76,8 +78,19 @@ class LocalCacheStore {
         addresses.map((item) => item.toJson()).toList(),
       );
 
-  Future<void> clearPrivateCache(String userId) =>
-      _storage.delete(key: _addressesKey(userId));
+  Future<String?> readSelectedAddressId(String userId) =>
+      _storage.read(key: _selectedAddressKey(userId));
+
+  Future<void> writeSelectedAddressId(String userId, String addressId) =>
+      _storage.write(key: _selectedAddressKey(userId), value: addressId);
+
+  Future<void> deleteSelectedAddressId(String userId) =>
+      _storage.delete(key: _selectedAddressKey(userId));
+
+  Future<void> clearPrivateCache(String userId) async {
+    await _storage.delete(key: _addressesKey(userId));
+    await _storage.delete(key: _selectedAddressKey(userId));
+  }
 
   Future<Map<String, dynamic>> readSettings() async {
     final raw = await _storage.read(key: _settingsKey);

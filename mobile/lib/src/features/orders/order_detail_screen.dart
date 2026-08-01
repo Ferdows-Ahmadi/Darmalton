@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/design_system.dart';
+import '../../core/localized_text.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/strings.dart';
@@ -17,6 +18,7 @@ class OrderDetailScreen extends ConsumerWidget {
     final order = ref.watch(orderProvider(id));
     return MainScaffold(
       index: 1,
+      fallbackPath: '/orders',
       child: Scaffold(
         appBar: AppBar(title: const Text('پیگیری سفارش')),
         body: order.when(
@@ -31,8 +33,6 @@ class OrderDetailScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
               children: [
                 _OrderSummary(order: item),
-                const SizedBox(height: 14),
-                const _StaticRouteMap(),
                 const SizedBox(height: 14),
                 _Timeline(order: item),
                 const SizedBox(height: 14),
@@ -152,117 +152,6 @@ class _SummaryFact extends StatelessWidget {
       ),
     ],
   );
-}
-
-class _StaticRouteMap extends StatelessWidget {
-  const _StaticRouteMap();
-
-  @override
-  Widget build(BuildContext context) => Container(
-    height: 190,
-    clipBehavior: Clip.antiAlias,
-    decoration: BoxDecoration(
-      color: const Color(0xFFF0F6F5),
-      borderRadius: BorderRadius.circular(DarmaltonRadius.large),
-      border: Border.all(color: DarmaltonColors.line),
-    ),
-    child: Stack(
-      children: [
-        ...List.generate(
-          6,
-          (index) => Positioned(
-            left: index * 80.0 - 30,
-            top: 0,
-            bottom: 0,
-            child: Transform.rotate(
-              angle: 0.28,
-              child: Container(width: 10, color: Colors.white),
-            ),
-          ),
-        ),
-        ...List.generate(
-          4,
-          (index) => Positioned(
-            left: 0,
-            right: 0,
-            top: index * 55.0 + 14,
-            child: Container(height: 8, color: Colors.white),
-          ),
-        ),
-        const Positioned(
-          right: 45,
-          top: 66,
-          child: Icon(
-            Icons.local_pharmacy_rounded,
-            size: 48,
-            color: DarmaltonColors.teal,
-          ),
-        ),
-        Positioned(
-          right: 90,
-          left: 100,
-          top: 92,
-          child: const SizedBox(
-            height: 34,
-            child: CustomPaint(painter: _DottedRoutePainter()),
-          ),
-        ),
-        const Positioned(
-          left: 42,
-          bottom: 48,
-          child: CircleAvatar(
-            radius: 28,
-            backgroundColor: Colors.white,
-            foregroundColor: DarmaltonColors.teal,
-            child: Icon(Icons.home_rounded, size: 32),
-          ),
-        ),
-        Positioned(
-          right: 12,
-          bottom: 10,
-          left: 12,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.92),
-              borderRadius: BorderRadius.circular(99),
-            ),
-            child: const Text(
-              'نمایش مسیر نمونه است؛ GPS زنده فعال نیست.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11, color: DarmaltonColors.muted),
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-class _DottedRoutePainter extends CustomPainter {
-  const _DottedRoutePainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = DarmaltonColors.teal
-      ..strokeWidth = 5
-      ..strokeCap = StrokeCap.round;
-    const dash = 11.0;
-    const gap = 10.0;
-    var x = 0.0;
-    while (x < size.width) {
-      canvas.drawLine(
-        Offset(x, size.height * 0.55),
-        Offset((x + dash).clamp(0, size.width), size.height * 0.55),
-        paint,
-      );
-      x += dash + gap;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _Timeline extends StatelessWidget {

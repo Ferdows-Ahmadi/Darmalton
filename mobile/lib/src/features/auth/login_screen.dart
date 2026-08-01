@@ -1,11 +1,14 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/auth_gate.dart';
 import '../../core/design_system.dart';
+import '../../core/localized_text.dart';
+import '../../core/feature_flags.dart';
 import '../../core/providers.dart';
+import '../../core/strings.dart';
 import '../../core/widgets.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -113,9 +116,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       textDirection: TextDirection.ltr,
                       keyboardType: TextInputType.emailAddress,
                       autofillHints: const [AutofillHints.email],
-                      decoration: const InputDecoration(
-                        labelText: 'ایمیل',
-                        prefixIcon: Icon(Icons.email_outlined),
+                      decoration: InputDecoration(
+                        labelText: DariStrings.translate('ایمیل'),
+                        prefixIcon: const Icon(Icons.email_outlined),
                       ),
                       validator: (value) => value != null && value.contains('@')
                           ? null
@@ -129,10 +132,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       autofillHints: const [AutofillHints.password],
                       onFieldSubmitted: (_) => _submit(),
                       decoration: InputDecoration(
-                        labelText: 'رمز عبور',
+                        labelText: DariStrings.translate('رمز عبور'),
                         prefixIcon: const Icon(Icons.lock_outline_rounded),
                         suffixIcon: IconButton(
-                          tooltip: _obscure ? 'نمایش رمز' : 'پنهان کردن رمز',
+                          tooltip: DariStrings.translate(
+                            _obscure ? 'نمایش رمز' : 'پنهان کردن رمز',
+                          ),
                           onPressed: () => setState(() => _obscure = !_obscure),
                           icon: Icon(
                             _obscure
@@ -145,19 +150,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ? null
                           : 'رمز عبور حداقل ۸ نویسه باشد.',
                     ),
-                    Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: TextButton(
-                        onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'بازیابی رمز پس از افزوده‌شدن پشتیبانی سرور فعال می‌شود.',
-                            ),
-                          ),
+                    if (FeatureFlags.passwordRecovery)
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: TextButton(
+                          onPressed: null,
+                          child: const Text('رمز عبور را فراموش کرده‌اید؟'),
                         ),
-                        child: const Text('رمز عبور را فراموش کرده‌اید؟'),
                       ),
-                    ),
                     if (state.hasError) ...[
                       Container(
                         padding: const EdgeInsets.all(12),

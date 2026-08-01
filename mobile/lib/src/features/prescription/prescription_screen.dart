@@ -1,12 +1,19 @@
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system.dart';
+import '../../core/localized_text.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
+import '../../core/phone_number.dart';
+import '../../core/strings.dart';
 import '../../core/widgets.dart';
+import 'prescription_picker.dart';
 
 class PrescriptionScreen extends ConsumerStatefulWidget {
   const PrescriptionScreen({this.requestedMedicineId, super.key});
@@ -21,7 +28,7 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
   final _patientController = TextEditingController();
   final _phoneController = TextEditingController();
   final _noteController = TextEditingController();
-  PlatformFile? _file;
+  PrescriptionDocument? _file;
   double? _progress;
   bool _submitting = false;
   String _error = '';
@@ -31,25 +38,94 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
     _patientController.dispose();
     _phoneController.dispose();
     _noteController.dispose();
+    unawaited(_file?.deleteIfTemporary());
     super.dispose();
   }
 
-  Future<void> _pick() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: const ['jpg', 'jpeg', 'png', 'pdf'],
-      allowMultiple: false,
+  Future<void> _chooseSource() async {
+    final source = await showModalBottomSheet<PrescriptionPickSource>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'افزودن نسخه',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                key: const Key('prescription-camera-option'),
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: const Text('عکس گرفتن'),
+                onTap: () =>
+                    Navigator.pop(context, PrescriptionPickSource.camera),
+              ),
+              ListTile(
+                key: const Key('prescription-gallery-option'),
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('انتخاب از گالری'),
+                onTap: () =>
+                    Navigator.pop(context, PrescriptionPickSource.gallery),
+              ),
+              ListTile(
+                key: const Key('prescription-file-option'),
+                leading: const Icon(Icons.insert_drive_file_outlined),
+                title: const Text('انتخاب فایل'),
+                onTap: () =>
+                    Navigator.pop(context, PrescriptionPickSource.file),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
-    if (!mounted || result == null) return;
+    if (source != null) await _pick(source);
+  }
+
+  Future<void> _pick(PrescriptionPickSource source) async {
+    try {
+      final selected = await ref.read(prescriptionPickerProvider).pick(source);
+      if (!mounted || selected == null) return;
+      await _file?.deleteIfTemporary();
+      setState(() {
+        _file = selected;
+        _error = '';
+      });
+    } on PlatformException catch (error) {
+      if (!mounted) return;
+      final denied = {
+        'camera_access_denied',
+        'camera_access_restricted',
+        'photo_access_denied',
+      }.contains(error.code);
+      setState(() {
+        _error = denied
+            ? 'اجازه دسترسی داده نشد. از تنظیمات دستگاه اجازه دوربین یا گالری را فعال کنید.'
+            : 'عکس دریافت نشد. دوباره تلاش کنید.';
+      });
+    } catch (error) {
+      if (mounted) setState(() => _error = '$error');
+    }
+  }
+
+  Future<void> _removeFile() async {
+    final current = _file;
     setState(() {
-      _file = result.files.single;
+      _file = null;
+      _progress = null;
       _error = '';
     });
+    await current?.deleteIfTemporary();
   }
 
   Future<void> _submit() async {
     final file = _file;
-    if (file == null || file.path == null) {
+    if (file == null) {
       setState(() => _error = 'نخست عکس یا فایل نسخه را انتخاب کنید.');
       return;
     }
@@ -62,11 +138,14 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
       await ref
           .read(prescriptionRepositoryProvider)
           .upload(
-            filePath: file.path!,
+            filePath: file.path,
             filename: file.name,
             fields: {
               'patient_name': _patientController.text.trim(),
-              'contact_phone': _phoneController.text.trim(),
+              'contact_phone': normalizeAfghanPhone(
+                _phoneController.text,
+                allowBlank: true,
+              ),
               'customer_note': _noteController.text.trim(),
             },
             onProgress: (sent, total) {
@@ -75,6 +154,7 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
               }
             },
           );
+      await file.deleteIfTemporary();
       ref.invalidate(prescriptionsProvider);
       if (!mounted) return;
       setState(() {
@@ -119,8 +199,8 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
           controller: controller,
           minLines: 3,
           maxLines: 5,
-          decoration: const InputDecoration(
-            hintText: 'توضیح مورد نیاز را بنویسید...',
+          decoration: InputDecoration(
+            hintText: DariStrings.translate('توضیح مورد نیاز را بنویسید...'),
           ),
         ),
         actions: [
@@ -186,6 +266,7 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
     final prescriptions = ref.watch(prescriptionsProvider);
     return MainScaffold(
       index: 2,
+      fallbackPath: '/catalogue',
       child: Scaffold(
         appBar: AppBar(title: const Text('نسخه‌های من')),
         body: RefreshIndicator(
@@ -203,7 +284,9 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
                 progress: _progress,
                 error: _error,
                 submitting: _submitting,
-                onPick: _pick,
+                onPick: _chooseSource,
+                onRetake: () => _pick(PrescriptionPickSource.camera),
+                onRemove: _removeFile,
                 onSubmit: _submit,
               ),
               const SizedBox(height: 24),
@@ -279,11 +362,7 @@ class _Intro extends StatelessWidget {
           ),
         ),
         SizedBox(width: 14),
-        Icon(
-          Icons.assignment_add,
-          size: 66,
-          color: DarmaltonColors.teal,
-        ),
+        Icon(Icons.assignment_add, size: 66, color: DarmaltonColors.teal),
       ],
     ),
   );
@@ -299,10 +378,12 @@ class _UploadCard extends StatelessWidget {
     required this.error,
     required this.submitting,
     required this.onPick,
+    required this.onRetake,
+    required this.onRemove,
     required this.onSubmit,
   });
 
-  final PlatformFile? file;
+  final PrescriptionDocument? file;
   final TextEditingController patientController;
   final TextEditingController phoneController;
   final TextEditingController noteController;
@@ -310,6 +391,8 @@ class _UploadCard extends StatelessWidget {
   final String error;
   final bool submitting;
   final VoidCallback onPick;
+  final VoidCallback onRetake;
+  final VoidCallback onRemove;
   final VoidCallback onSubmit;
 
   @override
@@ -329,26 +412,67 @@ class _UploadCard extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 12),
+        if (file?.isImage == true) ...[
+          ClipRRect(
+            borderRadius: BorderRadius.circular(DarmaltonRadius.small),
+            child: Image.file(
+              File(file!.path),
+              height: 210,
+              fit: BoxFit.contain,
+              errorBuilder: (_, _, _) => const SizedBox(
+                height: 120,
+                child: Center(child: Icon(Icons.broken_image_outlined)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
         OutlinedButton.icon(
+          key: const Key('prescription-source-button'),
           onPressed: submitting ? null : onPick,
           icon: const Icon(Icons.attach_file),
-          label: Text(file?.name ?? 'انتخاب فایل نسخه'),
+          label: Text(file?.name ?? 'افزودن عکس یا فایل نسخه'),
         ),
+        if (file != null) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              if (file!.isImage) ...[
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: submitting ? null : onRetake,
+                    icon: const Icon(Icons.camera_alt_outlined),
+                    label: const Text('عکس دوباره'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Expanded(
+                child: TextButton.icon(
+                  onPressed: submitting ? null : onRemove,
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('حذف'),
+                ),
+              ),
+            ],
+          ),
+        ],
         const SizedBox(height: 14),
         TextField(
           controller: patientController,
-          decoration: const InputDecoration(
-            labelText: 'نام مریض (اختیاری)',
-            prefixIcon: Icon(Icons.person_outline),
+          decoration: InputDecoration(
+            labelText: DariStrings.translate('نام مریض (اختیاری)'),
+            prefixIcon: const Icon(Icons.person_outline),
           ),
         ),
         const SizedBox(height: 10),
         TextField(
           controller: phoneController,
           keyboardType: TextInputType.phone,
-          decoration: const InputDecoration(
-            labelText: 'شماره تماس',
-            prefixIcon: Icon(Icons.phone_outlined),
+          textDirection: TextDirection.ltr,
+          decoration: InputDecoration(
+            labelText: DariStrings.translate('شماره تماس'),
+            prefixIcon: const Icon(Icons.phone_outlined),
           ),
         ),
         const SizedBox(height: 10),
@@ -356,9 +480,9 @@ class _UploadCard extends StatelessWidget {
           controller: noteController,
           minLines: 2,
           maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: 'یادداشت (اختیاری)',
-            prefixIcon: Icon(Icons.edit_note_outlined),
+          decoration: InputDecoration(
+            labelText: DariStrings.translate('یادداشت (اختیاری)'),
+            prefixIcon: const Icon(Icons.edit_note_outlined),
           ),
         ),
         if (progress != null) ...[
@@ -372,13 +496,11 @@ class _UploadCard extends StatelessWidget {
         ],
         if (error.isNotEmpty) ...[
           const SizedBox(height: 12),
-          Text(
-            error,
-            style: const TextStyle(color: DarmaltonColors.danger),
-          ),
+          Text(error, style: const TextStyle(color: DarmaltonColors.danger)),
         ],
         const SizedBox(height: 14),
         FilledButton.icon(
+          key: const Key('prescription-upload-button'),
           onPressed: submitting ? null : onSubmit,
           icon: const Icon(Icons.send_outlined),
           label: Text(submitting ? 'در حال ارسال...' : 'ارسال برای بررسی'),

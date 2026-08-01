@@ -14,16 +14,28 @@
   network plus inbound TCP 8000 and UDP 53535 firewall rules. Guest Wi-Fi or
   access points with client isolation can still prevent phone-to-laptop access;
   USB ADB reverse remains the deterministic fallback.
-- Wallets, stored payment methods, ratings/reviews, live GPS, and courier chat
-  remain outside the current milestone and must stay labeled or disabled rather
-  than simulated.
-- The prescription backend, clients, authorization rules, and guarded review
-  controls pass the full automated suite. A fresh physical-device walkthrough
-  of upload, clarification, approval, authorized cart, and checkout is still
-  required before release.
+- Wallets, stored payment methods, card gateways, ratings/reviews, courier chat,
+  and live courier tracking remain gated rather than simulated. Cash on delivery
+  is the only enabled checkout payment method. Address GPS and map pin capture
+  are functional; service zones, dynamic fees/ETAs, courier assignment, courier
+  GPS updates, and customer tracking remain Phase 7 work.
+- The prescription backend, clients, authorization rules, guarded review
+  controls, and camera/gallery/file UI pass automated tests. A fresh
+  physical-device walkthrough of camera capture, upload, clarification,
+  approval, authorized cart, and checkout is still required before release.
 - The current `file_picker` Android plugin still applies the legacy Kotlin
-  Gradle plugin. The debug build succeeds today, but Flutter warns that a future
+  Gradle plugin. Earlier debug builds succeeded, but Flutter warns that a future
   toolchain may require a plugin release migrated to built-in Kotlin.
+- The 2026-08-01 Phase 2 debug build did not produce a fresh APK. Gradle reached
+  `Preparing "Install Android SDK Platform 34 (revision 3)"`; the SDK directory
+  appeared, but the build stopped making meaningful progress and only its build
+  wrapper/daemon were terminated. Do not treat the older APK in `build/` as a
+  Phase 2 artifact; rerun one diagnostic build after repairing/confirming the
+  Android SDK installation.
+- Development map previews use the OpenStreetMap standard tile endpoint with
+  attribution and an application user agent. Before production traffic, choose
+  and configure a tile provider or self-hosting plan that satisfies capacity,
+  caching, privacy, and usage-policy requirements.
 - The dedicated Next.js staff console provides responsive dashboards, live
   searchable resource views, reports, and quick links. Complex operational
   mutations remain intentionally delegated to guarded Django Admin workflows.
@@ -42,10 +54,13 @@
 - Promotional campaigns, recommendations, offers, and health articles currently
   use curated demo content in the clients. A production content-management,
   approval, scheduling, and localization workflow is not yet implemented.
-- The mobile app is Dari-first and currently ships only the light theme.
-  Biometric login and operating-system push notifications remain disabled until
-  their platform-specific secure-storage, consent, and credential work is
-  completed.
+- The mobile app is Dari-first with persisted English switching and currently
+  ships only the light theme. Missing localized copy safely falls back to Dari;
+  operator-authored catalogue text needs populated English fields for a fully
+  English presentation. Biometric login and operating-system push notifications
+  remain disabled until their platform-specific secure-storage, consent, and
+  credential work is completed; the notification foundation is preserved for
+  Phase 8.
 - Offline mobile support persists public catalogue metadata, thumbnails,
   favorites, searches, recently viewed items, guest-cart item IDs/quantities,
   preferences, and the signed-in user's addresses. It deliberately omits live

@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, generics, mixins, response, status, viewsets
 from rest_framework.decorators import action
@@ -89,7 +90,15 @@ class AddressViewSet(viewsets.ModelViewSet):
         return CustomerAddress.objects.filter(user=self.request.user)
 
     def perform_destroy(self, instance):
-        instance.delete()
+        with transaction.atomic():
+            user = instance.user
+            was_default = instance.is_default
+            instance.delete()
+            if was_default:
+                replacement = user.addresses.order_by("-created_at").first()
+                if replacement is not None:
+                    replacement.is_default = True
+                    replacement.save(update_fields=("is_default", "updated_at"))
 
 
 class OrderViewSet(

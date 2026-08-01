@@ -9,6 +9,7 @@ class AppSettings {
     this.notifications = true,
     this.cacheThumbnails = true,
     this.rememberSearches = true,
+    this.languageCode = 'fa',
   });
 
   factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
@@ -17,6 +18,7 @@ class AppSettings {
     notifications: json['notifications'] as bool? ?? true,
     cacheThumbnails: json['cache_thumbnails'] as bool? ?? true,
     rememberSearches: json['remember_searches'] as bool? ?? true,
+    languageCode: (json['language_code'] as String?) == 'en' ? 'en' : 'fa',
   );
 
   final bool largerText;
@@ -24,6 +26,7 @@ class AppSettings {
   final bool notifications;
   final bool cacheThumbnails;
   final bool rememberSearches;
+  final String languageCode;
 
   Map<String, dynamic> toJson() => {
     'larger_text': largerText,
@@ -31,6 +34,7 @@ class AppSettings {
     'notifications': notifications,
     'cache_thumbnails': cacheThumbnails,
     'remember_searches': rememberSearches,
+    'language_code': languageCode,
   };
 
   AppSettings copyWith({
@@ -39,12 +43,14 @@ class AppSettings {
     bool? notifications,
     bool? cacheThumbnails,
     bool? rememberSearches,
+    String? languageCode,
   }) => AppSettings(
     largerText: largerText ?? this.largerText,
     reduceMotion: reduceMotion ?? this.reduceMotion,
     notifications: notifications ?? this.notifications,
     cacheThumbnails: cacheThumbnails ?? this.cacheThumbnails,
     rememberSearches: rememberSearches ?? this.rememberSearches,
+    languageCode: languageCode ?? this.languageCode,
   );
 }
 

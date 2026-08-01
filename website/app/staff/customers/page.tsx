@@ -8,7 +8,7 @@ export default function StaffCustomersPage() {
       endpoint="auth/staff/customers/"
       columns={[
         { key: "email", label: "ایمیل" },
-        { key: "phone", label: "تلفن" },
+        { key: "phone", label: "تلفن", kind: "phone" },
         { key: "first_name", label: "نام" },
         { key: "last_name", label: "تخلص" },
         { key: "order_count", label: "سفارش‌ها" },

@@ -48,12 +48,14 @@ def test_registration_and_authentication(api_client):
         "password": "Strong-New-Password-123!",
         "first_name": "New",
         "last_name": "Buyer",
+        "phone": "۰۷۰۰ ۱۲۳ ۴۵۶",
     }
     response = api_client.post(reverse("register"), payload, format="json")
     assert response.status_code == 201
     assert response.data["user"]["email"] == payload["email"]
     assert response.data["access"]
     assert User.objects.get(email=payload["email"]).check_password(payload["password"])
+    assert response.data["user"]["phone"] == "+93700123456"
 
     login = api_client.post(
         reverse("login"),
@@ -86,6 +88,93 @@ def test_medicine_listing_search_and_anonymous_access(api_client, medicine):
     by_id = api_client.get(f"/api/v1/medicines/?category={medicine.category_id}")
     assert by_id.status_code == 200
     assert by_id.data["count"] == 1
+
+
+def test_medicine_catalogue_filters_are_server_validated(api_client, medicine):
+    manufacturer_id = str(medicine.manufacturer_id)
+    assert api_client.get("/api/v1/manufacturers/").data[0]["id"] == manufacturer_id
+
+    cases = (
+        (f"manufacturer={manufacturer_id}", 1),
+        ("prescription_required=false", 1),
+        ("prescription_required=true", 0),
+        ("in_stock=true", 1),
+        ("in_stock=false", 0),
+        ("min_price=9&max_price=10", 1),
+        ("min_price=11", 0),
+        ("ordering=price", 1),
+        ("ordering=-price", 1),
+    )
+    for query, expected in cases:
+        response = api_client.get(f"/api/v1/medicines/?{query}")
+        assert response.status_code == 200
+        assert response.data["count"] == expected
+
+    assert api_client.get("/api/v1/medicines/?in_stock=maybe").status_code == 400
+    assert api_client.get("/api/v1/medicines/?min_price=20&max_price=10").status_code == 400
+    assert api_client.get("/api/v1/medicines/?ordering=unknown").status_code == 400
+
+
+def test_address_crud_location_default_and_validation(authenticated_client, user):
+    payload = {
+        "label": "خانه",
+        "recipient_name": "Test Buyer",
+        "recipient_phone": "+93-700-000-000",
+        "country_code": "AF",
+        "province": "Kabul",
+        "city": "Kabul",
+        "district": "4",
+        "street_address": "Test Street 1",
+        "landmark": "Near the clinic",
+        "delivery_instructions": "Call at the gate",
+        "latitude": "34.555300",
+        "longitude": "69.207500",
+        "is_default": False,
+    }
+    first = authenticated_client.post("/api/v1/addresses/", payload, format="json")
+    assert first.status_code == 201
+    assert first.data["is_default"] is True
+    assert first.data["delivery_instructions"] == "Call at the gate"
+    assert first.data["latitude"] == "34.555300"
+    assert first.data["recipient_phone"] == "+93700000000"
+
+    second = authenticated_client.post(
+        "/api/v1/addresses/",
+        {**payload, "label": "دفتر", "street_address": "Office Street", "is_default": True},
+        format="json",
+    )
+    assert second.status_code == 201
+    assert not user.addresses.get(pk=first.data["id"]).is_default
+
+    invalid = authenticated_client.patch(
+        f"/api/v1/addresses/{second.data['id']}/",
+        {"latitude": "91.000000"},
+        format="json",
+    )
+    assert invalid.status_code == 400
+
+    deleted = authenticated_client.delete(f"/api/v1/addresses/{second.data['id']}/")
+    assert deleted.status_code == 204
+    assert user.addresses.get(pk=first.data["id"]).is_default
+
+
+def test_account_language_preference_is_validated_and_persisted(authenticated_client, user):
+    updated = authenticated_client.patch(
+        "/api/v1/auth/me/",
+        {"preferred_language": "en"},
+        format="json",
+    )
+    assert updated.status_code == 200
+    assert updated.data["preferred_language"] == "en"
+    user.refresh_from_db()
+    assert user.preferred_language == "en"
+
+    invalid = authenticated_client.patch(
+        "/api/v1/auth/me/",
+        {"preferred_language": "ps"},
+        format="json",
+    )
+    assert invalid.status_code == 400
 
 
 def test_staff_can_manage_and_public_can_read_medicine_images(

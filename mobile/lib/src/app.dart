@@ -8,6 +8,7 @@ import 'core/design_system.dart';
 import 'core/auth_gate.dart';
 import 'core/app_settings.dart';
 import 'core/strings.dart';
+import 'core/widgets.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
 import 'features/auth/splash_screen.dart';
@@ -32,21 +33,30 @@ final routerProvider = Provider<GoRouter>(
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(
         path: '/login',
-        builder: (_, state) =>
-            LoginScreen(returnTo: state.uri.queryParameters['returnTo']),
+        builder: (_, state) => FallbackBackScope(
+          fallbackPath: '/catalogue',
+          child: LoginScreen(returnTo: state.uri.queryParameters['returnTo']),
+        ),
       ),
       GoRoute(
         path: '/register',
-        builder: (_, state) =>
-            RegisterScreen(returnTo: state.uri.queryParameters['returnTo']),
+        builder: (_, state) => FallbackBackScope(
+          fallbackPath: '/catalogue',
+          child: RegisterScreen(
+            returnTo: state.uri.queryParameters['returnTo'],
+          ),
+        ),
       ),
       GoRoute(path: '/catalogue', builder: (_, _) => const CatalogueScreen()),
       GoRoute(path: '/categories', builder: (_, _) => const CategoriesScreen()),
       GoRoute(
         path: '/search',
-        builder: (_, state) => SearchResultsScreen(
-          initialCategory: state.uri.queryParameters['category'] ?? '',
-          initialQuery: state.uri.queryParameters['query'] ?? '',
+        builder: (_, state) => FallbackBackScope(
+          fallbackPath: '/catalogue',
+          child: SearchResultsScreen(
+            initialCategory: state.uri.queryParameters['category'] ?? '',
+            initialQuery: state.uri.queryParameters['query'] ?? '',
+          ),
         ),
       ),
       GoRoute(
@@ -57,9 +67,12 @@ final routerProvider = Provider<GoRouter>(
       GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
       GoRoute(
         path: '/checkout',
-        builder: (_, _) => const ProtectedRoute(
-          destination: '/checkout',
-          child: CheckoutScreen(),
+        builder: (_, _) => const FallbackBackScope(
+          fallbackPath: '/cart',
+          child: ProtectedRoute(
+            destination: '/checkout',
+            child: CheckoutScreen(),
+          ),
         ),
       ),
       GoRoute(
@@ -87,9 +100,12 @@ final routerProvider = Provider<GoRouter>(
       ),
       GoRoute(
         path: '/profile',
-        builder: (_, _) => const ProtectedRoute(
-          destination: '/profile',
-          child: ProfileScreen(),
+        builder: (_, _) => const FallbackBackScope(
+          fallbackPath: '/catalogue',
+          child: ProtectedRoute(
+            destination: '/profile',
+            child: ProfileScreen(),
+          ),
         ),
       ),
       GoRoute(
@@ -101,42 +117,58 @@ final routerProvider = Provider<GoRouter>(
       ),
       GoRoute(
         path: '/settings/profile',
-        builder: (_, _) => const ProtectedRoute(
-          destination: '/settings/profile',
-          child: ProfileEditScreen(),
+        builder: (_, _) => const FallbackBackScope(
+          fallbackPath: '/settings',
+          child: ProtectedRoute(
+            destination: '/settings/profile',
+            child: ProfileEditScreen(),
+          ),
         ),
       ),
       GoRoute(
         path: '/settings/security',
-        builder: (_, _) => const ProtectedRoute(
-          destination: '/settings/security',
-          child: SecuritySettingsScreen(),
+        builder: (_, _) => const FallbackBackScope(
+          fallbackPath: '/settings',
+          child: ProtectedRoute(
+            destination: '/settings/security',
+            child: SecuritySettingsScreen(),
+          ),
         ),
       ),
       GoRoute(
         path: '/settings/about',
-        builder: (_, _) =>
-            const SettingsInfoScreen(kind: SettingsInfoKind.about),
+        builder: (_, _) => const FallbackBackScope(
+          fallbackPath: '/settings',
+          child: SettingsInfoScreen(kind: SettingsInfoKind.about),
+        ),
       ),
       GoRoute(
         path: '/settings/terms',
-        builder: (_, _) =>
-            const SettingsInfoScreen(kind: SettingsInfoKind.terms),
+        builder: (_, _) => const FallbackBackScope(
+          fallbackPath: '/settings',
+          child: SettingsInfoScreen(kind: SettingsInfoKind.terms),
+        ),
       ),
       GoRoute(
         path: '/settings/privacy',
-        builder: (_, _) =>
-            const SettingsInfoScreen(kind: SettingsInfoKind.privacy),
+        builder: (_, _) => const FallbackBackScope(
+          fallbackPath: '/settings',
+          child: SettingsInfoScreen(kind: SettingsInfoKind.privacy),
+        ),
       ),
       GoRoute(
         path: '/settings/help',
-        builder: (_, _) =>
-            const SettingsInfoScreen(kind: SettingsInfoKind.help),
+        builder: (_, _) => const FallbackBackScope(
+          fallbackPath: '/settings',
+          child: SettingsInfoScreen(kind: SettingsInfoKind.help),
+        ),
       ),
       GoRoute(
         path: '/settings/contact',
-        builder: (_, _) =>
-            const SettingsInfoScreen(kind: SettingsInfoKind.contact),
+        builder: (_, _) => const FallbackBackScope(
+          fallbackPath: '/settings',
+          child: SettingsInfoScreen(kind: SettingsInfoKind.contact),
+        ),
       ),
       if (kDebugMode)
         GoRoute(
@@ -154,11 +186,14 @@ class PharmacyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings =
         ref.watch(appSettingsProvider).value ?? const AppSettings();
+    DariStrings.configure(settings.languageCode);
     return MaterialApp.router(
       title: DariStrings.appName,
       debugShowCheckedModeBanner: false,
-      locale: const Locale('fa', 'AF'),
-      supportedLocales: const [Locale('fa', 'AF')],
+      locale: settings.languageCode == 'en'
+          ? const Locale('en')
+          : const Locale('fa', 'AF'),
+      supportedLocales: const [Locale('fa', 'AF'), Locale('en')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -173,7 +208,9 @@ class PharmacyApp extends ConsumerWidget {
             disableAnimations: settings.reduceMotion,
           ),
           child: Directionality(
-            textDirection: TextDirection.rtl,
+            textDirection: settings.languageCode == 'en'
+                ? TextDirection.ltr
+                : TextDirection.rtl,
             child: child ?? const SizedBox.shrink(),
           ),
         );

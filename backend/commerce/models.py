@@ -1,5 +1,7 @@
+from decimal import Decimal
+
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 
@@ -20,11 +22,33 @@ class CustomerAddress(TimeStampedUUIDModel):
     district = models.CharField(max_length=100, blank=True)
     street_address = models.TextField()
     landmark = models.TextField(blank=True)
+    delivery_instructions = models.TextField(blank=True)
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("-90")), MaxValueValidator(Decimal("90"))],
+    )
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("-180")), MaxValueValidator(Decimal("180"))],
+    )
     is_default = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("-is_default", "-created_at")
         indexes = [models.Index(fields=("user", "is_default"))]
+        constraints = [
+            models.UniqueConstraint(
+                fields=("user",),
+                condition=Q(is_default=True),
+                name="one_default_address_per_user",
+            )
+        ]
 
     def __str__(self):
         return f"{self.user.email}: {self.label or self.city}"

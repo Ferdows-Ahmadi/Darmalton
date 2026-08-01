@@ -89,7 +89,25 @@ Prices are informational until checkout and always computed by Django.
 
 Address fields: `label`, `recipient_name`, `recipient_phone`, `country_code`,
 `province`, `city`, optional `district`, `street_address`, optional `landmark`,
-`is_default`.
+optional `delivery_instructions`, optional decimal `latitude`/`longitude`, and
+`is_default`. Phone numbers are normalized to Afghan compact E.164. At most one
+address per customer is default; the first becomes default automatically, and
+deleting a default promotes a safe replacement when one exists.
+
+## Corrected Phase 2 customer preferences and catalogue filters
+
+- `/auth/me/` reads and updates `preferred_language` (`fa` or `en`). New users
+  default to Dari. Customer phone input accepts common Afghan local/`0093`/`+93`
+  forms and Persian/Arabic digits, then stores compact E.164.
+- `GET /manufacturers/` is anonymous and read-only.
+- `GET /medicines/` supports `search`, `category`, `manufacturer`,
+  `prescription_required`, `in_stock`, `min_price`, `max_price`, and `ordering`.
+  Supported ordering values are the allowlisted catalogue name and current-price
+  directions exposed by the client. Invalid booleans, numbers, ranges, IDs, or
+  ordering values return HTTP 400.
+- Stock and current price filters are calculated from active, unexpired,
+  quality-eligible inventory; client query values never override inventory or
+  pricing authority.
 
 ## Orders
 

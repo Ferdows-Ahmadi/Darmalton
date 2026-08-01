@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system.dart';
+import '../../core/localized_text.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/strings.dart';
@@ -18,6 +19,7 @@ class MedicineDetailScreen extends ConsumerWidget {
     final medicine = ref.watch(medicineProvider(id));
     return MainScaffold(
       index: 2,
+      fallbackPath: '/catalogue',
       child: medicine.when(
         loading: () => Scaffold(
           appBar: _DetailAppBar(medicineId: id),

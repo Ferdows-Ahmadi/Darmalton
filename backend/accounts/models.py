@@ -4,6 +4,8 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from common.phones import normalize_afghan_phone
+
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -33,11 +35,20 @@ class User(AbstractUser):
         STAFF = "STAFF", "Staff"
         ADMIN = "ADMIN", "Administrator"
 
+    class Language(models.TextChoices):
+        DARI = "fa", "Dari"
+        ENGLISH = "en", "English"
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=32, unique=True, null=True, blank=True)
     role = models.CharField(max_length=16, choices=Role.choices, default=Role.CUSTOMER)
+    preferred_language = models.CharField(
+        max_length=2,
+        choices=Language.choices,
+        default=Language.DARI,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -47,7 +58,7 @@ class User(AbstractUser):
 
     def save(self, *args, **kwargs):
         self.email = self.email.lower().strip()
-        self.phone = self.phone.strip() if self.phone else None
+        self.phone = normalize_afghan_phone(self.phone, allow_blank=True) or None
         super().save(*args, **kwargs)
 
 

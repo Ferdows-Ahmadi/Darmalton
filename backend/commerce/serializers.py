@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
@@ -5,6 +6,7 @@ from rest_framework import serializers
 
 from catalog.models import InventoryBatch, Medicine
 from catalog.serializers import MedicineSerializer
+from common.phones import normalize_afghan_phone
 from prescriptions.models import Prescription
 from prescriptions.services import validate_prescription_authorization
 
@@ -47,14 +49,21 @@ class AddressSerializer(serializers.ModelSerializer):
         exclude = ("user",)
         read_only_fields = ("id", "created_at", "updated_at")
 
+    def validate_recipient_phone(self, value):
+        return normalize_afghan_phone(value)
+
+    @transaction.atomic
     def create(self, validated_data):
         user = self.context["request"].user
-        if validated_data.get("is_default"):
+        if not user.addresses.exists():
+            validated_data["is_default"] = True
+        if validated_data.get("is_default") is True:
             user.addresses.update(is_default=False)
         return CustomerAddress.objects.create(user=user, **validated_data)
 
+    @transaction.atomic
     def update(self, instance, validated_data):
-        if validated_data.get("is_default"):
+        if validated_data.get("is_default") is True:
             instance.user.addresses.exclude(pk=instance.pk).update(is_default=False)
         return super().update(instance, validated_data)
 

@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system.dart';
+import '../../core/feature_flags.dart';
+import '../../core/localized_text.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/strings.dart';
@@ -17,7 +19,7 @@ class CartScreen extends ConsumerWidget {
     return MainScaffold(
       index: 3,
       child: Scaffold(
-        appBar: AppBar(title: const Text(DariStrings.cart)),
+        appBar: AppBar(title: Text(DariStrings.cart)),
         body: cart.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => AsyncMessage(
@@ -103,19 +105,15 @@ class _FilledCart extends ConsumerWidget {
           ),
         ),
       ),
-      const SizedBox(height: 2),
-      const TextField(
-        enabled: false,
-        decoration: InputDecoration(
-          labelText: 'کد تخفیف',
-          hintText: 'کوپن در این نسخه پشتیبانی نمی‌شود',
-          prefixIcon: Icon(Icons.local_offer_outlined),
-          suffixIcon: Padding(
-            padding: EdgeInsets.all(12),
-            child: Text(DariStrings.comingSoon),
+      if (FeatureFlags.promotionCodes) ...[
+        const SizedBox(height: 2),
+        TextField(
+          decoration: InputDecoration(
+            labelText: DariStrings.translate('کد تخفیف'),
+            prefixIcon: const Icon(Icons.local_offer_outlined),
           ),
         ),
-      ),
+      ],
       const SizedBox(height: 16),
       _OrderSummary(cart: cart),
       const SizedBox(height: 14),

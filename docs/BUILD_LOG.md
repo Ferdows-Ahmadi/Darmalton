@@ -296,3 +296,38 @@
   for a premium Afghan online-pharmacy hero: a white pharmacy bag, teal medical
   cross, generic bottles, blister pack, capsules and leaves, wide composition,
   no product brands, logo, text, or watermark.
+
+## 2026-08-01 - Milestone 2 corrected Phase 2 customer experience
+
+- Preserved the single-provider Darmalton model: customers use one catalogue,
+  prescription workflow, checkout, and delivery service. Customer-facing
+  nearby-pharmacy discovery, comparison, selection, and fake live tracking were
+  removed; internal branch, warehouse, and fulfilment foundations remain.
+- Added owner-scoped address create/edit/delete/default selection with offline
+  cached selection, delivery instructions, nullable latitude/longitude, explicit
+  current-location capture, map pin selection/adjustment, preview/removal, and
+  an order-time delivery snapshot. GPS permission is requested only from an
+  explicit location action; manual addresses do not require GPS.
+- Added server-backed catalogue category, manufacturer, prescription, stock,
+  price-range, and ordering filters plus the read-only manufacturer endpoint.
+  Each customer and staff page now retains one clearly scoped search input.
+- Corrected navigation so the Home menu opens Account, the fifth bottom tab is
+  Settings, Account has no duplicate Settings action/tab, and root/nested
+  Android back behavior has deterministic Home fallbacks.
+- Added Afghan phone normalization to compact E.164 on the API and LTR rendering
+  inside RTL fields/tables. The mobile UI formats values as `+93 7XX XXX XXX`.
+- Added explicit camera/gallery/file prescription selection, permission and
+  cancellation handling, orientation correction, readable compression,
+  preview/retake/remove, upload progress/retry, 10 MiB/type validation, and
+  temporary-file cleanup while reusing the private prescription API.
+- Added persisted Dari/English selection, immediate RTL/LTR switching, safe
+  Dari fallback, catalogue display-field selection, and authenticated account
+  synchronization through `preferred_language`.
+- PostgreSQL applied `accounts.0005` and `commerce.0003`; Django checks and
+  migration consistency passed. Changed-backend Ruff passed, 23 targeted API
+  tests and all 63 backend tests passed, Flutter analyze passed, all 41 Flutter
+  tests passed, and website TypeScript/ESLint checks passed.
+- A single debug APK build was attempted with the current LAN API address. It
+  reached Gradle's Android SDK Platform 34 preparation step, produced no fresh
+  APK, and was terminated after progress stopped. No older APK was installed,
+  so the final physical-device walkthrough remains unverified for this commit.

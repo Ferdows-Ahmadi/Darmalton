@@ -1,13 +1,15 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/auth_gate.dart';
 import '../../core/design_system.dart';
+import '../../core/localized_text.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/strings.dart';
 import '../../core/widgets.dart';
+import '../addresses/address_selector.dart';
 
 class CatalogueScreen extends ConsumerStatefulWidget {
   const CatalogueScreen({super.key});
@@ -102,28 +104,20 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     final AsyncValue<List<Address>> addresses = auth.value == null
         ? const AsyncData([])
         : ref.watch(addressesProvider);
+    final selectedAddressId = auth.value == null
+        ? null
+        : ref.watch(selectedAddressIdProvider).value;
 
     return MainScaffold(
       index: 2,
       child: Scaffold(
         appBar: AppBar(
-          leading: IconButton(
-            tooltip: 'اعلان‌ها',
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('اعلان‌ها در نسخه بعدی فعال می‌شود.'),
-              ),
-            ),
-            icon: const Badge(
-              smallSize: 8,
-              child: Icon(Icons.notifications_none_rounded),
-            ),
-          ),
           title: const DarmaltonWordmark(height: 36),
           actions: [
             IconButton(
-              tooltip: DariStrings.categories,
-              onPressed: () => context.go('/categories'),
+              key: const Key('account-menu-button'),
+              tooltip: DariStrings.profile,
+              onPressed: () => context.push('/profile'),
               icon: const Icon(Icons.menu_rounded),
             ),
             const SizedBox(width: 4),
@@ -141,7 +135,11 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 sliver: SliverToBoxAdapter(
-                  child: _AddressBar(addresses: addresses),
+                  child: _AddressBar(
+                    addresses: addresses,
+                    selectedAddressId: selectedAddressId,
+                    onTap: () => showAddressSelector(context, ref),
+                  ),
                 ),
               ),
               SliverPadding(
@@ -150,9 +148,9 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                   child: TextField(
                     readOnly: true,
                     onTap: () => context.push('/search'),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: DariStrings.searchHint,
-                      prefixIcon: Icon(Icons.search_rounded),
+                      prefixIcon: const Icon(Icons.search_rounded),
                     ),
                   ),
                 ),
@@ -168,7 +166,6 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                 sliver: SliverToBoxAdapter(
                   child: _QuickActions(
                     onPrescription: () => context.push('/prescription'),
-                    onNearby: () => _showNearbyPlaceholder(context),
                   ),
                 ),
               ),
@@ -289,78 +286,69 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
       ),
     );
   }
-
-  void _showNearbyPlaceholder(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => const SafeArea(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(24, 4, 24, 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: DarmaltonColors.mint,
-                foregroundColor: DarmaltonColors.teal,
-                child: Icon(Icons.store_mall_directory_outlined, size: 32),
-              ),
-              SizedBox(height: 14),
-              Text(
-                'داروخانه نزدیک شما',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-              ),
-              SizedBox(height: 6),
-              Text(
-                'یافتن شعبه نزدیک پس از فعال‌شدن موقعیت مکانی و ثبت شعبه‌ها '
-                'در نسخه آینده در دسترس خواهد بود.',
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _AddressBar extends StatelessWidget {
-  const _AddressBar({required this.addresses});
+  const _AddressBar({
+    required this.addresses,
+    required this.selectedAddressId,
+    required this.onTap,
+  });
 
   final AsyncValue<List<Address>> addresses;
+  final String? selectedAddressId;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-    decoration: BoxDecoration(
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: 'انتخاب آدرس تحویل',
+    child: Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(99),
-      border: Border.all(color: DarmaltonColors.line),
-    ),
-    child: Row(
-      children: [
-        const Icon(
-          Icons.location_on_outlined,
-          color: DarmaltonColors.teal,
-          size: 22,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: addresses.when(
-            loading: () => const Text('در حال دریافت آدرس...'),
-            error: (_, _) => const Text('آدرس تحویل را در پرداخت انتخاب کنید'),
-            data: (items) => Text(
-              items.isEmpty
-                  ? 'آدرس تحویل را در پرداخت اضافه کنید'
-                  : '${items.first.city}، ${items.first.streetAddress}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+      shape: StadiumBorder(side: BorderSide(color: DarmaltonColors.line)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.location_on_outlined,
+                  color: DarmaltonColors.teal,
+                  size: 22,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: addresses.when(
+                    loading: () => const Text('در حال دریافت آدرس...'),
+                    error: (_, _) => const Text('انتخاب آدرس تحویل'),
+                    data: (items) {
+                      final selected = items
+                          .where((item) => item.id == selectedAddressId)
+                          .firstOrNull;
+                      final address =
+                          selected ??
+                          items.where((item) => item.isDefault).firstOrNull ??
+                          items.firstOrNull;
+                      return Text(
+                        address == null
+                            ? 'افزودن آدرس تحویل'
+                            : '${address.city}، ${address.streetAddress}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    },
+                  ),
+                ),
+                const Icon(Icons.keyboard_arrow_down_rounded),
+              ],
             ),
           ),
         ),
-        const Icon(Icons.keyboard_arrow_down_rounded),
-      ],
+      ),
     ),
   );
 }
@@ -427,32 +415,16 @@ class _PromotionBanner extends StatelessWidget {
 }
 
 class _QuickActions extends StatelessWidget {
-  const _QuickActions({required this.onPrescription, required this.onNearby});
+  const _QuickActions({required this.onPrescription});
 
   final VoidCallback onPrescription;
-  final VoidCallback onNearby;
 
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Expanded(
-        child: _QuickActionCard(
-          icon: Icons.receipt_long_outlined,
-          title: 'ارسال نسخه',
-          subtitle: 'بررسی توسط فارمسست',
-          onTap: onPrescription,
-        ),
-      ),
-      const SizedBox(width: 10),
-      Expanded(
-        child: _QuickActionCard(
-          icon: Icons.store_mall_directory_outlined,
-          title: 'داروخانه نزدیک',
-          subtitle: DariStrings.comingSoon,
-          onTap: onNearby,
-        ),
-      ),
-    ],
+  Widget build(BuildContext context) => _QuickActionCard(
+    icon: Icons.receipt_long_outlined,
+    title: 'ارسال نسخه',
+    subtitle: 'بررسی امن توسط فارمسست',
+    onTap: onPrescription,
   );
 }
 

@@ -3,14 +3,27 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from common.phones import normalize_afghan_phone
+
 from .models import CustomerProfile, User
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "email", "phone", "first_name", "last_name", "role")
+        fields = (
+            "id",
+            "email",
+            "phone",
+            "first_name",
+            "last_name",
+            "role",
+            "preferred_language",
+        )
         read_only_fields = ("id", "email", "role")
+
+    def validate_phone(self, value):
+        return normalize_afghan_phone(value, allow_blank=True) or None
 
 
 class ChangePasswordSerializer(serializers.Serializer):
@@ -127,6 +140,9 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate_password(self, value):
         validate_password(value)
         return value
+
+    def validate_phone(self, value):
+        return normalize_afghan_phone(value, allow_blank=True) or None
 
     def create(self, validated_data):
         password = validated_data.pop("password")

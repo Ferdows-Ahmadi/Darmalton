@@ -3,6 +3,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from catalog.models import Medicine
+from common.phones import normalize_afghan_phone
 
 from .models import (
     Notification,
@@ -114,6 +115,9 @@ class PrescriptionCustomerSerializer(serializers.ModelSerializer):
     def validate_document(self, value):
         validate_prescription_document(value)
         return value
+
+    def validate_contact_phone(self, value):
+        return normalize_afghan_phone(value, allow_blank=True)
 
     def create(self, validated_data):
         document = validated_data.pop("document")

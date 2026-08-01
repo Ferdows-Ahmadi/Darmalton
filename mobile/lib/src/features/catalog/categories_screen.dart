@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system.dart';
+import '../../core/localized_text.dart';
 import '../../core/providers.dart';
 import '../../core/strings.dart';
 import '../../core/widgets.dart';
@@ -18,14 +19,7 @@ class CategoriesScreen extends ConsumerWidget {
     return MainScaffold(
       index: 0,
       child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            tooltip: DariStrings.search,
-            onPressed: () => context.push('/search'),
-            icon: const Icon(Icons.search_rounded),
-          ),
-          title: const Text('دسته‌بندی‌ها'),
-        ),
+        appBar: AppBar(title: const Text('دسته‌بندی‌ها')),
         body: RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(categoriesProvider);
@@ -37,9 +31,9 @@ class CategoriesScreen extends ConsumerWidget {
               TextField(
                 readOnly: true,
                 onTap: () => context.push('/search'),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: DariStrings.searchHint,
-                  prefixIcon: Icon(Icons.search_rounded),
+                  prefixIcon: const Icon(Icons.search_rounded),
                 ),
               ),
               const SizedBox(height: 16),

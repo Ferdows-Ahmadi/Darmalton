@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/auth_gate.dart';
 import '../../core/design_system.dart';
+import '../../core/localized_text.dart';
 import '../../core/providers.dart';
+import '../../core/strings.dart';
+import '../../core/phone_number.dart';
 import '../../core/widgets.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -43,7 +46,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       'first_name': _first.text.trim(),
       'last_name': _last.text.trim(),
       'email': _email.text.trim(),
-      'phone': _phone.text.trim().isEmpty ? null : _phone.text.trim(),
+      'phone': _phone.text.trim().isEmpty
+          ? null
+          : normalizeAfghanPhone(_phone.text),
       'password': _password.text,
     });
     if (mounted && ref.read(authProvider).value != null) {
@@ -93,9 +98,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       Expanded(
                         child: TextFormField(
                           controller: _first,
-                          decoration: const InputDecoration(
-                            labelText: 'نام',
-                            prefixIcon: Icon(Icons.person_outline_rounded),
+                          decoration: InputDecoration(
+                            labelText: DariStrings.translate('نام'),
+                            prefixIcon: const Icon(
+                              Icons.person_outline_rounded,
+                            ),
                           ),
                           validator: _required,
                         ),
@@ -104,8 +111,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       Expanded(
                         child: TextFormField(
                           controller: _last,
-                          decoration: const InputDecoration(
-                            labelText: 'نام خانوادگی',
+                          decoration: InputDecoration(
+                            labelText: DariStrings.translate('نام خانوادگی'),
                           ),
                           validator: _required,
                         ),
@@ -117,9 +124,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _email,
                     textDirection: TextDirection.ltr,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'ایمیل',
-                      prefixIcon: Icon(Icons.email_outlined),
+                    decoration: InputDecoration(
+                      labelText: DariStrings.translate('ایمیل'),
+                      prefixIcon: const Icon(Icons.email_outlined),
                     ),
                     validator: (value) => value != null && value.contains('@')
                         ? null
@@ -130,10 +137,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     controller: _phone,
                     textDirection: TextDirection.ltr,
                     keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                      labelText: 'شماره تماس (اختیاری)',
-                      prefixIcon: Icon(Icons.phone_outlined),
+                    decoration: InputDecoration(
+                      labelText: DariStrings.translate('شماره تماس (اختیاری)'),
+                      prefixIcon: const Icon(Icons.phone_outlined),
                     ),
+                    validator: (value) =>
+                        validateAfghanPhone(value, optional: true),
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
@@ -141,10 +150,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     textDirection: TextDirection.ltr,
                     obscureText: _obscure,
                     decoration: InputDecoration(
-                      labelText: 'رمز عبور',
+                      labelText: DariStrings.translate('رمز عبور'),
                       prefixIcon: const Icon(Icons.lock_outline_rounded),
                       suffixIcon: IconButton(
-                        tooltip: _obscure ? 'نمایش رمز' : 'پنهان کردن رمز',
+                        tooltip: DariStrings.translate(
+                          _obscure ? 'نمایش رمز' : 'پنهان کردن رمز',
+                        ),
                         onPressed: () => setState(() => _obscure = !_obscure),
                         icon: Icon(
                           _obscure

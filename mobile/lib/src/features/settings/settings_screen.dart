@@ -1,13 +1,16 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/app_settings.dart';
 import '../../core/api_endpoint_manager.dart';
 import '../../core/design_system.dart';
+import '../../core/localized_text.dart';
 import '../../core/providers.dart';
+import '../../core/strings.dart';
 import '../../core/widgets.dart';
+import '../addresses/address_selector.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -15,275 +18,339 @@ class SettingsScreen extends ConsumerWidget {
   Future<void> _update(WidgetRef ref, AppSettings current, AppSettings next) =>
       ref.read(appSettingsProvider.notifier).save(next);
 
+  Future<void> _selectLanguage(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings current,
+  ) async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                DariStrings.t('زبان برنامه', 'App language'),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              ListTile(
+                title: const Text('دری'),
+                subtitle: const Text('Dari'),
+                trailing: current.languageCode == 'fa'
+                    ? const Icon(
+                        Icons.check_circle,
+                        color: DarmaltonColors.teal,
+                      )
+                    : null,
+                onTap: () => Navigator.pop(context, 'fa'),
+              ),
+              ListTile(
+                title: const Text('English'),
+                subtitle: const Text('انگلیسی'),
+                trailing: current.languageCode == 'en'
+                    ? const Icon(
+                        Icons.check_circle,
+                        color: DarmaltonColors.teal,
+                      )
+                    : null,
+                onTap: () => Navigator.pop(context, 'en'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (selected == null || selected == current.languageCode) return;
+    await _update(ref, current, current.copyWith(languageCode: selected));
+    try {
+      await ref.read(authProvider.notifier).updatePreferredLanguage(selected);
+    } on Object {
+      // The local preference remains valid offline and will be synchronized
+      // after the authenticated account is reachable again.
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(appSettingsProvider);
-    return Scaffold(
-      appBar: AppBar(title: const Text('تنظیمات')),
-      body: settings.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => AsyncMessage(
-          message: '$error',
-          onRetry: () => ref.invalidate(appSettingsProvider),
-        ),
-        data: (current) => ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-          children: [
-            const _SettingsHeading(
-              icon: Icons.manage_accounts_outlined,
-              title: 'حساب و امنیت',
-              subtitle: 'معلومات حساب، آدرس‌ها و گزینه‌های امنیتی.',
-            ),
-            DarmaltonCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(
-                      Icons.person_outline_rounded,
-                      color: DarmaltonColors.teal,
-                    ),
-                    title: const Text('پروفایل'),
-                    subtitle: const Text('نام و شماره تماس'),
-                    trailing: const Icon(Icons.chevron_left_rounded),
-                    onTap: () => context.push('/settings/profile'),
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.location_on_outlined,
-                      color: DarmaltonColors.teal,
-                    ),
-                    title: const Text('آدرس‌ها'),
-                    subtitle: const Text('مشاهده و افزودن هنگام پرداخت'),
-                    trailing: const Icon(Icons.chevron_left_rounded),
-                    onTap: () => context.go('/profile'),
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.shield_outlined,
-                      color: DarmaltonColors.teal,
-                    ),
-                    title: const Text('امنیت و رمز عبور'),
-                    subtitle: const Text('تغییر رمز و غیرفعال‌کردن حساب'),
-                    trailing: const Icon(Icons.chevron_left_rounded),
-                    onTap: () => context.push('/settings/security'),
-                  ),
-                ],
+    return MainScaffold(
+      index: 4,
+      child: Scaffold(
+        appBar: AppBar(title: const Text('تنظیمات')),
+        body: settings.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => AsyncMessage(
+            message: '$error',
+            onRetry: () => ref.invalidate(appSettingsProvider),
+          ),
+          data: (current) => ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+            children: [
+              const _SettingsHeading(
+                icon: Icons.manage_accounts_outlined,
+                title: 'حساب و امنیت',
+                subtitle: 'معلومات حساب، آدرس‌ها و گزینه‌های امنیتی.',
               ),
-            ),
-            const SizedBox(height: 22),
-            const _SettingsHeading(
-              icon: Icons.language_rounded,
-              title: 'زبان و خوانایی',
-              subtitle: 'درملتون به‌صورت پیش‌فرض دری و راست‌به‌چپ است.',
-            ),
-            DarmaltonCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  const ListTile(
-                    leading: Icon(
-                      Icons.translate_rounded,
-                      color: DarmaltonColors.teal,
-                    ),
-                    title: Text('زبان برنامه'),
-                    subtitle: Text('دری (افغانستان)'),
-                    trailing: Icon(Icons.check_circle_rounded),
-                  ),
-                  const Divider(height: 1),
-                  SwitchListTile(
-                    secondary: const Icon(
-                      Icons.text_increase_rounded,
-                      color: DarmaltonColors.teal,
-                    ),
-                    title: const Text('متن بزرگ‌تر'),
-                    subtitle: const Text(
-                      'خوانایی متن‌های اصلی را افزایش می‌دهد.',
-                    ),
-                    value: current.largerText,
-                    onChanged: (value) => _update(
-                      ref,
-                      current,
-                      current.copyWith(largerText: value),
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  SwitchListTile(
-                    secondary: const Icon(
-                      Icons.motion_photos_off_outlined,
-                      color: DarmaltonColors.teal,
-                    ),
-                    title: const Text('کاهش حرکت'),
-                    subtitle: const Text(
-                      'حرکت صفحه‌ها و تصویرها را محدود می‌کند.',
-                    ),
-                    value: current.reduceMotion,
-                    onChanged: (value) => _update(
-                      ref,
-                      current,
-                      current.copyWith(reduceMotion: value),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 22),
-            const _SettingsHeading(
-              icon: Icons.notifications_none_rounded,
-              title: 'اعلان و حافظه',
-              subtitle: 'انتخاب‌های این دستگاه؛ وضعیت زنده از سرور می‌آید.',
-            ),
-            DarmaltonCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  SwitchListTile(
-                    secondary: const Icon(
-                      Icons.notifications_active_outlined,
-                      color: DarmaltonColors.teal,
-                    ),
-                    title: const Text('اعلان‌های برنامه'),
-                    subtitle: const Text(
-                      'یادآوری نسخه و سفارش در داخل برنامه.',
-                    ),
-                    value: current.notifications,
-                    onChanged: (value) => _update(
-                      ref,
-                      current,
-                      current.copyWith(notifications: value),
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  SwitchListTile(
-                    secondary: const Icon(
-                      Icons.image_outlined,
-                      color: DarmaltonColors.teal,
-                    ),
-                    title: const Text('حفظ تصویرهای کوچک'),
-                    subtitle: const Text('برای مرور سریع‌تر در اتصال ضعیف.'),
-                    value: current.cacheThumbnails,
-                    onChanged: (value) => _update(
-                      ref,
-                      current,
-                      current.copyWith(cacheThumbnails: value),
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  SwitchListTile(
-                    secondary: const Icon(
-                      Icons.history_rounded,
-                      color: DarmaltonColors.teal,
-                    ),
-                    title: const Text('حفظ جستجوهای اخیر'),
-                    subtitle: const Text(
-                      'عبارت‌ها فقط در همین دستگاه نگهداری می‌شوند.',
-                    ),
-                    value: current.rememberSearches,
-                    onChanged: (value) => _update(
-                      ref,
-                      current,
-                      current.copyWith(rememberSearches: value),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 22),
-            const _SettingsHeading(
-              icon: Icons.shield_outlined,
-              title: 'حریم خصوصی و داده',
-              subtitle:
-                  'قیمت، موجودی و وضعیت سفارش هرگز در کش عمومی ذخیره نمی‌شود.',
-            ),
-            DarmaltonCard(
-              padding: EdgeInsets.zero,
-              child: ListTile(
-                leading: const Icon(
-                  Icons.cleaning_services_outlined,
-                  color: DarmaltonColors.teal,
-                ),
-                title: const Text('پاک‌کردن محتوای عمومی ذخیره‌شده'),
-                subtitle: const Text(
-                  'دسته‌بندی و مشخصات عمومی محصولات پاک می‌شود.',
-                ),
-                trailing: const Icon(Icons.chevron_left_rounded),
-                onTap: () async {
-                  await ref
-                      .read(appSettingsProvider.notifier)
-                      .clearPublicCache();
-                  ref.invalidate(categoriesProvider);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('محتوای عمومی ذخیره‌شده پاک شد.'),
+              DarmaltonCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(
+                        Icons.person_outline_rounded,
+                        color: DarmaltonColors.teal,
                       ),
-                    );
-                  }
-                },
-              ),
-            ),
-            const SizedBox(height: 22),
-            const _SettingsHeading(
-              icon: Icons.help_outline_rounded,
-              title: 'راهنما و معلومات',
-              subtitle: 'سیاست‌ها، پشتیبانی و معلومات برنامه.',
-            ),
-            DarmaltonCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  _SettingsLink(
-                    icon: Icons.support_agent_rounded,
-                    title: 'مرکز کمک',
-                    onTap: () => context.push('/settings/help'),
-                  ),
-                  const Divider(height: 1),
-                  _SettingsLink(
-                    icon: Icons.contact_support_outlined,
-                    title: 'تماس با ما',
-                    onTap: () => context.push('/settings/contact'),
-                  ),
-                  const Divider(height: 1),
-                  _SettingsLink(
-                    icon: Icons.info_outline_rounded,
-                    title: 'درباره درملتون',
-                    onTap: () => context.push('/settings/about'),
-                  ),
-                  const Divider(height: 1),
-                  _SettingsLink(
-                    icon: Icons.gavel_outlined,
-                    title: 'شرایط استفاده',
-                    onTap: () => context.push('/settings/terms'),
-                  ),
-                  const Divider(height: 1),
-                  _SettingsLink(
-                    icon: Icons.privacy_tip_outlined,
-                    title: 'سیاست حریم خصوصی',
-                    onTap: () => context.push('/settings/privacy'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 22),
-            if (kDebugMode) ...[
-              DevelopmentDiagnosticsCard(
-                manager: ref.watch(apiEndpointManagerProvider),
+                      title: const Text('پروفایل'),
+                      subtitle: const Text('نام و شماره تماس'),
+                      trailing: const Icon(Icons.chevron_left_rounded),
+                      onTap: () => context.push('/settings/profile'),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(
+                        Icons.location_on_outlined,
+                        color: DarmaltonColors.teal,
+                      ),
+                      title: const Text('آدرس‌ها'),
+                      subtitle: const Text('انتخاب، افزودن و ویرایش'),
+                      trailing: const Icon(Icons.chevron_left_rounded),
+                      onTap: () => showAddressSelector(context, ref),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(
+                        Icons.shield_outlined,
+                        color: DarmaltonColors.teal,
+                      ),
+                      title: const Text('امنیت و رمز عبور'),
+                      subtitle: const Text('تغییر رمز و غیرفعال‌کردن حساب'),
+                      trailing: const Icon(Icons.chevron_left_rounded),
+                      onTap: () => context.push('/settings/security'),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 22),
-            ],
-            const DarmaltonCard(
-              child: ListTile(
-                leading: Icon(
-                  Icons.info_outline_rounded,
-                  color: DarmaltonColors.teal,
-                ),
-                title: Text('نسخه برنامه'),
-                subtitle: Text('۱.۰.۰ (Milestone 1)'),
+              const _SettingsHeading(
+                icon: Icons.language_rounded,
+                title: 'زبان و خوانایی',
+                subtitle: 'درملتون به‌صورت پیش‌فرض دری و راست‌به‌چپ است.',
               ),
-            ),
-          ],
+              DarmaltonCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(
+                        Icons.translate_rounded,
+                        color: DarmaltonColors.teal,
+                      ),
+                      title: Text(DariStrings.t('زبان برنامه', 'App language')),
+                      subtitle: Text(
+                        current.languageCode == 'en'
+                            ? 'English'
+                            : 'دری (افغانستان)',
+                      ),
+                      trailing: const Icon(Icons.chevron_left_rounded),
+                      onTap: () => _selectLanguage(context, ref, current),
+                    ),
+                    const Divider(height: 1),
+                    SwitchListTile(
+                      secondary: const Icon(
+                        Icons.text_increase_rounded,
+                        color: DarmaltonColors.teal,
+                      ),
+                      title: const Text('متن بزرگ‌تر'),
+                      subtitle: const Text(
+                        'خوانایی متن‌های اصلی را افزایش می‌دهد.',
+                      ),
+                      value: current.largerText,
+                      onChanged: (value) => _update(
+                        ref,
+                        current,
+                        current.copyWith(largerText: value),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    SwitchListTile(
+                      secondary: const Icon(
+                        Icons.motion_photos_off_outlined,
+                        color: DarmaltonColors.teal,
+                      ),
+                      title: const Text('کاهش حرکت'),
+                      subtitle: const Text(
+                        'حرکت صفحه‌ها و تصویرها را محدود می‌کند.',
+                      ),
+                      value: current.reduceMotion,
+                      onChanged: (value) => _update(
+                        ref,
+                        current,
+                        current.copyWith(reduceMotion: value),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 22),
+              const _SettingsHeading(
+                icon: Icons.notifications_none_rounded,
+                title: 'اعلان و حافظه',
+                subtitle: 'انتخاب‌های این دستگاه؛ وضعیت زنده از سرور می‌آید.',
+              ),
+              DarmaltonCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      secondary: const Icon(
+                        Icons.notifications_active_outlined,
+                        color: DarmaltonColors.teal,
+                      ),
+                      title: const Text('اعلان‌های برنامه'),
+                      subtitle: const Text(
+                        'یادآوری نسخه و سفارش در داخل برنامه.',
+                      ),
+                      value: current.notifications,
+                      onChanged: (value) => _update(
+                        ref,
+                        current,
+                        current.copyWith(notifications: value),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    SwitchListTile(
+                      secondary: const Icon(
+                        Icons.image_outlined,
+                        color: DarmaltonColors.teal,
+                      ),
+                      title: const Text('حفظ تصویرهای کوچک'),
+                      subtitle: const Text('برای مرور سریع‌تر در اتصال ضعیف.'),
+                      value: current.cacheThumbnails,
+                      onChanged: (value) => _update(
+                        ref,
+                        current,
+                        current.copyWith(cacheThumbnails: value),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    SwitchListTile(
+                      secondary: const Icon(
+                        Icons.history_rounded,
+                        color: DarmaltonColors.teal,
+                      ),
+                      title: const Text('حفظ جستجوهای اخیر'),
+                      subtitle: const Text(
+                        'عبارت‌ها فقط در همین دستگاه نگهداری می‌شوند.',
+                      ),
+                      value: current.rememberSearches,
+                      onChanged: (value) => _update(
+                        ref,
+                        current,
+                        current.copyWith(rememberSearches: value),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 22),
+              const _SettingsHeading(
+                icon: Icons.shield_outlined,
+                title: 'حریم خصوصی و داده',
+                subtitle:
+                    'قیمت، موجودی و وضعیت سفارش هرگز در کش عمومی ذخیره نمی‌شود.',
+              ),
+              DarmaltonCard(
+                padding: EdgeInsets.zero,
+                child: ListTile(
+                  leading: const Icon(
+                    Icons.cleaning_services_outlined,
+                    color: DarmaltonColors.teal,
+                  ),
+                  title: const Text('پاک‌کردن محتوای عمومی ذخیره‌شده'),
+                  subtitle: const Text(
+                    'دسته‌بندی و مشخصات عمومی محصولات پاک می‌شود.',
+                  ),
+                  trailing: const Icon(Icons.chevron_left_rounded),
+                  onTap: () async {
+                    await ref
+                        .read(appSettingsProvider.notifier)
+                        .clearPublicCache();
+                    ref.invalidate(categoriesProvider);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('محتوای عمومی ذخیره‌شده پاک شد.'),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(height: 22),
+              const _SettingsHeading(
+                icon: Icons.help_outline_rounded,
+                title: 'راهنما و معلومات',
+                subtitle: 'سیاست‌ها، پشتیبانی و معلومات برنامه.',
+              ),
+              DarmaltonCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    _SettingsLink(
+                      icon: Icons.support_agent_rounded,
+                      title: 'مرکز کمک',
+                      onTap: () => context.push('/settings/help'),
+                    ),
+                    const Divider(height: 1),
+                    _SettingsLink(
+                      icon: Icons.contact_support_outlined,
+                      title: 'تماس با ما',
+                      onTap: () => context.push('/settings/contact'),
+                    ),
+                    const Divider(height: 1),
+                    _SettingsLink(
+                      icon: Icons.info_outline_rounded,
+                      title: 'درباره درملتون',
+                      onTap: () => context.push('/settings/about'),
+                    ),
+                    const Divider(height: 1),
+                    _SettingsLink(
+                      icon: Icons.gavel_outlined,
+                      title: 'شرایط استفاده',
+                      onTap: () => context.push('/settings/terms'),
+                    ),
+                    const Divider(height: 1),
+                    _SettingsLink(
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'سیاست حریم خصوصی',
+                      onTap: () => context.push('/settings/privacy'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 22),
+              if (kDebugMode) ...[
+                DevelopmentDiagnosticsCard(
+                  manager: ref.watch(apiEndpointManagerProvider),
+                ),
+                const SizedBox(height: 22),
+              ],
+              const DarmaltonCard(
+                child: ListTile(
+                  leading: Icon(
+                    Icons.info_outline_rounded,
+                    color: DarmaltonColors.teal,
+                  ),
+                  title: Text('نسخه برنامه'),
+                  subtitle: Text('۱.۰.۰ (Milestone 1)'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

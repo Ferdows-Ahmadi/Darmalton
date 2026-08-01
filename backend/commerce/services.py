@@ -49,6 +49,9 @@ def address_snapshot(address):
         "district": address.district,
         "street_address": address.street_address,
         "landmark": address.landmark,
+        "delivery_instructions": address.delivery_instructions,
+        "latitude": str(address.latitude) if address.latitude is not None else "",
+        "longitude": str(address.longitude) if address.longitude is not None else "",
     }
 
 

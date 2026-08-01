@@ -18,7 +18,7 @@ export default function StaffPrescriptionsPage() {
       columns={[
         { key: "patient_name", label: "نام مریض" },
         { key: "customer_email", label: "مشتری" },
-        { key: "contact_phone", label: "تماس" },
+        { key: "contact_phone", label: "تماس", kind: "phone" },
         { key: "status", label: "وضعیت", kind: "status" },
         { key: "reviewer_email", label: "بررسی‌کننده" },
         { key: "created_at", label: "ارسال", kind: "date" }

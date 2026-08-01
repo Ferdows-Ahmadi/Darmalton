@@ -1,12 +1,16 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system.dart';
+import '../../core/localized_text.dart';
+import '../../core/feature_flags.dart';
 import '../../core/models.dart';
+import '../../core/phone_number.dart';
 import '../../core/providers.dart';
 import '../../core/strings.dart';
 import '../../core/widgets.dart';
+import '../addresses/address_selector.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -71,6 +75,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     final addresses = ref.watch(addressesProvider);
+    final persistedSelected = ref.watch(selectedAddressIdProvider).value;
     final cart = ref.watch(cartProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('پرداخت')),
@@ -81,8 +86,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           onRetry: () => ref.invalidate(addressesProvider),
         ),
         data: (items) {
-          if (_selected == null && items.isNotEmpty) {
+          if (items.isNotEmpty) {
+            final validPersisted = items
+                .where((item) => item.id == persistedSelected)
+                .firstOrNull;
+            final validCurrent = items
+                .where((item) => item.id == _selected)
+                .firstOrNull;
             _selected =
+                validPersisted?.id ??
+                validCurrent?.id ??
                 items.where((item) => item.isDefault).firstOrNull?.id ??
                 items.first.id;
           }
@@ -93,9 +106,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 icon: Icons.location_on_outlined,
                 title: 'آدرس تحویل',
                 action: TextButton.icon(
-                  onPressed: () => _showAddressForm(context),
-                  icon: const Icon(Icons.add_rounded, size: 18),
-                  label: Text(items.isEmpty ? 'افزودن آدرس' : 'آدرس جدید'),
+                  onPressed: () => showAddressSelector(context, ref),
+                  icon: const Icon(Icons.edit_location_alt_outlined, size: 18),
+                  label: Text(items.isEmpty ? 'افزودن آدرس' : 'مدیریت آدرس‌ها'),
                 ),
                 child: items.isEmpty
                     ? const Padding(
@@ -106,7 +119,22 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       )
                     : RadioGroup<String>(
                         groupValue: _selected,
-                        onChanged: (value) => setState(() => _selected = value),
+                        onChanged: (value) async {
+                          if (value == null) return;
+                          final address = items.firstWhere(
+                            (item) => item.id == value,
+                          );
+                          setState(() => _selected = value);
+                          try {
+                            await selectDeliveryAddress(ref, address);
+                          } catch (error) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).showSnackBar(SnackBar(content: Text('$error')));
+                            }
+                          }
+                        },
                         child: Column(
                           children: items
                               .map(
@@ -130,20 +158,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 icon: Icons.account_balance_wallet_outlined,
                 title: 'روش پرداخت',
                 child: _PaymentMethods(),
-              ),
-              const SizedBox(height: 14),
-              const _SectionCard(
-                icon: Icons.edit_note_outlined,
-                title: 'یادداشت سفارش',
-                subtitle: 'در این نسخه پشتیبانی نمی‌شود',
-                child: TextField(
-                  enabled: false,
-                  minLines: 2,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    hintText: 'یادداشت سفارش پس از اضافه‌شدن پشتیبانی سرور...',
-                  ),
-                ),
               ),
               const SizedBox(height: 14),
               cart.when(
@@ -187,108 +201,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       ),
     );
   }
-
-  Future<void> _showAddressForm(BuildContext context) async {
-    final formKey = GlobalKey<FormState>();
-    final values = <String, String>{};
-    String? submitError;
-    var saving = false;
-
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('آدرس جدید'),
-          content: Form(
-            key: formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ...const [
-                    ('recipient_name', 'نام گیرنده', Icons.person_outline),
-                    ('recipient_phone', 'شماره تماس', Icons.phone_outlined),
-                    ('province', 'ولایت', Icons.map_outlined),
-                    ('city', 'شهر', Icons.location_city_outlined),
-                    ('street_address', 'آدرس دقیق', Icons.home_outlined),
-                  ].map(
-                    (field) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: TextFormField(
-                        enabled: !saving,
-                        textDirection: field.$1 == 'recipient_phone'
-                            ? TextDirection.ltr
-                            : TextDirection.rtl,
-                        decoration: InputDecoration(
-                          labelText: field.$2,
-                          prefixIcon: Icon(field.$3),
-                        ),
-                        validator: (value) =>
-                            value == null || value.trim().isEmpty
-                            ? 'این بخش الزامی است.'
-                            : null,
-                        onSaved: (value) => values[field.$1] = value!.trim(),
-                      ),
-                    ),
-                  ),
-                  if (submitError != null)
-                    Text(
-                      submitError!,
-                      style: const TextStyle(color: DarmaltonColors.danger),
-                    ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: saving ? null : () => Navigator.pop(dialogContext),
-              child: const Text('انصراف'),
-            ),
-            FilledButton(
-              onPressed: saving
-                  ? null
-                  : () async {
-                      if (!formKey.currentState!.validate()) return;
-                      formKey.currentState!.save();
-                      setDialogState(() {
-                        saving = true;
-                        submitError = null;
-                      });
-                      try {
-                        final response = await ref
-                            .read(apiClientProvider)
-                            .post<Map<String, dynamic>>(
-                              '/addresses/',
-                              data: {
-                                ...values,
-                                'label': 'خانه',
-                                'country_code': 'AF',
-                                'is_default': true,
-                              },
-                            );
-                        final address = Address.fromJson(response.data!);
-                        ref.invalidate(addressesProvider);
-                        if (mounted) {
-                          setState(() => _selected = address.id);
-                        }
-                        if (dialogContext.mounted) {
-                          Navigator.pop(dialogContext);
-                        }
-                      } catch (error) {
-                        setDialogState(() {
-                          saving = false;
-                          submitError = '$error';
-                        });
-                      }
-                    },
-              child: Text(saving ? 'در حال ذخیره...' : 'ذخیره'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _SectionCard extends StatelessWidget {
@@ -296,13 +208,11 @@ class _SectionCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.child,
-    this.subtitle,
     this.action,
   });
 
   final IconData icon;
   final String title;
-  final String? subtitle;
   final Widget? action;
   final Widget child;
 
@@ -320,11 +230,6 @@ class _SectionCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title, style: Theme.of(context).textTheme.titleLarge),
-                  if (subtitle != null)
-                    Text(
-                      subtitle!,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
                 ],
               ),
             ),
@@ -360,8 +265,14 @@ class _AddressChoice extends StatelessWidget {
         address.label.isEmpty ? 'آدرس تحویل' : address.label,
         style: const TextStyle(fontWeight: FontWeight.w700),
       ),
-      subtitle: Text(
-        '${address.recipientName}\n${address.city}، ${address.streetAddress}\n${address.recipientPhone}',
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${address.recipientName}\n${address.city}، ${address.streetAddress}',
+          ),
+          LtrText(formatAfghanPhone(address.recipientPhone)),
+        ],
       ),
       isThreeLine: true,
     ),
@@ -409,34 +320,32 @@ class _PaymentMethods extends StatelessWidget {
   const _PaymentMethods();
 
   @override
-  Widget build(BuildContext context) => Row(
+  Widget build(BuildContext context) => Column(
     children: [
-      const Expanded(
-        child: _PaymentChoice(
-          icon: Icons.payments_outlined,
-          title: 'هنگام تحویل',
-          subtitle: 'فعال',
-          selected: true,
-        ),
+      const _PaymentChoice(
+        icon: Icons.payments_outlined,
+        title: 'هنگام تحویل',
+        subtitle: 'پرداخت نقدی در زمان دریافت سفارش',
+        selected: true,
       ),
-      const SizedBox(width: 8),
-      Expanded(
-        child: _PaymentChoice(
+      if (FeatureFlags.cardPayments) ...[
+        const SizedBox(height: 8),
+        const _PaymentChoice(
           icon: Icons.credit_card_outlined,
           title: 'کارت بانکی',
-          subtitle: DariStrings.comingSoon,
+          subtitle: 'پرداخت آنلاین',
           selected: false,
         ),
-      ),
-      const SizedBox(width: 8),
-      Expanded(
-        child: _PaymentChoice(
+      ],
+      if (FeatureFlags.wallet) ...[
+        const SizedBox(height: 8),
+        const _PaymentChoice(
           icon: Icons.account_balance_wallet_outlined,
           title: 'کیف پول',
-          subtitle: DariStrings.comingSoon,
+          subtitle: 'پرداخت از موجودی کیف پول',
           selected: false,
         ),
-      ),
+      ],
     ],
   );
 }
@@ -456,7 +365,7 @@ class _PaymentChoice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    height: 126,
+    constraints: const BoxConstraints(minHeight: 96),
     padding: const EdgeInsets.all(8),
     decoration: BoxDecoration(
       color: selected ? DarmaltonColors.mint : const Color(0xFFF7F8F9),

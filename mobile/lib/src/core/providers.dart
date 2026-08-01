@@ -26,12 +26,34 @@ final offlineProvider = NotifierProvider<OfflineController, bool>(
   OfflineController.new,
 );
 
+final offlineBannerVisibleProvider =
+    NotifierProvider<OfflineBannerController, bool>(
+      OfflineBannerController.new,
+    );
+
+class OfflineBannerController extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void show() => state = true;
+  void dismiss() => state = false;
+}
+
 class OfflineController extends Notifier<bool> {
   @override
   bool build() => false;
 
-  void markOffline() => state = true;
-  void markOnline() => state = false;
+  void markOffline() {
+    if (state) return;
+    state = true;
+    ref.read(offlineBannerVisibleProvider.notifier).show();
+  }
+
+  void markOnline() {
+    if (!state) return;
+    state = false;
+    ref.read(offlineBannerVisibleProvider.notifier).dismiss();
+  }
 }
 
 final authProvider = AsyncNotifierProvider<AuthController, User?>(
@@ -46,7 +68,9 @@ class AuthController extends AsyncNotifier<User?> {
   Future<User?> build() async {
     try {
       final response = await _api.get<Map<String, dynamic>>('/auth/me/');
-      return User.fromJson(response.data!);
+      final user = User.fromJson(response.data!);
+      await _applyPreferredLanguage(user);
+      return user;
     } on ApiException {
       return null;
     }
@@ -60,7 +84,11 @@ class AuthController extends AsyncNotifier<User?> {
         data: {'email': email, 'password': password},
       );
       await _api.saveTokens(response.data!);
-      return User.fromJson(response.data!['user'] as Map<String, dynamic>);
+      final user = User.fromJson(
+        response.data!['user'] as Map<String, dynamic>,
+      );
+      await _applyPreferredLanguage(user);
+      return user;
     });
   }
 
@@ -72,7 +100,11 @@ class AuthController extends AsyncNotifier<User?> {
         data: data,
       );
       await _api.saveTokens(response.data!);
-      return User.fromJson(response.data!['user'] as Map<String, dynamic>);
+      final user = User.fromJson(
+        response.data!['user'] as Map<String, dynamic>,
+      );
+      await _applyPreferredLanguage(user);
+      return user;
     });
   }
 
@@ -85,7 +117,11 @@ class AuthController extends AsyncNotifier<User?> {
         data: {'id_token': idToken},
       );
       await _api.saveTokens(response.data!);
-      return User.fromJson(response.data!['user'] as Map<String, dynamic>);
+      final user = User.fromJson(
+        response.data!['user'] as Map<String, dynamic>,
+      );
+      await _applyPreferredLanguage(user);
+      return user;
     });
   }
 
@@ -103,6 +139,25 @@ class AuthController extends AsyncNotifier<User?> {
       },
     );
     state = AsyncData(User.fromJson(response.data!));
+  }
+
+  Future<void> updatePreferredLanguage(String languageCode) async {
+    final current = state.value;
+    if (current == null) return;
+    final response = await _api.patch<Map<String, dynamic>>(
+      '/auth/me/',
+      data: {'preferred_language': languageCode == 'en' ? 'en' : 'fa'},
+    );
+    state = AsyncData(User.fromJson(response.data!));
+  }
+
+  Future<void> _applyPreferredLanguage(User user) async {
+    final settings = await ref.read(appSettingsProvider.future);
+    if (settings.languageCode != user.preferredLanguage) {
+      await ref
+          .read(appSettingsProvider.notifier)
+          .save(settings.copyWith(languageCode: user.preferredLanguage));
+    }
   }
 
   Future<void> changePassword({
@@ -156,19 +211,75 @@ class AuthController extends AsyncNotifier<User?> {
 }
 
 class CatalogueQuery {
-  const CatalogueQuery({this.search = '', this.category = ''});
+  const CatalogueQuery({
+    this.search = '',
+    this.category = '',
+    this.manufacturer = '',
+    this.prescriptionRequired,
+    this.inStock,
+    this.minPrice,
+    this.maxPrice,
+    this.ordering = 'name',
+  });
   final String search;
   final String category;
+  final String manufacturer;
+  final bool? prescriptionRequired;
+  final bool? inStock;
+  final double? minPrice;
+  final double? maxPrice;
+  final String ordering;
+
+  bool get hasLiveFilters =>
+      manufacturer.isNotEmpty ||
+      prescriptionRequired != null ||
+      inStock != null ||
+      minPrice != null ||
+      maxPrice != null ||
+      ordering != 'name';
 
   @override
   bool operator ==(Object other) =>
       other is CatalogueQuery &&
       other.search == search &&
-      other.category == category;
+      other.category == category &&
+      other.manufacturer == manufacturer &&
+      other.prescriptionRequired == prescriptionRequired &&
+      other.inStock == inStock &&
+      other.minPrice == minPrice &&
+      other.maxPrice == maxPrice &&
+      other.ordering == ordering;
 
   @override
-  int get hashCode => Object.hash(search, category);
+  int get hashCode => Object.hash(
+    search,
+    category,
+    manufacturer,
+    prescriptionRequired,
+    inStock,
+    minPrice,
+    maxPrice,
+    ordering,
+  );
 }
+
+typedef ManufacturerOption = ({String id, String name});
+
+final manufacturersProvider = FutureProvider<List<ManufacturerOption>>((
+  ref,
+) async {
+  final response = await ref
+      .read(apiClientProvider)
+      .get<List<dynamic>>('/manufacturers/');
+  return response.data!
+      .map(
+        (item) => (
+          id: (item as Map<String, dynamic>)['id'] as String,
+          name: item['name'] as String,
+        ),
+      )
+      .toList();
+});
 
 final categoriesProvider = StreamProvider<List<Category>>((ref) async* {
   final cache = ref.read(localCacheProvider);
@@ -197,7 +308,7 @@ final medicinesProvider = StreamProvider.family<List<Medicine>, CatalogueQuery>(
       search: query.search,
       category: query.category,
     );
-    if (cached.isNotEmpty) yield cached;
+    if (cached.isNotEmpty && !query.hasLiveFilters) yield cached;
     try {
       final response = await ref
           .read(apiClientProvider)
@@ -206,21 +317,31 @@ final medicinesProvider = StreamProvider.family<List<Medicine>, CatalogueQuery>(
             query: {
               if (query.search.isNotEmpty) 'search': query.search,
               if (query.category.isNotEmpty) 'category': query.category,
+              if (query.manufacturer.isNotEmpty)
+                'manufacturer': query.manufacturer,
+              if (query.prescriptionRequired != null)
+                'prescription_required': query.prescriptionRequired,
+              if (query.inStock != null) 'in_stock': query.inStock,
+              if (query.minPrice != null) 'min_price': query.minPrice,
+              if (query.maxPrice != null) 'max_price': query.maxPrice,
+              'ordering': query.ordering,
             },
           );
       final fresh = (response.data!['results'] as List<dynamic>)
           .map((item) => Medicine.fromJson(item as Map<String, dynamic>))
           .toList();
-      await cache.writeMedicines(
-        fresh,
-        search: query.search,
-        category: query.category,
-      );
+      if (!query.hasLiveFilters) {
+        await cache.writeMedicines(
+          fresh,
+          search: query.search,
+          category: query.category,
+        );
+      }
       ref.read(offlineProvider.notifier).markOnline();
       yield fresh;
     } on ApiException {
       ref.read(offlineProvider.notifier).markOffline();
-      if (cached.isEmpty) rethrow;
+      if (cached.isEmpty || query.hasLiveFilters) rethrow;
     }
   },
 );
@@ -514,6 +635,12 @@ final addressesProvider = StreamProvider<List<Address>>((ref) async* {
         .map((item) => Address.fromJson(item as Map<String, dynamic>))
         .toList();
     await cache.writeAddresses(user.id, fresh);
+    final selectedId = await cache.readSelectedAddressId(user.id);
+    final selectedStillExists = fresh.any((item) => item.id == selectedId);
+    final defaultAddress = fresh.where((item) => item.isDefault).firstOrNull;
+    if (!selectedStillExists && defaultAddress != null) {
+      await cache.writeSelectedAddressId(user.id, defaultAddress.id);
+    }
     ref.read(offlineProvider.notifier).markOnline();
     yield fresh;
   } on ApiException catch (error) {
@@ -523,6 +650,12 @@ final addressesProvider = StreamProvider<List<Address>>((ref) async* {
     ref.read(offlineProvider.notifier).markOffline();
     if (cached.isEmpty) rethrow;
   }
+});
+
+final selectedAddressIdProvider = FutureProvider<String?>((ref) async {
+  final user = await ref.watch(authProvider.future);
+  if (user == null) return null;
+  return ref.read(localCacheProvider).readSelectedAddressId(user.id);
 });
 
 final ordersProvider = FutureProvider<List<Order>>((ref) async {
@@ -571,14 +704,28 @@ final prescriptionsProvider = FutureProvider<List<Prescription>>((ref) async {
   }
 });
 
-final prescriptionRepositoryProvider = Provider<PrescriptionRepository>(
+final prescriptionRepositoryProvider = Provider<PrescriptionRepositoryBase>(
   (ref) => PrescriptionRepository(ref.read(apiClientProvider)),
 );
 
-class PrescriptionRepository {
+abstract interface class PrescriptionRepositoryBase {
+  Future<Prescription> upload({
+    required String filePath,
+    required String filename,
+    required Map<String, String> fields,
+    void Function(int sent, int total)? onProgress,
+  });
+
+  Future<void> cancel(String id);
+
+  Future<void> respond(String id, String message);
+}
+
+class PrescriptionRepository implements PrescriptionRepositoryBase {
   const PrescriptionRepository(this._api);
   final ApiClient _api;
 
+  @override
   Future<Prescription> upload({
     required String filePath,
     required String filename,
@@ -595,10 +742,12 @@ class PrescriptionRepository {
     return Prescription.fromJson(response.data!);
   }
 
+  @override
   Future<void> cancel(String id) async {
     await _api.post('/prescriptions/$id/cancel/', data: const {});
   }
 
+  @override
   Future<void> respond(String id, String message) async {
     await _api.post('/prescriptions/$id/respond/', data: {'response': message});
   }

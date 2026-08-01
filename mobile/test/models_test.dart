@@ -58,4 +58,27 @@ void main() {
     expect(order.deliveryAddress['city'], 'Kabul');
     expect(order.currencyCode, 'AFN');
   });
+
+  test('Address preserves delivery and GPS fields in the private cache', () {
+    final address = Address.fromJson({
+      'id': 'address-id',
+      'label': 'خانه',
+      'recipient_name': 'مشتری',
+      'recipient_phone': '0700000000',
+      'province': 'کابل',
+      'city': 'کابل',
+      'district': '۴',
+      'street_address': 'سرک اول',
+      'landmark': 'نزدیک کلینیک',
+      'delivery_instructions': 'دروازه را زنگ بزنید',
+      'latitude': '34.555300',
+      'longitude': '69.207500',
+      'is_default': true,
+    });
+
+    expect(address.latitude, 34.5553);
+    expect(address.longitude, 69.2075);
+    expect(address.deliveryInstructions, 'دروازه را زنگ بزنید');
+    expect(Address.fromJson(address.toJson()).toJson(), address.toJson());
+  });
 }

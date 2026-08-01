@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system.dart';
+import '../../core/localized_text.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
 import '../../core/strings.dart';
@@ -37,20 +38,7 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
     return MainScaffold(
       index: 1,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text(DariStrings.orders),
-          actions: [
-            IconButton(
-              tooltip: 'فیلتر',
-              onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('سفارش‌ها با زبانه‌های وضعیت فیلتر می‌شوند.'),
-                ),
-              ),
-              icon: const Icon(Icons.filter_alt_outlined),
-            ),
-          ],
-        ),
+        appBar: AppBar(title: Text(DariStrings.orders)),
         body: Column(
           children: [
             Padding(

@@ -49,7 +49,7 @@ class AsyncMessage extends StatelessWidget {
           FilledButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh),
-            label: const Text(DariStrings.retry),
+            label: Text(DariStrings.retry),
           ),
         ],
       ),
@@ -108,10 +108,16 @@ class EmptyMessage extends StatelessWidget {
 }
 
 class MainScaffold extends ConsumerStatefulWidget {
-  const MainScaffold({required this.child, required this.index, super.key});
+  const MainScaffold({
+    required this.child,
+    required this.index,
+    this.fallbackPath,
+    super.key,
+  });
 
   final Widget child;
   final int index;
+  final String? fallbackPath;
 
   @override
   ConsumerState<MainScaffold> createState() => _MainScaffoldState();
@@ -124,6 +130,10 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     if (didPop) return;
     if (context.canPop()) {
       context.pop();
+      return;
+    }
+    if (widget.fallbackPath != null) {
+      context.go(widget.fallbackPath!);
       return;
     }
     if (widget.index != 2) {
@@ -148,38 +158,42 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     final offline = ref.watch(offlineProvider);
+    final showOfflineBanner = ref.watch(offlineBannerVisibleProvider);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: _handleBack,
       child: Scaffold(
-        body: Stack(
+        body: Column(
           children: [
-            Positioned.fill(child: widget.child),
-            if (offline)
-              Positioned(
-                top: MediaQuery.paddingOf(context).top + 6,
-                left: 14,
-                right: 14,
-                child: Material(
-                  elevation: 3,
-                  color: const Color(0xFFFFF4D8),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 9,
+            if (offline && showOfflineBanner)
+              SafeArea(
+                bottom: false,
+                child: Semantics(
+                  liveRegion: true,
+                  label:
+                      'آفلاین. قیمت و موجودی تا اتصال دوباره نمایش داده نمی‌شود.',
+                  child: Container(
+                    width: double.infinity,
+                    color: const Color(0xFFFFF4D8),
+                    padding: const EdgeInsetsDirectional.only(
+                      start: 12,
+                      end: 4,
+                      top: 3,
+                      bottom: 3,
                     ),
                     child: Row(
                       children: [
                         const Icon(
                           Icons.cloud_off_outlined,
-                          size: 20,
+                          size: 19,
                           color: Color(0xFF9B6813),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 7),
                         const Expanded(
                           child: Text(
-                            'آفلاین — قیمت و موجودی تا اتصال دوباره نمایش داده نمی‌شود.',
+                            'آفلاین؛ قیمت و موجودی زنده در دسترس نیست.',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: Color(0xFF79510D),
                               fontSize: 11,
@@ -188,7 +202,16 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () {
+                          onPressed: () async {
+                            await ref
+                                .read(apiEndpointManagerProvider)
+                                .retryAndDiscover();
+                            if (ref
+                                .read(apiEndpointManagerProvider)
+                                .snapshot
+                                .healthy) {
+                              ref.read(offlineProvider.notifier).markOnline();
+                            }
                             ref.invalidate(categoriesProvider);
                             ref.invalidate(
                               medicinesProvider(const CatalogueQuery()),
@@ -196,11 +219,20 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                           },
                           child: const Text('تلاش'),
                         ),
+                        IconButton(
+                          tooltip: 'بستن پیام آفلاین',
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () => ref
+                              .read(offlineBannerVisibleProvider.notifier)
+                              .dismiss(),
+                          icon: const Icon(Icons.close_rounded, size: 19),
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
+            Expanded(child: widget.child),
           ],
         ),
         bottomNavigationBar: NavigationBar(
@@ -211,41 +243,61 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
               '/orders',
               '/catalogue',
               '/cart',
-              '/profile',
+              '/settings',
             ];
             context.go(routes[value]);
           },
-          destinations: const [
+          destinations: [
             NavigationDestination(
-              icon: Icon(Icons.grid_view_outlined),
-              selectedIcon: Icon(Icons.grid_view_rounded),
+              icon: const Icon(Icons.grid_view_outlined),
+              selectedIcon: const Icon(Icons.grid_view_rounded),
               label: DariStrings.categories,
             ),
             NavigationDestination(
-              icon: Icon(Icons.receipt_long_outlined),
-              selectedIcon: Icon(Icons.receipt_long_rounded),
+              icon: const Icon(Icons.receipt_long_outlined),
+              selectedIcon: const Icon(Icons.receipt_long_rounded),
               label: DariStrings.orders,
             ),
             NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home_rounded),
+              icon: const Icon(Icons.home_outlined),
+              selectedIcon: const Icon(Icons.home_rounded),
               label: DariStrings.home,
             ),
             NavigationDestination(
-              icon: Icon(Icons.shopping_cart_outlined),
-              selectedIcon: Icon(Icons.shopping_cart_rounded),
+              icon: const Icon(Icons.shopping_cart_outlined),
+              selectedIcon: const Icon(Icons.shopping_cart_rounded),
               label: DariStrings.cart,
             ),
             NavigationDestination(
-              icon: Icon(Icons.person_outline_rounded),
-              selectedIcon: Icon(Icons.person_rounded),
-              label: DariStrings.profile,
+              icon: const Icon(Icons.settings_outlined),
+              selectedIcon: const Icon(Icons.settings_rounded),
+              label: DariStrings.settings,
             ),
           ],
         ),
       ),
     );
   }
+}
+
+class FallbackBackScope extends StatelessWidget {
+  const FallbackBackScope({
+    required this.fallbackPath,
+    required this.child,
+    super.key,
+  });
+
+  final String fallbackPath;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => PopScope(
+    canPop: context.canPop(),
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop) context.go(fallbackPath);
+    },
+    child: child,
+  );
 }
 
 class DarmaltonWordmark extends StatelessWidget {
