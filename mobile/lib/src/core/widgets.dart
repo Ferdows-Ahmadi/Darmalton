@@ -157,6 +157,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    final languageCode =
+        ref.watch(appSettingsProvider).value?.languageCode ?? 'fa';
     final offline = ref.watch(offlineProvider);
     final showOfflineBanner = ref.watch(offlineBannerVisibleProvider);
     return PopScope(
@@ -251,27 +253,39 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
             NavigationDestination(
               icon: const Icon(Icons.grid_view_outlined),
               selectedIcon: const Icon(Icons.grid_view_rounded),
-              label: DariStrings.categories,
+              label: DariStrings.tForLanguage(
+                languageCode,
+                'دسته‌بندی',
+                'Categories',
+              ),
             ),
             NavigationDestination(
               icon: const Icon(Icons.receipt_long_outlined),
               selectedIcon: const Icon(Icons.receipt_long_rounded),
-              label: DariStrings.orders,
+              label: DariStrings.tForLanguage(
+                languageCode,
+                'سفارش‌های من',
+                'My orders',
+              ),
             ),
             NavigationDestination(
               icon: const Icon(Icons.home_outlined),
               selectedIcon: const Icon(Icons.home_rounded),
-              label: DariStrings.home,
+              label: DariStrings.tForLanguage(languageCode, 'خانه', 'Home'),
             ),
             NavigationDestination(
               icon: const Icon(Icons.shopping_cart_outlined),
               selectedIcon: const Icon(Icons.shopping_cart_rounded),
-              label: DariStrings.cart,
+              label: DariStrings.tForLanguage(languageCode, 'سبد خرید', 'Cart'),
             ),
             NavigationDestination(
               icon: const Icon(Icons.settings_outlined),
               selectedIcon: const Icon(Icons.settings_rounded),
-              label: DariStrings.settings,
+              label: DariStrings.tForLanguage(
+                languageCode,
+                'تنظیمات',
+                'Settings',
+              ),
             ),
           ],
         ),

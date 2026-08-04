@@ -39,20 +39,23 @@ class Text extends material.StatelessWidget {
   final material.Color? selectionColor;
 
   @override
-  material.Widget build(material.BuildContext context) => material.Text(
-    DariStrings.translate(data),
-    style: style,
-    strutStyle: strutStyle,
-    textAlign: textAlign,
-    textDirection: textDirection,
-    locale: locale,
-    softWrap: softWrap,
-    overflow: overflow,
-    textScaler: textScaler,
-    maxLines: maxLines,
-    semanticsLabel: semanticsLabel,
-    textWidthBasis: textWidthBasis,
-    textHeightBehavior: textHeightBehavior,
-    selectionColor: selectionColor,
-  );
+  material.Widget build(material.BuildContext context) {
+    material.Localizations.maybeLocaleOf(context);
+    return material.Text(
+      DariStrings.translate(data),
+      style: style,
+      strutStyle: strutStyle,
+      textAlign: textAlign,
+      textDirection: textDirection,
+      locale: locale,
+      softWrap: softWrap,
+      overflow: overflow,
+      textScaler: textScaler,
+      maxLines: maxLines,
+      semanticsLabel: semanticsLabel,
+      textWidthBasis: textWidthBasis,
+      textHeightBehavior: textHeightBehavior,
+      selectionColor: selectionColor,
+    );
+  }
 }

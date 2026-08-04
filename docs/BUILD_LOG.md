@@ -1,5 +1,40 @@
 # Build Log
 
+## 2026-08-04 - Milestone 2 locale refresh stabilization follow-up
+
+- Completed the unfinished post-`35c5e41` locale-refresh repair in Flutter by
+  removing the experimental `LanguageScope` inherited-dependent approach that
+  caused `_dependents.isEmpty` assertions on bottom-sheet dismissal.
+- Kept the existing persisted app settings provider as the single language
+  source of truth and added explicit language-aware string helpers so
+  navigation and filter labels rebuild deterministically from the watched
+  language state.
+- Updated localized static text rendering to rebuild off Flutter Localizations
+  changes without registering every custom text widget as a dedicated inherited
+  locale dependent.
+- Finalized catalogue filter-sheet state application to happen only after the
+  sheet closes, avoiding setState/dismiss race conditions and disposed
+  controller exceptions.
+- Added/expanded regression coverage in `mobile/test/language_settings_test.dart`
+  for Dari/English switching, direction changes, persistence after restart, and
+  catalogue filter-sheet localization/dismiss safety.
+- Verification passed on current sources: `flutter analyze` and full
+  `flutter test` (42 tests passed).
+- Built and installed a fresh debug APK from current source:
+  `mobile/build/app/outputs/flutter-apk/app-debug.apk`.
+- Device/install evidence:
+  - Connected device: Pixel 10 (`57221FDCR00CMN`)
+  - Installed package: `com.darmalton.pharmacy`
+  - Installed version: `1.0.0 (1)`
+  - APK SHA-256:
+    `B2953B526B0A4EE2661DC0A47AD024CA991DEECB8244AA2A1A0D52D4EFA56ED9`
+- Android SDK Platform 34 corruption from the previous pass is no longer a
+  blocker for debug builds in this environment; the requested debug APK now
+  builds successfully.
+- Full manual physical Pixel walkthrough for the entire Stage 3 matrix was not
+  completed in this run; repository-level automated verification is complete
+  and targeted device artifacts were refreshed under `docs/qa/`.
+
 ## 2026-08-01 - Automatic local mobile connectivity
 
 - Added a public database-backed `/api/v1/health/` endpoint and a

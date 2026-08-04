@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/app_settings.dart';
 import '../../core/design_system.dart';
 import '../../core/localized_text.dart';
 import '../../core/models.dart';
@@ -64,7 +65,7 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
     }
   }
 
-  Future<void> _showFilters() async {
+  Future<void> _showFilters(String languageCode) async {
     var stock = _inStockOnly;
     var prescription = _prescriptionFilter;
     var manufacturer = _manufacturer;
@@ -74,6 +75,9 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
     final maxPrice = TextEditingController(
       text: _maxPrice?.toStringAsFixed(0) ?? '',
     );
+    double? minimum;
+    double? maximum;
+    var applyFilters = false;
     final manufacturers = ref.read(manufacturersProvider).value ?? const [];
     await showModalBottomSheet<void>(
       context: context,
@@ -121,7 +125,10 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                       initialValue: manufacturer,
                       isExpanded: true,
                       decoration: InputDecoration(
-                        labelText: DariStrings.translate('تولیدکننده'),
+                        labelText: DariStrings.translateForLanguage(
+                          languageCode,
+                          'تولیدکننده',
+                        ),
                         prefixIcon: const Icon(Icons.factory_outlined),
                       ),
                       items: [
@@ -146,8 +153,15 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                           keyboardType: TextInputType.number,
                           textDirection: TextDirection.ltr,
                           decoration: InputDecoration(
-                            labelText: DariStrings.translate('حداقل قیمت'),
-                            suffixText: DariStrings.afn,
+                            labelText: DariStrings.translateForLanguage(
+                              languageCode,
+                              'حداقل قیمت',
+                            ),
+                            suffixText: DariStrings.tForLanguage(
+                              languageCode,
+                              'افغانی',
+                              'AFN',
+                            ),
                           ),
                         ),
                       ),
@@ -158,8 +172,15 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                           keyboardType: TextInputType.number,
                           textDirection: TextDirection.ltr,
                           decoration: InputDecoration(
-                            labelText: DariStrings.translate('حداکثر قیمت'),
-                            suffixText: DariStrings.afn,
+                            labelText: DariStrings.translateForLanguage(
+                              languageCode,
+                              'حداکثر قیمت',
+                            ),
+                            suffixText: DariStrings.tForLanguage(
+                              languageCode,
+                              'افغانی',
+                              'AFN',
+                            ),
                           ),
                         ),
                       ),
@@ -167,24 +188,27 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                   ),
                   const SizedBox(height: 18),
                   GradientButton(
-                    label: 'اعمال فیلتر',
+                    label: DariStrings.translateForLanguage(
+                      languageCode,
+                      'اعمال فیلتر',
+                    ),
                     icon: Icons.filter_alt_outlined,
                     onPressed: () {
-                      final minimum = minPrice.text.trim().isEmpty
+                      final parsedMinimum = minPrice.text.trim().isEmpty
                           ? null
                           : double.tryParse(minPrice.text.trim());
-                      final maximum = maxPrice.text.trim().isEmpty
+                      final parsedMaximum = maxPrice.text.trim().isEmpty
                           ? null
                           : double.tryParse(maxPrice.text.trim());
                       if ((minPrice.text.trim().isNotEmpty &&
-                              minimum == null) ||
+                              parsedMinimum == null) ||
                           (maxPrice.text.trim().isNotEmpty &&
-                              maximum == null) ||
-                          (minimum != null && minimum < 0) ||
-                          (maximum != null && maximum < 0) ||
-                          (minimum != null &&
-                              maximum != null &&
-                              minimum > maximum)) {
+                              parsedMaximum == null) ||
+                          (parsedMinimum != null && parsedMinimum < 0) ||
+                          (parsedMaximum != null && parsedMaximum < 0) ||
+                          (parsedMinimum != null &&
+                              parsedMaximum != null &&
+                              parsedMinimum > parsedMaximum)) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('محدوده قیمت را درست وارد کنید.'),
@@ -192,13 +216,9 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                         );
                         return;
                       }
-                      setState(() {
-                        _inStockOnly = stock;
-                        _prescriptionFilter = prescription;
-                        _manufacturer = manufacturer;
-                        _minPrice = minimum;
-                        _maxPrice = maximum;
-                      });
+                      minimum = parsedMinimum;
+                      maximum = parsedMaximum;
+                      applyFilters = true;
                       Navigator.pop(context);
                     },
                   ),
@@ -209,12 +229,25 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
         ),
       ),
     );
-    minPrice.dispose();
-    maxPrice.dispose();
+    if (applyFilters && mounted) {
+      setState(() {
+        _inStockOnly = stock;
+        _prescriptionFilter = prescription;
+        _manufacturer = manufacturer;
+        _minPrice = minimum;
+        _maxPrice = maximum;
+      });
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      minPrice.dispose();
+      maxPrice.dispose();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final languageCode =
+        ref.watch(appSettingsProvider).value?.languageCode ?? 'fa';
     final query = CatalogueQuery(
       search: _search.text.trim(),
       category: _category,
@@ -236,7 +269,9 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
     final favorites = ref.watch(favoritesProvider).value ?? const <String>{};
 
     return Scaffold(
-      appBar: AppBar(title: Text(DariStrings.search)),
+      appBar: AppBar(
+        title: Text(DariStrings.tForLanguage(languageCode, 'جستجو', 'Search')),
+      ),
       body: Column(
         children: [
           Padding(
@@ -247,12 +282,19 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
               textInputAction: TextInputAction.search,
               onSubmitted: _submitSearch,
               decoration: InputDecoration(
-                hintText: DariStrings.searchHint,
+                hintText: DariStrings.tForLanguage(
+                  languageCode,
+                  'دنبال دوا، محصول یا دسته‌بندی بگردید...',
+                  'Search medicines, products, or categories...',
+                ),
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _search.text.isEmpty
                     ? null
                     : IconButton(
-                        tooltip: DariStrings.translate('پاک کردن'),
+                        tooltip: DariStrings.translateForLanguage(
+                          languageCode,
+                          'پاک کردن',
+                        ),
                         onPressed: () {
                           _search.clear();
                           setState(() {});
@@ -313,7 +355,7 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: _showFilters,
+                    onPressed: () => _showFilters(languageCode),
                     icon: const Icon(Icons.filter_alt_outlined),
                     label: const Text('فیلترها'),
                   ),

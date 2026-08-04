@@ -1,14 +1,25 @@
 abstract final class DariStrings {
   static String _languageCode = 'fa';
+  static String sanitizeLanguageCode(String? languageCode) =>
+      languageCode == 'en' ? 'en' : 'fa';
 
   static void configure(String languageCode) {
-    _languageCode = languageCode == 'en' ? 'en' : 'fa';
+    _languageCode = sanitizeLanguageCode(languageCode);
   }
 
   static bool get isEnglish => _languageCode == 'en';
   static String t(String dari, String english) => isEnglish ? english : dari;
+  static String tForLanguage(
+    String? languageCode,
+    String dari,
+    String english,
+  ) => sanitizeLanguageCode(languageCode) == 'en' ? english : dari;
+  static String translateForLanguage(String? languageCode, String value) =>
+      sanitizeLanguageCode(languageCode) == 'en'
+      ? (_english[value] ?? value)
+      : value;
   static String translate(String value) =>
-      isEnglish ? (_english[value] ?? value) : value;
+      translateForLanguage(_languageCode, value);
 
   static const Map<String, String> _english = {
     'خانه': 'Home',

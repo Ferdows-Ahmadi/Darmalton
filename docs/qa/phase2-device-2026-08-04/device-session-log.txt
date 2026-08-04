@@ -1,0 +1,26 @@
+Phase: Milestone 2 locale refresh follow-up
+Date: 2026-08-04
+Device: Pixel 10 (57221FDCR00CMN)
+
+Executed:
+- flutter analyze
+- flutter test
+- flutter build apk --debug
+- flutter install -d 57221FDCR00CMN --use-application-binary build/app/outputs/flutter-apk/app-debug.apk
+
+Build artifact:
+- mobile/build/app/outputs/flutter-apk/app-debug.apk
+- SHA-256: B2953B526B0A4EE2661DC0A47AD024CA991DEECB8244AA2A1A0D52D4EFA56ED9
+- package: com.darmalton.pharmacy
+- versionName: 1.0.0
+- versionCode: 1
+
+Captured artifacts:
+- 01-home-current.png
+- 01-home-current.xml
+- 02-app.png
+- 02-app.xml
+
+Notes:
+- flutter install reported "Uninstalling old version..." before installing the new APK.
+- Manual full-flow physical QA checklist is only partially covered in this run.

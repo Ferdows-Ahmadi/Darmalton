@@ -32,6 +32,17 @@
   wrapper/daemon were terminated. Do not treat the older APK in `build/` as a
   Phase 2 artifact; rerun one diagnostic build after repairing/confirming the
   Android SDK installation.
+- 2026-08-04 follow-up: the prior locale-refresh hotfix experiment that made a
+  custom localized-text widget tree depend directly on an inherited language
+  widget was rejected. It triggered `_dependents.isEmpty` assertions when the
+  catalogue filter modal dismissed. The finalized approach keeps app settings as
+  the single source of truth and uses explicit language-aware string resolution
+  plus safe post-dismiss filter state application.
+- The requested full manual Pixel regression matrix (navigation, addresses,
+  catalogue, prescription, offline, and all back-stack interactions) remains
+  partially open in this run; automated Flutter coverage and the debug APK build
+  are green, but complete physical interaction-based sign-off still requires a
+  full attended walkthrough.
 - Development map previews use the OpenStreetMap standard tile endpoint with
   attribution and an application user agent. Before production traffic, choose
   and configure a tile provider or self-hosting plan that satisfies capacity,

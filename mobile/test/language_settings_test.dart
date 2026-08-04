@@ -81,6 +81,8 @@ void main() {
 
     expect(find.text('Home'), findsWidgets);
     expect(find.text('Settings'), findsWidgets);
+    expect(find.text('Account and security'), findsOneWidget);
+    expect(find.text('Profile'), findsOneWidget);
     expect(find.text('App language'), findsOneWidget);
     expect(cache.settings['language_code'], 'en');
     expect(
@@ -118,6 +120,47 @@ void main() {
     await pumpUi(tester);
     expect(find.text('Home'), findsWidgets);
   });
+
+  testWidgets(
+    'catalogue filters and sheet labels refresh without dismiss assertions',
+    (tester) async {
+      final cache = MemorySettingsCache();
+      await tester.pumpWidget(languageHarness(cache));
+      await pumpUi(tester);
+
+      await tester.tap(find.byType(TextField).first);
+      await pumpUi(tester);
+      await tester.tap(find.text('فیلترها'));
+      await pumpUi(tester);
+      expect(find.text('فیلتر محصولات'), findsOneWidget);
+
+      await tester.binding.handlePopRoute();
+      await pumpUi(tester);
+      expect(tester.takeException(), isNull);
+      await tester.binding.handlePopRoute();
+      await pumpUi(tester);
+
+      await tester.tap(find.text('تنظیمات').last);
+      await pumpUi(tester);
+      await tester.tap(find.text('زبان برنامه'));
+      await pumpUi(tester);
+      await tester.tap(find.text('English').first);
+      await pumpUi(tester);
+
+      await tester.tap(find.byIcon(Icons.home_outlined));
+      await pumpUi(tester);
+      await tester.tap(find.byType(TextField).first);
+      await pumpUi(tester);
+      await tester.tap(find.text('Filters'));
+      await pumpUi(tester);
+      expect(find.text('Product filters'), findsOneWidget);
+      expect(find.text('Apply filters'), findsOneWidget);
+
+      await tester.binding.handlePopRoute();
+      await pumpUi(tester);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('Home menu opens Account without a duplicate Settings action', (
     tester,
