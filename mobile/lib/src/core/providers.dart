@@ -301,6 +301,39 @@ final categoriesProvider = StreamProvider<List<Category>>((ref) async* {
   }
 });
 
+final promotionalBannersProvider = StreamProvider<List<PromotionalBanner>>((
+  ref,
+) async* {
+  final cache = ref.read(localCacheProvider);
+  final cached = normalizePromotionalBanners(
+    await cache.readPromotionalBanners(),
+  );
+  if (cached.isNotEmpty) yield cached;
+  try {
+    final response = await ref
+        .read(apiClientProvider)
+        .get<Map<String, dynamic>>(
+          '/cms/banners/',
+          query: {
+            'placement': 'HOME_HERO',
+            'ordering': 'display_order',
+            'page_size': 10,
+          },
+        );
+    final fresh = normalizePromotionalBanners(
+      (response.data!['results'] as List<dynamic>).map(
+        (item) => PromotionalBanner.fromJson(item as Map<String, dynamic>),
+      ),
+    );
+    await cache.writePromotionalBanners(fresh);
+    ref.read(offlineProvider.notifier).markOnline();
+    yield fresh;
+  } on ApiException {
+    ref.read(offlineProvider.notifier).markOffline();
+    if (cached.isEmpty) rethrow;
+  }
+});
+
 final medicinesProvider = StreamProvider.family<List<Medicine>, CatalogueQuery>(
   (ref, query) async* {
     final cache = ref.read(localCacheProvider);

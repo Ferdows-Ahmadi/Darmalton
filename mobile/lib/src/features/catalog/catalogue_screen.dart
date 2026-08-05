@@ -10,6 +10,7 @@ import '../../core/providers.dart';
 import '../../core/strings.dart';
 import '../../core/widgets.dart';
 import '../addresses/address_selector.dart';
+import 'promotion_carousel.dart';
 
 class CatalogueScreen extends ConsumerStatefulWidget {
   const CatalogueScreen({super.key});
@@ -98,6 +99,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     const query = CatalogueQuery();
     final medicines = ref.watch(medicinesProvider(query));
     final categories = ref.watch(categoriesProvider);
+    final banners = ref.watch(promotionalBannersProvider);
     final recentlyViewed =
         ref.watch(recentlyViewedProvider).value ?? const <String>[];
     final auth = ref.watch(authProvider);
@@ -127,6 +129,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
           onRefresh: () async {
             ref.invalidate(medicinesProvider(query));
             ref.invalidate(categoriesProvider);
+            ref.invalidate(promotionalBannersProvider);
             ref.invalidate(addressesProvider);
           },
           child: CustomScrollView(
@@ -158,7 +161,17 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
                 sliver: SliverToBoxAdapter(
-                  child: _PromotionBanner(onTap: () => context.push('/search')),
+                  child: banners.when(
+                    loading: () => const AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: SkeletonBox(height: double.infinity),
+                    ),
+                    error: (error, _) => AsyncMessage(
+                      message: '$error',
+                      onRetry: () => ref.invalidate(promotionalBannersProvider),
+                    ),
+                    data: (items) => PromotionCarousel(banners: items),
+                  ),
                 ),
               ),
               SliverPadding(
@@ -349,67 +362,6 @@ class _AddressBar extends StatelessWidget {
           ),
         ),
       ),
-    ),
-  );
-}
-
-class _PromotionBanner extends StatelessWidget {
-  const _PromotionBanner({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    height: 244,
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      gradient: const LinearGradient(
-        colors: [Color(0xFFE9F8F7), Color(0xFFD8F2F0)],
-        begin: Alignment.topRight,
-        end: Alignment.bottomLeft,
-      ),
-      borderRadius: BorderRadius.circular(DarmaltonRadius.large),
-    ),
-    child: Stack(
-      children: [
-        Positioned(
-          left: -45,
-          bottom: -10,
-          width: 270,
-          height: 220,
-          child: ExcludeSemantics(
-            child: Image.asset(
-              'assets/branding/landing-hero.png',
-              fit: BoxFit.contain,
-              alignment: Alignment.bottomLeft,
-              cacheWidth: 720,
-            ),
-          ),
-        ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: SizedBox(
-            width: MediaQuery.sizeOf(context).width * 0.52,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'دواهای مورد نیازتان را آسان پیدا کنید',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 8),
-                const Text('قیمت و موجودی همیشه از سرور تأیید می‌شود.'),
-                const SizedBox(height: 12),
-                OutlinedButton(
-                  onPressed: onTap,
-                  child: const Text('جستجو در محصولات'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     ),
   );
 }

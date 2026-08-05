@@ -68,6 +68,69 @@ class Category {
   };
 }
 
+class PromotionalBanner {
+  const PromotionalBanner({
+    required this.id,
+    required this.title,
+    required this.titleDari,
+    required this.imageUrl,
+    required this.altText,
+    required this.altTextDari,
+    required this.actionUrl,
+    required this.displayOrder,
+  });
+
+  factory PromotionalBanner.fromJson(Map<String, dynamic> json) =>
+      PromotionalBanner(
+        id: json['id'] as String,
+        title: json['title'] as String? ?? '',
+        titleDari: json['title_dari'] as String? ?? '',
+        imageUrl: json['image_url'] as String? ?? '',
+        altText: json['alt_text'] as String? ?? '',
+        altTextDari: json['alt_text_dari'] as String? ?? '',
+        actionUrl: json['action_url'] as String? ?? '',
+        displayOrder: json['display_order'] as int? ?? 0,
+      );
+
+  final String id;
+  final String title;
+  final String titleDari;
+  final String imageUrl;
+  final String altText;
+  final String altTextDari;
+  final String actionUrl;
+  final int displayOrder;
+
+  String get semanticLabel {
+    if (DariStrings.isEnglish) {
+      return altText.isNotEmpty ? altText : title;
+    }
+    return altTextDari.isNotEmpty ? altTextDari : titleDari;
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'title_dari': titleDari,
+    'image_url': imageUrl,
+    'alt_text': altText,
+    'alt_text_dari': altTextDari,
+    'action_url': actionUrl,
+    'display_order': displayOrder,
+  };
+}
+
+List<PromotionalBanner> normalizePromotionalBanners(
+  Iterable<PromotionalBanner> banners,
+) {
+  final result = banners.where((item) => item.imageUrl.isNotEmpty).toList()
+    ..sort((left, right) {
+      final byOrder = left.displayOrder.compareTo(right.displayOrder);
+      return byOrder != 0 ? byOrder : left.id.compareTo(right.id);
+    });
+  return result.take(10).toList(growable: false);
+}
+
 class Medicine {
   const Medicine({
     required this.id,
