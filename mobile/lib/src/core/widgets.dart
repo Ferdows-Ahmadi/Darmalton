@@ -451,10 +451,61 @@ class _MedicineFallback extends StatelessWidget {
   const _MedicineFallback();
 
   @override
-  Widget build(BuildContext context) => const Icon(
-    Icons.image_not_supported_outlined,
-    size: 64,
-    color: DarmaltonColors.teal,
+  Widget build(BuildContext context) => Semantics(
+    image: true,
+    label: DariStrings.t('تصویر عمومی دوا', 'Generic medicine image'),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 84,
+          height: 84,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(color: DarmaltonColors.line),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x12008F8A),
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          child: const Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(
+                Icons.medication_liquid_outlined,
+                size: 48,
+                color: DarmaltonColors.teal,
+              ),
+              Positioned(
+                right: 12,
+                bottom: 12,
+                child: Icon(
+                  Icons.medication_rounded,
+                  size: 26,
+                  color: Color(0xFF53C9C4),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 9),
+        Text(
+          DariStrings.t('دوای درملتون', 'Darmalton medicine'),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: DarmaltonColors.teal,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    ),
   );
 }
 

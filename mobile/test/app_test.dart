@@ -65,7 +65,8 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(Icons.image_not_supported_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.medication_liquid_outlined), findsOneWidget);
+    expect(find.text('دوای درملتون'), findsOneWidget);
   });
 
   testWidgets('Google authentication button exposes its configured state', (

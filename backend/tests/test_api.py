@@ -1,10 +1,11 @@
 from datetime import timedelta
 from decimal import Decimal
-from io import BytesIO
+from io import BytesIO, StringIO
 from urllib.parse import urlparse
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
 from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
@@ -269,6 +270,19 @@ def test_medicine_image_upload_validation_and_permissions(
     )
     assert too_small.status_code == 400
     assert too_small.data["error"]["fields"]["image"]
+
+
+def test_missing_medicine_image_report_excludes_uploaded_images(medicine, settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    before = StringIO()
+    call_command("report_missing_medicine_images", stdout=before)
+    assert str(medicine.id) in before.getvalue()
+
+    MedicineImage.objects.create(medicine=medicine, image=uploaded_png())
+    after = StringIO()
+    call_command("report_missing_medicine_images", stdout=after)
+    assert str(medicine.id) not in after.getvalue()
+    assert "Missing usable images: 0" in after.getvalue()
 
 
 def test_cart_rejects_negative_quantity(authenticated_client, medicine):
