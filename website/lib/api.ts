@@ -20,12 +20,15 @@ export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const headers = new Headers(options.headers);
+  const isFormData =
+    typeof FormData !== "undefined" && options.body instanceof FormData;
+  if (!isFormData && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
   const response = await fetch(`/api/backend/${path.replace(/^\/+/, "")}`, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers
-    },
+    headers,
     cache: "no-store"
   });
   if (!response.ok) {

@@ -69,9 +69,13 @@
   photography is uploaded through the staff/admin image-management API.
 - The production CMS backend now manages bilingual scheduled banners,
   announcements, informational pages, and featured-medicine placements with
-  guarded publication and image delivery. The website and Flutter home still
-  render their existing curated campaign/article sections; consuming the new
-  read endpoints and adding staff CMS screens remain the next client checkpoint.
+  guarded publication and image delivery, and the Next.js staff portal now has
+  complete management screens. The public website and Flutter home still render
+  their existing curated campaign/article sections; consuming the CMS public
+  read endpoints in those customer clients remains a separate checkpoint.
+- Staff CMS labels and workflow guidance are Dari-first, but validation text
+  returned verbatim by Django can still be English. Localize the stable backend
+  CMS validation messages before a fully Dari operator release.
 - The mobile app is Dari-first with persisted English switching and currently
   ships only the light theme. Missing localized copy safely falls back to Dari;
   operator-authored catalogue text needs populated English fields for a fully

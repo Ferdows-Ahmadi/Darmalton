@@ -23,6 +23,10 @@ test("staff return paths cannot escape the staff portal", () => {
     staffLoginPath("/staff/prescriptions"),
     "/staff/login?returnTo=%2Fstaff%2Fprescriptions"
   );
+  assert.equal(
+    staffLoginPath("/staff/cms/banners"),
+    "/staff/login?returnTo=%2Fstaff%2Fcms%2Fbanners"
+  );
 });
 
 test("post-login routing separates staff and customer roles", () => {
@@ -32,6 +36,10 @@ test("post-login routing separates staff and customer roles", () => {
     assert.equal(
       postLoginPath(role, "staff", "/staff/inventory"),
       "/staff/inventory"
+    );
+    assert.equal(
+      postLoginPath(role, "staff", "/staff/cms/pages"),
+      "/staff/cms/pages"
     );
   }
   assert.equal(isStaffRole("CUSTOMER"), false);

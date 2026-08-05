@@ -52,6 +52,10 @@ async function forward(request: NextRequest, context: RouteContext) {
   };
   const disposition = backend.headers.get("content-disposition");
   if (disposition) responseHeaders["Content-Disposition"] = disposition;
+  for (const header of ["cache-control", "etag", "x-content-type-options"]) {
+    const value = backend.headers.get(header);
+    if (value) responseHeaders[header] = value;
+  }
   const response = new NextResponse(payload, {
     status: backend.status,
     headers: responseHeaders

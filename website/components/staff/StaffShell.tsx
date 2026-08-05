@@ -7,21 +7,8 @@ import { useEffect, useState } from "react";
 
 import { apiFetch } from "@/lib/api";
 import { isStaffRole, staffLoginPath } from "@/lib/auth-navigation";
+import { staffNavigation } from "@/lib/staff-navigation";
 import type { User } from "@/lib/types";
-
-const navigation = [
-  ["/staff", "نمای کلی", "⌂"],
-  ["/staff/orders", "سفارش‌ها", "▤"],
-  ["/staff/prescriptions", "نسخه‌ها", "Rx"],
-  ["/staff/inventory", "موجودی", "▦"],
-  ["/staff/warehouses", "انبارها", "⌑"],
-  ["/staff/suppliers", "تأمین‌کنندگان", "◇"],
-  ["/staff/purchase-orders", "خریدها", "↙"],
-  ["/staff/returns", "مرجوعی‌ها", "↺"],
-  ["/staff/customers", "مشتریان", "◎"],
-  ["/staff/reports", "گزارش‌ها", "▥"],
-  ["/staff/settings", "تنظیمات", "⚙"]
-] as const;
 
 export function StaffShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -78,7 +65,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
           <span>پنل عملیات</span>
         </div>
         <nav aria-label="منوی پنل کارمندان">
-          {navigation.map(([href, label, icon]) => {
+          {staffNavigation.map(([href, label, icon]) => {
             const active =
               pathname === href || (href !== "/staff" && pathname.startsWith(`${href}/`));
             return (

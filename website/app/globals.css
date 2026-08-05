@@ -3445,3 +3445,504 @@ a.staff-metric-card:hover {
     line-height: 1.45;
   }
 }
+
+/* Staff CMS */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.staff-cms-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.staff-cms-overview-card {
+  min-height: 190px;
+  padding: 23px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 6px 16px;
+  color: #526a70;
+  background: #fff;
+  border: 1px solid #dfebeb;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(18, 69, 75, 0.045);
+}
+
+.staff-cms-overview-card:hover {
+  color: #526a70;
+  border-color: #9edbd9;
+  transform: translateY(-2px);
+}
+
+.staff-cms-overview-card .staff-metric-icon {
+  grid-row: 1 / 3;
+}
+
+.staff-cms-overview-card h2 {
+  margin: 2px 0 7px;
+  color: #12343b;
+  font-size: 19px;
+}
+
+.staff-cms-overview-card p {
+  margin: 0;
+  line-height: 1.9;
+}
+
+.staff-cms-overview-card > strong {
+  color: var(--teal-dark);
+  font-size: 25px;
+}
+
+.staff-cms-overview-card > small {
+  grid-column: 2 / 4;
+  align-self: end;
+  color: var(--teal);
+}
+
+.staff-cms-guidance ol {
+  margin: 0;
+  padding-inline-start: 24px;
+  display: grid;
+  gap: 11px;
+  color: #60777c;
+  line-height: 1.9;
+}
+
+.staff-cms-notice {
+  padding: 12px 16px;
+  color: #176f55;
+  background: #e8f7f0;
+  border: 1px solid #ccebdd;
+  border-radius: 11px;
+}
+
+.staff-cms-toolbar {
+  flex-wrap: wrap;
+}
+
+.staff-cms-toolbar > select {
+  min-width: 135px;
+}
+
+.staff-cms-latin {
+  margin-top: 3px;
+  display: block;
+  color: #819297;
+  direction: ltr;
+  font-family: Arial, sans-serif;
+  text-align: right;
+}
+
+.staff-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.staff-row-actions button,
+.staff-pagination button,
+.staff-modal-actions > button,
+.staff-medicine-picker button {
+  min-height: 34px;
+  padding: 6px 10px;
+  color: var(--teal-dark);
+  background: #f1f9f8;
+  border: 1px solid #cfe8e6;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.staff-row-actions button:hover,
+.staff-pagination button:hover:not(:disabled) {
+  border-color: var(--teal);
+}
+
+.staff-row-actions button.danger {
+  color: #a74650;
+  background: #fff5f5;
+  border-color: #f0d3d6;
+}
+
+.staff-row-actions button:disabled,
+.staff-pagination button:disabled,
+.staff-modal button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.status-DRAFT {
+  color: #725d22;
+  background: #fff5d8;
+}
+
+.status-PUBLISHED {
+  color: #187855;
+  background: #e5f7ee;
+}
+
+.status-SCHEDULED {
+  color: #16778b;
+  background: #e4f5f8;
+}
+
+.status-EXPIRED,
+.status-INACTIVE,
+.status-ARCHIVED {
+  color: #6e7378;
+  background: #eceff0;
+}
+
+.staff-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #637a7f;
+}
+
+.staff-modal-backdrop {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  padding: 28px;
+  display: grid;
+  place-items: center;
+  background: rgba(4, 33, 38, 0.48);
+  backdrop-filter: blur(3px);
+}
+
+.staff-modal {
+  width: min(920px, 100%);
+  max-height: calc(100vh - 56px);
+  overflow: auto;
+  color: #405b61;
+  background: #fff;
+  border: 1px solid #dbe8e8;
+  border-radius: 18px;
+  box-shadow: 0 28px 80px rgba(6, 42, 47, 0.24);
+}
+
+.staff-modal > header {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  padding: 19px 23px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #e5eded;
+}
+
+.staff-modal > header h2 {
+  margin: 4px 0 0;
+  color: #14363d;
+  font-size: 21px;
+}
+
+.staff-modal > header > button {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  color: #637a7f;
+  background: #f4f8f8;
+  border: 1px solid #dce8e8;
+  border-radius: 10px;
+  font-size: 23px;
+}
+
+.staff-cms-form {
+  padding: 23px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.staff-cms-form > label,
+.staff-medicine-picker {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+}
+
+.staff-cms-form label > span,
+.staff-medicine-picker > label {
+  color: #36545a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.staff-cms-form input,
+.staff-cms-form select,
+.staff-cms-form textarea,
+.staff-medicine-picker input,
+.staff-medicine-picker select {
+  width: 100%;
+  min-height: 43px;
+  padding: 9px 11px;
+  color: #28474d;
+  background: #fbfdfd;
+  border: 1px solid #d6e4e4;
+  border-radius: 9px;
+  font: inherit;
+}
+
+.staff-cms-form textarea {
+  min-height: 125px;
+  resize: vertical;
+  line-height: 1.8;
+}
+
+.staff-cms-form input:focus,
+.staff-cms-form select:focus,
+.staff-cms-form textarea:focus {
+  outline: 2px solid rgba(13, 159, 156, 0.18);
+  border-color: var(--teal);
+}
+
+.staff-cms-form [aria-invalid="true"] {
+  border-color: #cf6b74;
+}
+
+.staff-cms-form em,
+.staff-medicine-picker em {
+  color: #a74650;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.staff-form-wide {
+  grid-column: 1 / -1;
+}
+
+.staff-cms-file small {
+  color: #7d8f94;
+}
+
+.staff-cms-file input {
+  padding: 7px;
+}
+
+.staff-cms-form-preview,
+.staff-cms-preview > img {
+  width: 100%;
+  height: auto;
+  max-height: 360px;
+  object-fit: contain;
+  background: #f5f9f9;
+  border: 1px solid #dce8e8;
+  border-radius: 12px;
+}
+
+.staff-cms-checkbox {
+  padding: 13px;
+  display: flex !important;
+  align-items: flex-start;
+  gap: 11px !important;
+  background: #f4fafa;
+  border: 1px solid #dcebea;
+  border-radius: 10px;
+}
+
+.staff-cms-checkbox input {
+  width: 20px;
+  min-height: 20px;
+  margin-top: 2px;
+  accent-color: var(--teal);
+}
+
+.staff-cms-checkbox span {
+  display: grid;
+  gap: 3px;
+}
+
+.staff-cms-checkbox small {
+  color: #71858a;
+  font-weight: 400;
+}
+
+.staff-modal-actions {
+  padding-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #e5eded;
+}
+
+.staff-modal-actions > .staff-primary-action {
+  color: #fff;
+  background: var(--teal);
+}
+
+.staff-medicine-picker {
+  padding: 16px;
+  background: #f7fbfb;
+  border: 1px solid #dce8e8;
+  border-radius: 11px;
+}
+
+.staff-medicine-picker > div {
+  display: flex;
+  gap: 8px;
+}
+
+.staff-medicine-picker button {
+  min-width: 90px;
+}
+
+.staff-publish-modal {
+  width: min(620px, 100%);
+}
+
+.staff-confirm-modal {
+  width: min(520px, 100%);
+}
+
+.staff-confirm-copy {
+  padding: 24px 23px;
+  display: grid;
+  gap: 9px;
+}
+
+.staff-confirm-copy strong {
+  color: #183c43;
+}
+
+.staff-confirm-copy p {
+  margin: 0;
+  color: #667d82;
+  line-height: 1.8;
+}
+
+.staff-confirm-modal > .staff-modal-actions {
+  padding: 18px 23px;
+}
+
+.staff-danger-action {
+  color: #fff !important;
+  background: #b54852 !important;
+  border-color: #b54852 !important;
+}
+
+.staff-cms-preview {
+  padding: 23px;
+  display: grid;
+  gap: 20px;
+}
+
+.staff-cms-preview-copy {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+}
+
+.staff-cms-preview-copy h3,
+.staff-cms-preview-copy p {
+  margin: 0;
+}
+
+.staff-cms-preview-copy p {
+  color: #61777c;
+  line-height: 1.9;
+  white-space: pre-wrap;
+}
+
+.staff-cms-preview dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid #e0eaea;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.staff-cms-preview dl > div {
+  padding: 13px;
+  border-bottom: 1px solid #e8eeee;
+}
+
+.staff-cms-preview dt {
+  color: #7c8f94;
+  font-size: 10px;
+}
+
+.staff-cms-preview dd {
+  margin: 4px 0 0;
+  color: #2f5056;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .staff-cms-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .staff-cms-toolbar form {
+    min-width: 100%;
+  }
+
+  .staff-cms-preview dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .staff-cms-overview-card {
+    min-height: 170px;
+    padding: 18px;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .staff-cms-overview-card > strong {
+    grid-column: 2;
+  }
+
+  .staff-cms-overview-card > small {
+    grid-column: 2;
+  }
+
+  .staff-modal-backdrop {
+    padding: 0;
+    align-items: end;
+  }
+
+  .staff-modal {
+    max-height: 94vh;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .staff-cms-form {
+    padding: 18px 15px;
+    grid-template-columns: 1fr;
+  }
+
+  .staff-form-wide {
+    grid-column: 1;
+  }
+
+  .staff-cms-preview {
+    padding: 18px 15px;
+  }
+
+  .staff-cms-preview dl {
+    grid-template-columns: 1fr;
+  }
+
+  .staff-row-actions {
+    min-width: 300px;
+  }
+}

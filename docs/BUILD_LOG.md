@@ -417,3 +417,38 @@
 - OpenAPI generation completed with no CMS warnings. Validation retained the
   documented pre-existing untyped health endpoint and `payment_status` enum-name
   collision; no unrelated schema code was changed in this checkpoint.
+
+## 2026-08-05 - Staff CMS management interface
+
+- Added a dedicated content-management section to the existing role-gated staff
+  portal at `/staff/cms`, with resource pages at `/staff/cms/banners`,
+  `/staff/cms/announcements`, `/staff/cms/pages`, and
+  `/staff/cms/featured-medicines`. The existing `STAFF`, `PHARMACIST`, and
+  `ADMIN` guard remains authoritative; customer accounts are rejected and the
+  originally requested CMS route is preserved through staff login.
+- Implemented reusable responsive list, search, status/activity/placement
+  filters, ordering, pagination, loading, empty, error/retry, detail preview,
+  create, edit, publish/schedule, archive, activate/deactivate, and delete
+  experiences. Publication badges distinguish draft, scheduled, published,
+  expired, inactive, and archived content. Accessible in-portal confirmation
+  dialogs protect state-changing and destructive actions.
+- Added bilingual resource-specific editors matching the existing CMS
+  serializers, including announcement levels/actions, informational page
+  slugs/summaries, featured-medicine lookup/selection, display order, active
+  state, and guarded banner/page image upload and replacement. Multipart
+  requests preserve browser boundaries, backend validation remains attached to
+  the relevant field without clearing form data, and authenticated image
+  delivery stays behind the website API proxy without exposing storage paths.
+- Focused verification passed 8 website contract/navigation tests, TypeScript,
+  ESLint, the 35-route Next.js production build, Compose validation, Django
+  system checks, and all 14 CMS API tests. The final website image rebuilt and
+  started healthy.
+- Live browser QA covered all four resource pages, loading and empty states,
+  search/filter/order behavior, create/edit/details, validation recovery,
+  immediate publish, activate/deactivate, archive, accessible confirmations,
+  featured-medicine selection, image upload/replacement and guarded preview,
+  destructive cleanup, customer rejection, administrator route restoration,
+  and a forced API failure followed by successful retry. Desktop and 375-pixel
+  layouts had no document overflow; the mobile menu, stacked cards, tables, and
+  single-column editor remained usable. Temporary QA records and media were
+  deleted after verification.
