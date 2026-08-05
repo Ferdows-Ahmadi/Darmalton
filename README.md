@@ -24,10 +24,20 @@ WSL 2 or another supported virtualization backend on Windows.
 
 Open:
 
-- Website: http://localhost:3000
+- Public website: http://localhost:3000 (customer application: `/shop`)
+- Staff portal: http://localhost:3000/staff
+- Staff sign-in: http://localhost:3000/staff/login
 - API: http://localhost:8000/api/v1/
 - Swagger: http://localhost:8000/api/docs/
 - Django Admin: http://localhost:8000/admin/
+
+The staff portal accepts `STAFF`, `PHARMACIST`, and `ADMIN` accounts and sends
+unauthenticated visitors to its dedicated sign-in page while preserving the
+requested staff route. A staff account entered through the public sign-in page
+is also routed to `/staff`; customer accounts cannot enter the staff portal.
+Django Admin remains a separate Django-session application. The staff console's
+`/admin` bridge opens it on backend port 8000 by default; set
+`DJANGO_ADMIN_ORIGIN` when production routing uses a different backend origin.
 
 ## Google sign-in configuration
 

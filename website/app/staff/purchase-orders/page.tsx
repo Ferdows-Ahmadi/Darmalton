@@ -17,7 +17,7 @@ export default function StaffPurchaseOrdersPage() {
         { key: "created_at", label: "ایجاد", kind: "date" }
       ]}
       actionLabel="ایجاد سفارش خرید"
-      actionHref="http://localhost:8000/admin/operations/purchaseorder/add/"
+      actionHref="/admin?path=/admin/operations/purchaseorder/add/"
     />
   );
 }

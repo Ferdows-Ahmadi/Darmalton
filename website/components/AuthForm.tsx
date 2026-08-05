@@ -6,10 +6,15 @@ import { FormEvent, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
-import { safeReturnPath } from "@/lib/auth-navigation";
+import {
+  isStaffRole,
+  postLoginPath
+} from "@/lib/auth-navigation";
 import { synchronizeGuestCart } from "@/lib/guest-cart";
+import type { User } from "@/lib/types";
 
 type AuthErrorPayload = {
+  user?: User;
   error?: {
     code?: string;
     message?: string;
@@ -31,28 +36,41 @@ const googleErrorMessages: Record<string, string> = {
 export function AuthForm({
   mode,
   googleClientId,
-  returnTo
+  returnTo,
+  audience = "customer"
 }: {
   mode: "login" | "register";
   googleClientId: string;
   returnTo?: string;
+  audience?: "customer" | "staff";
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const finishAuthentication = useCallback(async () => {
-    try {
-      await synchronizeGuestCart();
-    } catch {
+  const finishAuthentication = useCallback(async (profile?: User) => {
+    if (audience === "staff" && !isStaffRole(profile?.role)) {
+      await fetch("/api/auth/logout", { method: "POST" });
       setError(
-        "ورود انجام شد، اما سبد مهمان همگام نشد. اتصال را بررسی و دوباره کوشش کنید."
+        "این حساب اجازه دسترسی به پنل کارمندان را ندارد. با حساب کارمند وارد شوید."
       );
       return;
     }
-    router.push(safeReturnPath(returnTo));
+    if (audience === "customer") {
+      try {
+        await synchronizeGuestCart();
+      } catch {
+        setError(
+          "ورود انجام شد، اما سبد مهمان همگام نشد. اتصال را بررسی و دوباره کوشش کنید."
+        );
+        return;
+      }
+    }
+    const destination = postLoginPath(profile?.role, audience, returnTo);
+    if (!destination) return;
+    router.push(destination);
     router.refresh();
-  }, [returnTo, router]);
+  }, [audience, returnTo, router]);
 
   const submitGoogle = useCallback(
     async (credential: string) => {
@@ -68,7 +86,7 @@ export function AuthForm({
           .json()
           .catch(() => ({}))) as AuthErrorPayload;
         if (response.ok) {
-          await finishAuthentication();
+          await finishAuthentication(payload.user);
           return;
         }
         const code = payload.error?.code || "";
@@ -102,7 +120,7 @@ export function AuthForm({
         .json()
         .catch(() => ({}))) as AuthErrorPayload;
       if (response.ok) {
-        await finishAuthentication();
+        await finishAuthentication(payload.user);
       } else {
         setError(
           payload.error?.message ||
@@ -127,10 +145,20 @@ export function AuthForm({
         height={808}
         priority
       />
-      <p className="eyebrow">دسترسی امن مشتری</p>
-      <h1>{register ? "ایجاد حساب کاربری" : "خوش آمدید"}</h1>
+      <p className="eyebrow">
+        {audience === "staff" ? "دسترسی امن کارمندان" : "دسترسی امن مشتری"}
+      </p>
+      <h1>
+        {audience === "staff"
+          ? "ورود به پنل کارمندان"
+          : register
+            ? "ایجاد حساب کاربری"
+            : "خوش آمدید"}
+      </h1>
       <p className="muted">
-        {register
+        {audience === "staff"
+          ? "با حساب کارمند، داروساز یا مدیر وارد شوید."
+          : register
           ? "برای سفارش و پیگیری، معلومات خود را وارد کنید."
           : "برای دیدن سبد و سفارش‌های خود وارد شوید."}
       </p>
@@ -186,28 +214,32 @@ export function AuthForm({
       <button className="primary wide" disabled={busy}>
         {busy ? "لطفاً منتظر بمانید..." : register ? "ایجاد حساب" : "ورود"}
       </button>
-      <div className="auth-divider" aria-hidden="true">
-        <span>یا</span>
-      </div>
-      <GoogleSignInButton
-        clientId={googleClientId}
-        mode={mode}
-        busy={busy}
-        onCredential={submitGoogle}
-        onError={setError}
-      />
-      <p className="auth-switch">
-        {register ? "قبلاً ثبت‌نام کرده‌اید؟" : "حساب کاربری ندارید؟"}{" "}
-        <Link
-          href={`${register ? "/login" : "/register"}${
-            returnTo
-              ? `?${new URLSearchParams({ returnTo }).toString()}`
-              : ""
-          }`}
-        >
-          {register ? "ورود" : "ایجاد حساب"}
-        </Link>
-      </p>
+      {audience === "customer" && (
+        <>
+          <div className="auth-divider" aria-hidden="true">
+            <span>یا</span>
+          </div>
+          <GoogleSignInButton
+            clientId={googleClientId}
+            mode={mode}
+            busy={busy}
+            onCredential={submitGoogle}
+            onError={setError}
+          />
+          <p className="auth-switch">
+            {register ? "قبلاً ثبت‌نام کرده‌اید؟" : "حساب کاربری ندارید؟"}{" "}
+            <Link
+              href={`${register ? "/login" : "/register"}${
+                returnTo
+                  ? `?${new URLSearchParams({ returnTo }).toString()}`
+                  : ""
+              }`}
+            >
+              {register ? "ورود" : "ایجاد حساب"}
+            </Link>
+          </p>
+        </>
+      )}
       <p className="auth-switch">
         <Link href="/">ادامه بدون ورود</Link>
       </p>

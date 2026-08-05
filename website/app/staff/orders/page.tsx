@@ -25,7 +25,7 @@ export default function StaffOrdersPage() {
         { key: "placed_at", label: "ثبت", kind: "date" }
       ]}
       actionLabel="مدیریت کامل در ادمین"
-      actionHref="http://localhost:8000/admin/commerce/order/"
+      actionHref="/admin?path=/admin/commerce/order/"
     />
   );
 }

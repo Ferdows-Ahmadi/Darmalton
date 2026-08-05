@@ -24,7 +24,7 @@ export default function StaffPrescriptionsPage() {
         { key: "created_at", label: "ارسال", kind: "date" }
       ]}
       actionLabel="بازکردن صف تخصصی"
-      actionHref="http://localhost:8000/admin/prescriptions/prescription/"
+      actionHref="/admin?path=/admin/prescriptions/prescription/"
     />
   );
 }

@@ -17,7 +17,7 @@ export default function StaffSuppliersPage() {
         { key: "is_active", label: "فعال", kind: "boolean" }
       ]}
       actionLabel="ثبت تأمین‌کننده"
-      actionHref="http://localhost:8000/admin/operations/supplier/add/"
+      actionHref="/admin?path=/admin/operations/supplier/add/"
     />
   );
 }

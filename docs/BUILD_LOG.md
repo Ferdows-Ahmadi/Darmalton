@@ -366,3 +366,25 @@
   reached Gradle's Android SDK Platform 34 preparation step, produced no fresh
   APK, and was terminated after progress stopped. No older APK was installed,
   so the final physical-device walkthrough remains unverified for this commit.
+
+## 2026-08-05 - Staff portal routing repair
+
+- Confirmed that the existing Next.js operations portal and its dashboard,
+  order, prescription, inventory, warehouse, supplier, purchasing, returns,
+  customer, report, and settings pages were already implemented. The running
+  website container used an older image created before those routes existed,
+  so `/staff` fell through to the public application's not-found experience.
+- Added a dedicated `/staff/login` flow, an early staff-route cookie gate, and
+  role-aware post-login navigation. Unauthenticated requests preserve their
+  staff destination; `STAFF`, `PHARMACIST`, and `ADMIN` users enter the portal;
+  customer accounts are rejected without being sent through the customer home.
+- Kept Django Admin separate at backend `/admin/` and replaced hard-coded local
+  admin links with a host-aware website `/admin` bridge. Production deployments
+  can set `DJANGO_ADMIN_ORIGIN`; Docker development defaults to backend port
+  8000 on the incoming website host.
+- Focused verification passed the staff navigation unit tests, website
+  TypeScript and ESLint checks, a 34-route production build, Compose validation,
+  Django system checks, and targeted staff API tests. Live browser verification
+  covered unauthenticated redirect/return, administrator login, rejection of a
+  customer account, public-login recognition of an administrator, and the
+  separate Django Admin login page.

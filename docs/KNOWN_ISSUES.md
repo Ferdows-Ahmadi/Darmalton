@@ -50,6 +50,11 @@
 - The dedicated Next.js staff console provides responsive dashboards, live
   searchable resource views, reports, and quick links. Complex operational
   mutations remain intentionally delegated to guarded Django Admin workflows.
+- Next.js route additions require rebuilding/redeploying the website image;
+  restarting a container created from an older image will not make new staff
+  routes available. The `/admin` bridge assumes backend port 8000 for local
+  Docker/LAN access; reverse-proxied production deployments must set
+  `DJANGO_ADMIN_ORIGIN` to the externally reachable Django origin.
 - Refund completion is intentionally a manual workflow record. It does not
   initiate or reconcile a bank, card, wallet, or other payment-gateway refund.
 - Purchase receiving requires staff to enter batch, expiry, selling price,

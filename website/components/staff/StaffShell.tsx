@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { apiFetch } from "@/lib/api";
+import { isStaffRole, staffLoginPath } from "@/lib/auth-navigation";
 import type { User } from "@/lib/types";
 
 const navigation = [
@@ -28,19 +29,21 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const loginPage = pathname === "/staff/login";
 
   useEffect(() => {
+    if (loginPage) return;
     apiFetch<User>("auth/me/")
       .then((profile) => {
-        if (!["STAFF", "ADMIN", "PHARMACIST"].includes(profile.role)) {
-          router.replace("/shop");
+        if (!isStaffRole(profile.role)) {
+          router.replace(staffLoginPath(pathname, "forbidden"));
           return;
         }
         setUser(profile);
         setReady(true);
       })
-      .catch(() => router.replace("/login?returnTo=/staff"));
-  }, [router]);
+      .catch(() => router.replace(staffLoginPath(pathname)));
+  }, [loginPage, pathname, router]);
 
   useEffect(() => setMenuOpen(false), [pathname]);
 
@@ -49,6 +52,8 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
     router.replace("/");
     router.refresh();
   }
+
+  if (loginPage) return <>{children}</>;
 
   if (!ready || !user) {
     return (
@@ -86,7 +91,7 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
         </nav>
         <div className="staff-sidebar-footer">
           <Link href="/shop">مشاهده فروشگاه</Link>
-          <a href="http://localhost:8000/admin/">Django Admin</a>
+          <a href="/admin">Django Admin</a>
         </div>
       </aside>
       <section className="staff-workspace">
