@@ -67,9 +67,11 @@
   before production cutover.
 - Medicine seed records use a neutral fallback until real, licensed product
   photography is uploaded through the staff/admin image-management API.
-- Promotional campaigns, recommendations, offers, and health articles currently
-  use curated demo content in the clients. A production content-management,
-  approval, scheduling, and localization workflow is not yet implemented.
+- The production CMS backend now manages bilingual scheduled banners,
+  announcements, informational pages, and featured-medicine placements with
+  guarded publication and image delivery. The website and Flutter home still
+  render their existing curated campaign/article sections; consuming the new
+  read endpoints and adding staff CMS screens remain the next client checkpoint.
 - The mobile app is Dari-first with persisted English switching and currently
   ships only the light theme. Missing localized copy safely falls back to Dari;
   operator-authored catalogue text needs populated English fields for a fully
@@ -84,10 +86,11 @@
   carts are not available offline. Endpoint rediscovery runs at startup and on
   explicit retry; continuous background reachability monitoring is deferred to
   the dedicated offline-sync phase.
-- OpenAPI generation succeeds with one non-blocking warning because multiple
-  resources expose different choice sets named `payment_status`; add a
-  `SPECTACULAR_SETTINGS.ENUM_NAME_OVERRIDES` entry before publishing a generated
-  SDK.
+- OpenAPI generation completes, but validation still reports the pre-existing
+  untyped `HealthView` omission and one enum-name collision because multiple
+  resources expose different `payment_status` choice sets. Add a health response
+  serializer and the exact `ENUM_NAME_OVERRIDES` mapping before publishing a
+  generated SDK. The CMS endpoints add no schema warnings.
 - Historical order item and status-note snapshots preserve the text stored at
   order time. Newly seeded catalogue display names are Dari-first, but older
   snapshots can retain a Latin medicine name.

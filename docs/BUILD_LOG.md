@@ -388,3 +388,32 @@
   covered unauthenticated redirect/return, administrator login, rejection of a
   customer account, public-login recognition of an administrator, and the
   separate Django Admin login page.
+
+## 2026-08-05 - CMS backend checkpoint
+
+- Preserved the partial `cms` app configuration and role helper, then completed
+  a backend-only content system without changing the website or Flutter client.
+  Added bilingual promotional banners, announcements, informational pages, and
+  featured-medicine placements with UUIDs, display ordering, active state,
+  draft/published/archived transitions, optional publication windows, and
+  creator/updater/publisher audit records.
+- Added staff-only create/update/delete/publish/archive APIs and Django Admin
+  management for `STAFF`, `PHARMACIST`, and `ADMIN`. Anonymous reads expose only
+  currently visible records; customers cannot write; future, expired, inactive,
+  draft, archived, and inactive-medicine content remains private.
+- Added validated private-by-state banner/page image delivery. JPEG, PNG, and
+  WebP uploads are content-inspected, limited to 5 MiB and 128-6000 pixels, and
+  replaced/deleted files are removed from storage. Action URLs are restricted to
+  local application paths or absolute HTTP(S) destinations. CMS images share the
+  existing private-media root, now backed by a dedicated Compose volume; nine
+  existing prescription files were copied and checksum-verified before the
+  backend container was recreated onto that volume.
+- Added `cms.0001_initial` and `cms.0002` and applied them to the live PostgreSQL
+  container. Migration consistency, Django system checks, Ruff, Compose
+  validation, and the complete 77-test backend suite passed; 14 tests directly
+  cover CMS visibility, roles, ordering/filtering, bilingual fields, publication
+  transitions, invalid input, image privacy/validation, object retrieval,
+  deletion, featured medicines, and route availability.
+- OpenAPI generation completed with no CMS warnings. Validation retained the
+  documented pre-existing untyped health endpoint and `payment_status` enum-name
+  collision; no unrelated schema code was changed in this checkpoint.

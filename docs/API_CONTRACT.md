@@ -66,6 +66,48 @@ filename or MIME header. Exactly one image can be primary per medicine; deleting
 it promotes the next image. Medicine responses contain ordered `images[]` and a
 primary `image_url`; clients use the neutral fallback when none exists.
 
+## Content management
+
+CMS list and detail reads are anonymous. Anonymous users and customers see only
+records whose state is `PUBLISHED`, whose `is_active` flag is true, whose
+`publish_from` is empty or in the past, and whose `publish_until` is empty or in
+the future. Draft, archived, inactive, scheduled, expired, and featured inactive
+medicines return no public metadata or image bytes. Public responses omit staff
+actor email addresses and internal publication state.
+
+Authenticated `STAFF`, `PHARMACIST`, and `ADMIN` users can list all states and
+create, update, delete, publish, or archive content. `status`, publication/audit
+timestamps, and creator/updater/publisher identities are server-controlled.
+Customers and anonymous users cannot perform writes.
+
+| Method | Path | Notes |
+|---|---|---|
+| GET/POST | `/cms/banners/` | Public visible banners; staff multipart creation and management |
+| GET/PATCH/DELETE | `/cms/banners/{id}/` | UUID detail; staff writes only |
+| GET | `/cms/banners/{id}/image/` | Cacheable bytes only while publicly visible or requested by staff |
+| GET/POST | `/cms/announcements/` | Public visible announcements; staff management |
+| GET/PATCH/DELETE | `/cms/announcements/{id}/` | UUID detail; staff writes only |
+| GET/POST | `/cms/pages/` | Public visible informational pages; staff management |
+| GET/PATCH/DELETE | `/cms/pages/{id}/` | UUID detail; staff writes only |
+| GET | `/cms/pages/{id}/image/` | Optional page image with the same visibility guard |
+| GET/POST | `/cms/featured-medicines/` | Scheduled placements; inactive medicines are excluded publicly |
+| GET/PATCH/DELETE | `/cms/featured-medicines/{id}/` | UUID detail; staff writes only |
+| POST | `/cms/{resource}/{id}/publish/` | Staff transition with optional `publish_from` and `publish_until` |
+| POST | `/cms/{resource}/{id}/archive/` | Staff transition that immediately removes public visibility |
+
+Banner placements are `HOME_HERO`, `HOME_SECONDARY`, or `CATALOGUE`;
+announcement placements are `GLOBAL`, `HOME`, or `CHECKOUT`; featured-medicine
+placements are `HOME_FEATURED`, `HOME_RECOMMENDED`, or `CATALOGUE_FEATURED`.
+Content uses English/Latin base fields with explicit `_dari` fields. List
+endpoints support search, allowlisted ordering, resource-specific placement,
+level, slug, or medicine filters, and normal page-number pagination. Staff may
+additionally filter by `status` and `is_active`.
+
+CMS action links accept only an internal path beginning with one `/` or an
+absolute HTTP(S) URL. Banner and page uploads accept verified JPEG, PNG, or WebP
+content up to 5 MiB, between 128 and 6000 pixels per side. CMS images use private
+storage and are returned only through the visibility-checked image actions.
+
 ## Cart
 
 | Method | Path | Request |

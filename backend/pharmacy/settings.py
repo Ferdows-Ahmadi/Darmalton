@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "commerce",
     "prescriptions",
     "operations",
+    "cms",
 ]
 
 MIDDLEWARE = [
@@ -144,6 +145,7 @@ SPECTACULAR_SETTINGS = {
         "ReturnRefundStatusEnum": "operations.models.ReturnRequest.RefundStatus",
         "ReturnPickupStatusEnum": "operations.models.ReturnRequest.PickupStatus",
         "ReturnItemConditionEnum": "operations.models.ReturnItem.Condition",
+        "CmsPublicationStatusEnum": "cms.models.PublicationStatus",
     },
 }
 

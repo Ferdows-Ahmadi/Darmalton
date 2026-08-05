@@ -25,6 +25,7 @@ services:
     volumes:
       - ./backend:/app
       - pharmacy_media:/app/media
+      - pharmacy_private_media:/app/private_media
     ports:
       - "8000:8000"
     depends_on:
@@ -93,3 +94,4 @@ services:
 volumes:
   pharmacy_postgres_data:
   pharmacy_media:
+  pharmacy_private_media:
