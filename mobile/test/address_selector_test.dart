@@ -40,6 +40,12 @@ void main() {
 
       expect(find.text('انتخاب موقعیت روی نقشه'), findsOneWidget);
       expect(find.text('استفاده از این موقعیت'), findsOneWidget);
+
+      await tester.tap(find.text('لغو').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('انتخاب موقعیت روی نقشه'), findsNothing);
+      expect(tester.takeException(), isNull);
     },
   );
 }
