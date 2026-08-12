@@ -174,6 +174,9 @@ def test_only_pharmacist_can_review_and_transitions_are_validated(
     )
     assert replied.status_code == 200
     assert replied.data["status"] == Prescription.Status.UNDER_REVIEW
+    prescription = Prescription.objects.get(pk=prescription_id)
+    assert prescription.reviewer.email == "pharmacist@example.test"
+    assert prescription.reviewer != prescription.customer
 
 
 @pytest.mark.django_db
@@ -210,6 +213,7 @@ def test_approved_prescription_authorizes_one_order_only(
         format="json",
     )
     assert approved.status_code == 200
+    assert approved.data["reviewer_email"] == "pharmacist@example.test"
 
     added = authenticated_client.post(
         "/api/v1/cart/items/",

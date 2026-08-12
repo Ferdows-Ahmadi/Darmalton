@@ -39,7 +39,7 @@ state; `[ ]` requires an attended check or meeting content.
 
 - [x] Live PostgreSQL transition succeeds from submitted to review to clarification requested.
 - [x] Targeted prescription permission, state-transition, and upload tests pass.
-- [ ] Respond to the current clarification from the customer app and approve/reject it in staff UI.
+- [x] Respond to clarification in the customer interface and approve it in the staff UI.
 - [ ] Upload and publish four `HOME_HERO` banners for the carousel demonstration.
 - [ ] Upload licensed primary images for featured demo medicines.
 - [x] Zero/one/four/more-than-ten banner and cached/offline states have automated coverage.

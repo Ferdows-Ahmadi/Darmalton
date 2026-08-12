@@ -1,5 +1,22 @@
 # Build Log
 
+## 2026-08-12 - Operational staff prescription workflow
+
+- Replaced the read-only `/staff/prescriptions` table and Django Admin handoff
+  with a responsive operational manager using the existing guarded APIs.
+- Added search, status filtering, ordering, pagination, loading/empty/retry
+  states, guarded image/PDF preview and download, customer/reviewer metadata,
+  authorized medicines, internal/customer notes, and the complete audit timeline.
+- Added state-aware confirmation forms for start review, clarification,
+  approval with catalogue medicine IDs/quantities/expiry, rejection, and expiry;
+  backend field errors remain visible without losing entered form data.
+- Corrected reviewer attribution so a customer's clarification response returns
+  the prescription to review without replacing the assigned pharmacist.
+- Live browser QA completed a real customer submission through ADMIN review,
+  clarification request, customer response, PHARMACIST approval, and customer
+  final-state display. CUSTOMER is redirected to staff login and STAFF remains
+  blocked by the authoritative reviewer permission.
+
 ## 2026-08-05 - Meeting demo readiness checkpoint
 
 - Added an idempotent `scripts/demo-start.ps1` entry point that preserves

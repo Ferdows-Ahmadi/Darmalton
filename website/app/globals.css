@@ -3946,3 +3946,364 @@ a.staff-metric-card:hover {
     min-width: 300px;
   }
 }
+
+/* Staff prescription operations */
+.staff-prescription-toolbar {
+  flex-wrap: wrap;
+}
+
+.staff-prescription-toolbar form {
+  flex: 1 1 360px;
+}
+
+.staff-prescription-toolbar select {
+  min-width: 155px;
+}
+
+.staff-table-action {
+  min-height: 36px;
+  padding: 7px 12px;
+  color: var(--teal-dark);
+  background: #edf8f7;
+  border: 1px solid #c8e7e4;
+  border-radius: 9px;
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.staff-prescription-modal {
+  width: min(1180px, 100%);
+}
+
+.staff-prescription-detail {
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+}
+
+.staff-prescription-summary {
+  padding: 13px 15px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  color: #587076;
+  background: #f7fbfb;
+  border: 1px solid #e0eceb;
+  border-radius: 12px;
+}
+
+.staff-prescription-summary bdi {
+  flex: 1;
+  min-width: 260px;
+  color: #7b8d91;
+  font-size: 12px;
+}
+
+.staff-prescription-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+  gap: 18px;
+}
+
+.staff-prescription-document,
+.staff-prescription-facts,
+.staff-prescription-authorized,
+.staff-prescription-actions,
+.staff-prescription-history {
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #dfebeb;
+  border-radius: 14px;
+}
+
+.staff-prescription-document object,
+.staff-prescription-document > img {
+  width: 100%;
+  height: min(58vh, 620px);
+  margin-top: 12px;
+  object-fit: contain;
+  background: #f5f8f8;
+  border: 1px solid #e0e8e8;
+  border-radius: 10px;
+}
+
+.staff-prescription-document > small {
+  margin-top: 9px;
+  display: block;
+  color: #7a8e93;
+}
+
+.staff-prescription-facts h3,
+.staff-prescription-authorized h3,
+.staff-prescription-actions h3,
+.staff-prescription-history h3 {
+  margin: 0 0 14px;
+  color: #173a41;
+}
+
+.staff-prescription-facts dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  background: #e5eded;
+  border: 1px solid #e5eded;
+  border-radius: 10px;
+}
+
+.staff-prescription-facts dl > div {
+  padding: 11px;
+  background: #fbfdfd;
+}
+
+.staff-prescription-facts dt {
+  color: #809095;
+  font-size: 11px;
+}
+
+.staff-prescription-facts dd {
+  margin: 3px 0 0;
+  color: #345159;
+  overflow-wrap: anywhere;
+}
+
+.staff-prescription-note {
+  margin-top: 12px;
+  padding: 12px;
+  color: #4a646a;
+  background: #f3f9f8;
+  border: 1px solid #dbeae8;
+  border-radius: 10px;
+}
+
+.staff-prescription-note.warning {
+  background: #fff8e6;
+  border-color: #eedfae;
+}
+
+.staff-prescription-note.success {
+  background: #edf8f1;
+  border-color: #cfe8d8;
+}
+
+.staff-prescription-note.private,
+.staff-prescription-history .private {
+  color: #684f25;
+  background: #fff7e8;
+}
+
+.staff-prescription-note p {
+  margin: 6px 0 0;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.staff-prescription-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.staff-prescription-actions h3,
+.staff-prescription-actions p {
+  margin: 0;
+}
+
+.staff-prescription-actions p {
+  margin-top: 5px;
+  color: #708489;
+}
+
+.staff-prescription-actions > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.staff-prescription-actions button {
+  min-height: 40px;
+  padding: 8px 15px;
+  border: 0;
+  border-radius: 9px;
+  font: inherit;
+  font-weight: 700;
+}
+
+.staff-prescription-authorized > div {
+  padding: 12px 0;
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  gap: 4px 16px;
+  border-top: 1px solid #e6eeee;
+}
+
+.staff-prescription-authorized p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #6a7f84;
+}
+
+.staff-prescription-history ol {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 11px;
+  list-style: none;
+}
+
+.staff-prescription-history li {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  background: #fafcfc;
+  border: 1px solid #e5eded;
+  border-radius: 10px;
+}
+
+.staff-prescription-history li > div {
+  display: grid;
+  gap: 4px;
+}
+
+.staff-prescription-history small {
+  color: #7b8e93;
+}
+
+.staff-prescription-history p {
+  margin: 4px 0 0;
+  padding: 8px;
+  line-height: 1.75;
+  background: #f1f7f6;
+  border-radius: 7px;
+}
+
+.staff-action-backdrop {
+  z-index: 90;
+}
+
+.staff-action-modal {
+  width: min(760px, 100%);
+}
+
+.staff-prescription-medicine-results {
+  max-height: 180px;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.staff-prescription-medicine-results button {
+  min-width: 0;
+  display: grid;
+  justify-items: start;
+  text-align: start;
+}
+
+.staff-prescription-medicine-results small {
+  direction: ltr;
+  color: #7b8e93;
+}
+
+.staff-authorization-row {
+  padding: 12px;
+  display: grid !important;
+  grid-template-columns: minmax(120px, 1fr) 110px minmax(160px, 1.2fr) auto;
+  align-items: end;
+  gap: 10px !important;
+  background: #fff;
+  border: 1px solid #dce9e8;
+  border-radius: 9px;
+}
+
+.staff-authorization-row label {
+  display: grid;
+  gap: 5px;
+}
+
+.staff-confirm-copy.staff-form-wide {
+  margin: 0;
+  padding: 12px 14px;
+  color: #60777c;
+  background: #f5f9f9;
+  border: 1px solid #e0eaea;
+  border-radius: 9px;
+}
+
+.status-SUBMITTED {
+  color: #176c80;
+  background: #e5f5f8;
+}
+
+.status-UNDER_REVIEW {
+  color: #735c17;
+  background: #fff3cf;
+}
+
+.status-CLARIFICATION_REQUESTED {
+  color: #765121;
+  background: #fff0d9;
+}
+
+.status-APPROVED {
+  color: #187855;
+  background: #e5f7ee;
+}
+
+.status-REJECTED,
+.status-CANCELLED {
+  color: #9a3f49;
+  background: #fdecee;
+}
+
+@media (max-width: 900px) {
+  .staff-prescription-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .staff-prescription-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .staff-prescription-actions > div:last-child {
+    justify-content: flex-start;
+  }
+
+  .staff-authorization-row {
+    grid-template-columns: 1fr 110px;
+  }
+}
+
+@media (max-width: 680px) {
+  .staff-prescription-detail {
+    padding: 15px;
+  }
+
+  .staff-prescription-summary bdi {
+    min-width: 100%;
+  }
+
+  .staff-prescription-document object,
+  .staff-prescription-document > img {
+    height: 46vh;
+  }
+
+  .staff-prescription-facts dl,
+  .staff-prescription-medicine-results,
+  .staff-authorization-row {
+    grid-template-columns: 1fr;
+  }
+
+  .staff-prescription-actions > div:last-child,
+  .staff-prescription-actions button {
+    width: 100%;
+  }
+}

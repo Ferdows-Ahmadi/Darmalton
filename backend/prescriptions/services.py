@@ -138,9 +138,18 @@ def transition_prescription(
         if previous == Prescription.Status.SUBMITTED:
             locked.review_started_at = now
             update_fields.append("review_started_at")
+            locked.reviewer = actor
+            update_fields.append("reviewer")
         if previous == Prescription.Status.CLARIFICATION_REQUESTED:
             locked.customer_response = customer_response.strip()
             update_fields.append("customer_response")
+
+    if new_status in {
+        Prescription.Status.CLARIFICATION_REQUESTED,
+        Prescription.Status.APPROVED,
+        Prescription.Status.REJECTED,
+        Prescription.Status.EXPIRED,
+    }:
         locked.reviewer = actor
         update_fields.append("reviewer")
 

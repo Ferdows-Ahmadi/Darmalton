@@ -21,11 +21,11 @@
   is the only enabled checkout payment method. Address GPS and map pin capture
   are functional; service zones, dynamic fees/ETAs, courier assignment, courier
   GPS updates, and customer tracking remain Phase 7 work.
-- The prescription backend, clients, authorization rules, guarded review
-  controls, and camera/gallery/file UI pass automated tests. Physical file
-  selection, preview, upload, and live staff clarification now pass. A fresh
-  attended walkthrough of camera capture, customer clarification response,
-  approval, authorized cart, and checkout is still required before release.
+- The prescription backend, clients, authorization rules, guarded staff review
+  interface, and camera/gallery/file UI pass automated tests. The browser flow
+  now passes review, clarification, customer response, approval, and final-state
+  visibility. Physical file selection/preview/upload passes; an attended camera
+  capture plus approved-cart checkout remains required before release.
 - The current `file_picker` Android plugin still applies the legacy Kotlin
   Gradle plugin. Earlier debug builds succeeded, but Flutter warns that a future
   toolchain may require a plugin release migrated to built-in Kotlin.
