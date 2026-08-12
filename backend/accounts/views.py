@@ -1,6 +1,6 @@
 from django.db.models import Count, DecimalField, Sum, Value
 from django.db.models.functions import Coalesce
-from rest_framework import filters, generics, permissions, response, status
+from rest_framework import filters, generics, permissions, response, status, viewsets
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from operations.permissions import IsOperationsStaff
@@ -14,6 +14,7 @@ from .serializers import (
     LoginSerializer,
     RegisterSerializer,
     StaffCustomerSerializer,
+    StaffUserSerializer,
     UserSerializer,
     token_payload,
 )
@@ -100,6 +101,37 @@ class StaffCustomerListView(generics.ListAPIView):
                 output_field=DecimalField(max_digits=16, decimal_places=2),
             ),
         )
+
+
+class IsAdministrator(permissions.BasePermission):
+    message = "Only administrators may manage user accounts."
+
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user and user.is_authenticated and (user.is_superuser or user.role == User.Role.ADMIN)
+        )
+
+
+class StaffUserViewSet(viewsets.ModelViewSet):
+    serializer_class = StaffUserSerializer
+    permission_classes = (IsAdministrator,)
+    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
+    search_fields = ("email", "phone", "first_name", "last_name")
+    ordering_fields = ("created_at", "email", "last_login", "role")
+    ordering = ("-created_at",)
+    http_method_names = ("get", "post", "patch", "put", "head", "options")
+    queryset = User.objects.all()
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        role = self.request.query_params.get("role", "").strip()
+        active = self.request.query_params.get("is_active", "").strip().lower()
+        if role:
+            queryset = queryset.filter(role=role)
+        if active in {"true", "false"}:
+            queryset = queryset.filter(is_active=active == "true")
+        return queryset
 
 
 class CustomerMedicalProfileView(generics.RetrieveUpdateAPIView):

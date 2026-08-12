@@ -87,6 +87,91 @@ class StaffCustomerSerializer(UserSerializer):
         read_only_fields = fields
 
 
+class StaffUserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=False, min_length=8)
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "email",
+            "phone",
+            "first_name",
+            "last_name",
+            "role",
+            "preferred_language",
+            "is_active",
+            "is_staff",
+            "last_login",
+            "date_joined",
+            "created_at",
+            "updated_at",
+            "password",
+        )
+        read_only_fields = (
+            "id",
+            "is_staff",
+            "last_login",
+            "date_joined",
+            "created_at",
+            "updated_at",
+        )
+
+    def validate_email(self, value):
+        return value.lower().strip()
+
+    def validate_phone(self, value):
+        return normalize_afghan_phone(value, allow_blank=True) or None
+
+    def validate_password(self, value):
+        validate_password(value, self.instance)
+        return value
+
+    def validate(self, attrs):
+        request = self.context["request"]
+        instance = self.instance
+        role = attrs.get("role", instance.role if instance else None)
+        if instance is None and role == User.Role.CUSTOMER:
+            raise serializers.ValidationError(
+                {"role": "Create customer accounts through customer registration."}
+            )
+        if instance is None and not attrs.get("password"):
+            raise serializers.ValidationError({"password": "A temporary password is required."})
+        if instance and instance.pk == request.user.pk:
+            if attrs.get("is_active") is False:
+                raise serializers.ValidationError(
+                    {"is_active": "You cannot deactivate your own account."}
+                )
+            if role != User.Role.ADMIN:
+                raise serializers.ValidationError(
+                    {"role": "You cannot remove your own administrator role."}
+                )
+        return attrs
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        role = validated_data["role"]
+        return User.objects.create_user(
+            password=password,
+            is_staff=role in {User.Role.STAFF, User.Role.PHARMACIST, User.Role.ADMIN},
+            **validated_data,
+        )
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop("password", "")
+        role = validated_data.get("role", instance.role)
+        validated_data["is_staff"] = role in {
+            User.Role.STAFF,
+            User.Role.PHARMACIST,
+            User.Role.ADMIN,
+        }
+        updated = super().update(instance, validated_data)
+        if password:
+            updated.set_password(password)
+            updated.save(update_fields=("password", "updated_at"))
+        return updated
+
+
 class CustomerMedicalProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerProfile

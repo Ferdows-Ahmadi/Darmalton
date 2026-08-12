@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
 from .views import (
     ChangePasswordView,
@@ -10,7 +11,11 @@ from .views import (
     RefreshView,
     RegisterView,
     StaffCustomerListView,
+    StaffUserViewSet,
 )
+
+router = DefaultRouter()
+router.register("staff/users", StaffUserViewSet, basename="staff-user")
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
@@ -26,4 +31,5 @@ urlpatterns = [
         CustomerMedicalProfileView.as_view(),
         name="medical-profile",
     ),
+    path("", include(router.urls)),
 ]
