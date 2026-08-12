@@ -48,11 +48,10 @@
   and configure a tile provider or self-hosting plan that satisfies capacity,
   caching, privacy, and usage-policy requirements.
 - The custom Next.js staff portal is now the normal operational interface for
-  prescriptions, medicine/image management, category media, CMS, and ordinary
-  administrator account management. Some older procurement, warehouse,
-  inventory and return pages still expose their existing list-oriented views;
-  their backend mutations exist but need dedicated guided UI forms before all
-  advanced operations can be completed without low-level tooling.
+  prescriptions, orders, customers, medicine/image management, category media,
+  suppliers, warehouses/locations, procurement/receiving, inventory/ledger,
+  returns, CMS, and administrator account management. Django Admin remains a
+  technical emergency/audit fallback, not a required daily workflow.
 - Next.js route additions require rebuilding/redeploying the website image;
   restarting a container created from an older image will not make new staff
   routes available. The `/admin` bridge assumes backend port 8000 for local
@@ -71,10 +70,9 @@
 - Missing medicine photography uses a neutral fallback until real, licensed
   product images are uploaded through `/staff/medicines`. Run
   `python manage.py report_missing_medicine_images` for the exact IDs.
-- The final automated browser runtime did not honor its temporary narrow
-  viewport override. Desktop role/workflow QA passed without console errors;
-  responsive CSS and the production build are green, but a fresh manual
-  narrow-browser visual pass remains advisable before a public staff rollout.
+- Responsive staff browser QA passed at 1440, 1024, 390 and 320 pixels without
+  document overflow or console errors. Very large real datasets can still make
+  contained tables require horizontal scrolling by design.
 - The production CMS backend manages bilingual scheduled banners,
   announcements, informational pages, and featured-medicine placements with
   guarded publication and image delivery, and the Next.js staff portal has
@@ -86,6 +84,12 @@
 - Staff CMS labels and workflow guidance are Dari-first, but validation text
   returned verbatim by Django can still be English. Localize the stable backend
   CMS validation messages before a fully Dari operator release.
+- Bulk import intentionally excludes medicine images, formulas, legacy XLS,
+  multi-sheet CSV and automatic creation of categories, dosage forms, suppliers,
+  warehouses or locations. XLSX requires exact template sheet/header names; CSV
+  imports medicine metadata only. Missing manufacturers may be created from the
+  workbook name plus a two-letter country code. New batches stay quarantined in
+  the pending-quality state until staff inspection approves them.
 - The mobile app is Dari-first with persisted English switching and currently
   ships only the light theme. Missing localized copy safely falls back to Dari;
   operator-authored catalogue text needs populated English fields for a fully

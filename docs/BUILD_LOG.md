@@ -529,3 +529,36 @@
   layouts had no document overflow; the mobile menu, stacked cards, tables, and
   single-column editor remained usable. Temporary QA records and media were
   deleted after verification.
+
+## 2026-08-12 - Operational admin, Health Articles, and bulk import
+
+- Completed ordinary custom-portal operations for suppliers, warehouses and
+  storage locations, purchase orders and partial/full receiving, inventory
+  quality/count/adjustment actions, orders, and customer returns. Stock changes
+  continue through the existing locked service layer and immutable ledger;
+  historical records are transitioned or deactivated rather than hard-edited.
+- Added `/staff/cms/health-articles` on the existing bilingual CMS page
+  architecture, including draft/publish/schedule/archive/activity controls,
+  guarded images and author/source. Flutter now reads only currently eligible
+  articles, caches normalized content/images, renders an honest zero-state, and
+  opens a Dari/English RTL/LTR article detail route.
+- Added administrator-only `/staff/medicines/import` with a downloadable XLSX
+  template, XLSX/UTF-8 CSV parsing, strict headers and size/row/formula limits,
+  row-level validation, reference resolution, duplicate reporting, explicit
+  create/update/skip policy, mutation-free preview, confirmation, and an import
+  result. Confirmation is atomic; batches are never overwritten, enter pending
+  quality state, and receive quantity only through a purchase ledger entry.
+- Applied PostgreSQL migrations `cms.0003` and `catalog.0007`. Docker backend,
+  database and website services are healthy; Compose configuration validates.
+  Ruff, Django checks, migration consistency, OpenAPI validation and all 91
+  backend tests passed. Website TypeScript, ESLint, all 34 tests and the 39-route
+  production build passed. Flutter analyze and all 54 tests passed.
+- Live staff browser QA covered the nine audited operational routes plus Health
+  Articles and bulk import. At 1440, 1024, 390 and 320 pixels there was no
+  document overflow; nested navigation, mobile menu, stacked import form and
+  contained tables remained usable, with no console errors.
+- Built and installed one fresh debug APK on Pixel 10 (`1.0.0+1`) using USB ADB
+  reverse. The device showed the branded homepage, live category/medicine data,
+  CMS hero, Health Articles zero-state and a temporary neutral QA article/detail
+  (removed afterward), and persisted Dari RTL after switching from English and
+  relaunching. No Flutter, Dio, socket or fatal runtime errors appeared.
