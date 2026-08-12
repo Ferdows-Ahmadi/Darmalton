@@ -2,6 +2,7 @@ export const cmsResources = [
   "banners",
   "announcements",
   "pages",
+  "health-articles",
   "featured-medicines"
 ] as const;
 
@@ -34,6 +35,7 @@ export type CmsRecord = {
   image_url?: string | null;
   alt_text?: string;
   alt_text_dari?: string;
+  author_source?: string;
   action_label?: string;
   action_label_dari?: string;
   action_url?: string;
@@ -94,6 +96,17 @@ export const cmsResourceConfigs: Record<CmsResource, CmsResourceConfig> = {
     description: "محتوای درباره ما، راهنما، محرمیت و صفحه‌های مشابه را نگهداری کنید.",
     icon: "▤",
     endpoint: "cms/pages/",
+    hasImage: true,
+    imageRequired: false,
+    placements: []
+  },
+  "health-articles": {
+    resource: "health-articles",
+    title: "مقاله‌های سلامت",
+    singular: "مقاله سلامت",
+    description: "مقاله‌های آموزشی دوزبانه برنامه موبایل را پیش‌نویس، زمان‌بندی و منتشر کنید.",
+    icon: "✚",
+    endpoint: "cms/health-articles/",
     hasImage: true,
     imageRequired: false,
     placements: []

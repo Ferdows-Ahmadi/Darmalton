@@ -204,6 +204,15 @@ class Announcement(PublishableContent):
 
 
 class ContentPage(PublishableContent):
+    class ContentType(models.TextChoices):
+        INFORMATIONAL = "INFORMATIONAL", "Informational page"
+        HEALTH_ARTICLE = "HEALTH_ARTICLE", "Health article"
+
+    content_type = models.CharField(
+        max_length=24,
+        choices=ContentType.choices,
+        default=ContentType.INFORMATIONAL,
+    )
     slug = models.SlugField(max_length=120, unique=True)
     title = models.CharField(max_length=180, blank=True)
     title_dari = models.CharField(max_length=180)
@@ -223,6 +232,7 @@ class ContentPage(PublishableContent):
     )
     alt_text = models.CharField(max_length=180, blank=True)
     alt_text_dari = models.CharField(max_length=180, blank=True)
+    author_source = models.CharField(max_length=180, blank=True)
 
     def __str__(self):
         return self.title_dari

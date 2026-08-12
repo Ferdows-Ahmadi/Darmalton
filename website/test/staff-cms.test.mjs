@@ -33,11 +33,18 @@ test("staff navigation exposes one dedicated CMS destination", () => {
   assert.match(entries[0][1], /محتوا/);
 });
 
+test("health articles have a dedicated CMS collection", () => {
+  assert.ok(cmsResources.includes("health-articles"));
+  assert.equal(cmsResourceConfigs["health-articles"].endpoint, "cms/health-articles/");
+  assert.equal(cmsResourceConfigs["health-articles"].hasImage, true);
+});
+
 test("CMS resources match the documented API collection routes", () => {
   assert.deepEqual(cmsResources, [
     "banners",
     "announcements",
     "pages",
+    "health-articles",
     "featured-medicines"
   ]);
   for (const resource of cmsResources) {

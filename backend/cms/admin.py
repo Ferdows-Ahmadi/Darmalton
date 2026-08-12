@@ -145,6 +145,7 @@ class AnnouncementAdmin(PublishableAdmin):
 class ContentPageAdmin(ImagePreviewMixin, PublishableAdmin):
     list_display = (
         "slug",
+        "content_type",
         "title_dari",
         "status",
         "is_active",
@@ -153,6 +154,7 @@ class ContentPageAdmin(ImagePreviewMixin, PublishableAdmin):
         "updated_at",
         "image_preview",
     )
+    list_filter = PublishableAdmin.list_filter + ("content_type",)
     search_fields = ("slug", "title", "title_dari", "summary", "summary_dari")
     prepopulated_fields = {"slug": ("title",)}
     readonly_fields = PublishableAdmin.readonly_fields + ImagePreviewMixin.readonly_fields

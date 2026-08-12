@@ -35,6 +35,7 @@ type CmsFormValues = {
   summary_dari: string;
   alt_text: string;
   alt_text_dari: string;
+  author_source: string;
   action_label: string;
   action_label_dari: string;
   action_url: string;
@@ -58,6 +59,7 @@ const initialForm: CmsFormValues = {
   summary_dari: "",
   alt_text: "",
   alt_text_dari: "",
+  author_source: "",
   action_label: "",
   action_label_dari: "",
   action_url: "",
@@ -83,6 +85,7 @@ function recordToForm(record: CmsRecord): CmsFormValues {
     summary_dari: record.summary_dari || "",
     alt_text: record.alt_text || "",
     alt_text_dari: record.alt_text_dari || "",
+    author_source: record.author_source || "",
     action_label: record.action_label || "",
     action_label_dari: record.action_label_dari || "",
     action_url: record.action_url || "",
@@ -283,10 +286,10 @@ export function StaffCmsManager({ resource }: { resource: CmsResource }) {
         "action_label", "action_label_dari", "action_url", ...common
       ];
     }
-    if (resource === "pages") {
+    if (resource === "pages" || resource === "health-articles") {
       return [
         "slug", "title", "title_dari", "summary", "summary_dari", "body",
-        "body_dari", "alt_text", "alt_text_dari", ...common
+        "body_dari", "alt_text", "alt_text_dari", "author_source", ...common
       ];
     }
     return ["medicine_id", "placement", "label", "label_dari", ...common];
@@ -533,12 +536,13 @@ export function StaffCmsManager({ resource }: { resource: CmsResource }) {
               <form className="staff-cms-form" onSubmit={submit}>
                 {error && <p className="form-error staff-form-wide" role="alert">{error}</p>}
                 {resource === "banners" && <TextField label="کد یکتا" name="code" value={form.code} onChange={(value) => setValue("code", value)} error={fieldMessage(fieldErrors, "code")} required />}
-                {resource === "pages" && <TextField label="نام مسیر (slug)" name="slug" value={form.slug} onChange={(value) => setValue("slug", value)} error={fieldMessage(fieldErrors, "slug")} required dir="ltr" />}
+                {(resource === "pages" || resource === "health-articles") && <TextField label="نام مسیر (slug)" name="slug" value={form.slug} onChange={(value) => setValue("slug", value)} error={fieldMessage(fieldErrors, "slug")} required dir="ltr" />}
                 {config.placements.length > 0 && <SelectField label="جایگاه" name="placement" value={form.placement} onChange={(value) => setValue("placement", value)} options={config.placements} error={fieldMessage(fieldErrors, "placement")} />}
                 {resource === "announcements" && <SelectField label="نوع اطلاعیه" name="level" value={form.level} onChange={(value) => setValue("level", value)} options={[["INFO", "معلومات"], ["SUCCESS", "موفقیت"], ["WARNING", "هشدار"], ["CRITICAL", "بحرانی"]]} error={fieldMessage(fieldErrors, "level")} />}
                 {resource !== "featured-medicines" && <><TextField label="عنوان دری" name="title_dari" value={form.title_dari} onChange={(value) => setValue("title_dari", value)} error={fieldMessage(fieldErrors, "title_dari")} required /><TextField label="عنوان انگلیسی" name="title" value={form.title} onChange={(value) => setValue("title", value)} error={fieldMessage(fieldErrors, "title")} dir="ltr" /></>}
-                {resource === "pages" && <><TextArea label="خلاصه دری" name="summary_dari" value={form.summary_dari} onChange={(value) => setValue("summary_dari", value)} error={fieldMessage(fieldErrors, "summary_dari")} /><TextArea label="خلاصه انگلیسی" name="summary" value={form.summary} onChange={(value) => setValue("summary", value)} error={fieldMessage(fieldErrors, "summary")} dir="ltr" /></>}
-                {(resource === "banners" || resource === "announcements" || resource === "pages") && <><TextArea label="محتوای دری" name="body_dari" value={form.body_dari} onChange={(value) => setValue("body_dari", value)} error={fieldMessage(fieldErrors, "body_dari")} required={resource !== "banners"} /><TextArea label="محتوای انگلیسی" name="body" value={form.body} onChange={(value) => setValue("body", value)} error={fieldMessage(fieldErrors, "body")} dir="ltr" /></>}
+                {(resource === "pages" || resource === "health-articles") && <><TextArea label="خلاصه دری" name="summary_dari" value={form.summary_dari} onChange={(value) => setValue("summary_dari", value)} error={fieldMessage(fieldErrors, "summary_dari")} /><TextArea label="خلاصه انگلیسی" name="summary" value={form.summary} onChange={(value) => setValue("summary", value)} error={fieldMessage(fieldErrors, "summary")} dir="ltr" /></>}
+                {(resource === "banners" || resource === "announcements" || resource === "pages" || resource === "health-articles") && <><TextArea label="محتوای دری" name="body_dari" value={form.body_dari} onChange={(value) => setValue("body_dari", value)} error={fieldMessage(fieldErrors, "body_dari")} required={resource !== "banners"} /><TextArea label="محتوای انگلیسی" name="body" value={form.body} onChange={(value) => setValue("body", value)} error={fieldMessage(fieldErrors, "body")} dir="ltr" /></>}
+                {resource === "health-articles" && <TextField label="نویسنده یا منبع" name="author_source" value={form.author_source} onChange={(value) => setValue("author_source", value)} error={fieldMessage(fieldErrors, "author_source")} />}
                 {(resource === "banners" || resource === "announcements") && <><TextField label="متن دکمه دری" name="action_label_dari" value={form.action_label_dari} onChange={(value) => setValue("action_label_dari", value)} error={fieldMessage(fieldErrors, "action_label_dari")} /><TextField label="متن دکمه انگلیسی" name="action_label" value={form.action_label} onChange={(value) => setValue("action_label", value)} error={fieldMessage(fieldErrors, "action_label")} dir="ltr" /><TextField label="پیوند دکمه" name="action_url" value={form.action_url} onChange={(value) => setValue("action_url", value)} error={fieldMessage(fieldErrors, "action_url")} dir="ltr" /></>}
                 {config.hasImage && <><TextField label="توضیح تصویر دری" name="alt_text_dari" value={form.alt_text_dari} onChange={(value) => setValue("alt_text_dari", value)} error={fieldMessage(fieldErrors, "alt_text_dari")} required={config.imageRequired} /><TextField label="توضیح تصویر انگلیسی" name="alt_text" value={form.alt_text} onChange={(value) => setValue("alt_text", value)} error={fieldMessage(fieldErrors, "alt_text")} dir="ltr" /><label className="staff-cms-file staff-form-wide"><span>تصویر {modalMode === "edit" ? "جایگزین" : ""}</span><input type="file" accept="image/jpeg,image/png,image/webp" required={config.imageRequired && modalMode === "create"} onChange={(event) => handleFile(event.target.files?.[0])} /><small>JPEG، PNG یا WebP؛ حداکثر ۵ مگابایت</small>{fieldMessage(fieldErrors, "image") && <em>{fieldMessage(fieldErrors, "image")}</em>}</label>{selectedImage && <Image className="staff-cms-form-preview staff-form-wide" src={selectedImage} alt="پیش‌نمایش تصویر محتوا" width={720} height={320} unoptimized />}</>}
                 {resource === "featured-medicines" && <div className="staff-medicine-picker staff-form-wide"><label htmlFor="medicine-search">جستجوی دارو</label><div><input id="medicine-search" value={medicineQuery} onChange={(event) => setMedicineQuery(event.target.value)} placeholder="نام، SKU یا ماده فعال…" /><button type="button" onClick={() => void searchMedicines()} disabled={medicineBusy}>{medicineBusy ? "…" : "جستجو"}</button></div><label htmlFor="medicine_id">انتخاب دارو</label><select id="medicine_id" value={form.medicine_id} onChange={(event) => setValue("medicine_id", event.target.value)} required><option value="">یک دارو را انتخاب کنید</option>{selected?.medicine_id && !medicines.some((item) => item.id === selected.medicine_id) && <option value={selected.medicine_id}>{selected.medicine_name_dari || selected.medicine_name}</option>}{medicines.map((medicine) => <option value={medicine.id} key={medicine.id}>{medicine.brand_name_dari || medicine.brand_name} — {medicine.sku}</option>)}</select>{fieldMessage(fieldErrors, "medicine_id") && <em>{fieldMessage(fieldErrors, "medicine_id")}</em>}</div>}

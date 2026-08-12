@@ -17,6 +17,7 @@ from .serializers import (
     AnnouncementSerializer,
     ContentPageSerializer,
     FeaturedMedicineSerializer,
+    HealthArticleSerializer,
     PromotionalBannerSerializer,
     PublicationScheduleSerializer,
 )
@@ -121,9 +122,39 @@ class AnnouncementViewSet(PublishableContentViewSet):
 
 class ContentPageViewSet(ImageContentViewSet):
     serializer_class = ContentPageSerializer
-    queryset = ContentPage.objects.all()
+    queryset = ContentPage.objects.filter(content_type=ContentPage.ContentType.INFORMATIONAL)
     search_fields = ("slug", "title", "title_dari", "summary", "summary_dari")
     filter_fields = ("slug",)
+
+    def perform_create(self, serializer):
+        serializer.save(
+            content_type=ContentPage.ContentType.INFORMATIONAL,
+            created_by=self.request.user,
+            updated_by=self.request.user,
+        )
+
+
+class HealthArticleViewSet(ImageContentViewSet):
+    serializer_class = HealthArticleSerializer
+    queryset = ContentPage.objects.filter(content_type=ContentPage.ContentType.HEALTH_ARTICLE)
+    search_fields = (
+        "slug",
+        "title",
+        "title_dari",
+        "summary",
+        "summary_dari",
+        "body",
+        "body_dari",
+        "author_source",
+    )
+    filter_fields = ("slug",)
+
+    def perform_create(self, serializer):
+        serializer.save(
+            content_type=ContentPage.ContentType.HEALTH_ARTICLE,
+            created_by=self.request.user,
+            updated_by=self.request.user,
+        )
 
 
 class FeaturedMedicineViewSet(PublishableContentViewSet):

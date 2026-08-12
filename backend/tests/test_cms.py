@@ -47,6 +47,22 @@ def create_announcement(**overrides):
     return Announcement.objects.create(**defaults)
 
 
+def create_health_article(**overrides):
+    defaults = {
+        "content_type": ContentPage.ContentType.HEALTH_ARTICLE,
+        "slug": "safe-medicine-use",
+        "title": "Safe medicine use",
+        "title_dari": "مصرف امن دوا",
+        "summary": "Read labels and follow professional advice.",
+        "summary_dari": "برچسب دوا را بخوانید و مشوره متخصص را تعقیب کنید.",
+        "body": "This educational article does not replace professional advice.",
+        "body_dari": "این مطلب آموزشی جای مشوره داکتر یا فارمسست را نمی‌گیرد.",
+        "author_source": "Darmalton pharmacy team",
+    }
+    defaults.update(overrides)
+    return ContentPage.objects.create(**defaults)
+
+
 def response_results(response):
     return response.data["results"]
 
@@ -89,6 +105,49 @@ def test_public_detail_does_not_leak_draft_or_inactive_content(api_client):
     assert (
         api_client.get(reverse("cms-announcement-detail", args=(inactive.pk,))).status_code == 404
     )
+
+
+def test_health_articles_have_dedicated_public_collection(api_client):
+    actor = create_user(User.Role.PHARMACIST)
+    article = create_health_article()
+    publish_content(instance=article, actor=actor)
+    page = ContentPage.objects.create(
+        slug="about",
+        title_dari="درباره",
+        body_dari="صفحه معلوماتی",
+    )
+    publish_content(instance=page, actor=actor)
+
+    articles = api_client.get(reverse("cms-health-article-list"))
+    pages = api_client.get(reverse("cms-page-list"))
+
+    assert articles.status_code == 200
+    assert [item["slug"] for item in response_results(articles)] == [article.slug]
+    assert response_results(articles)[0]["author_source"] == "Darmalton pharmacy team"
+    assert response_results(articles)[0]["content_type"] == ContentPage.ContentType.HEALTH_ARTICLE
+    assert [item["slug"] for item in response_results(pages)] == [page.slug]
+
+
+def test_staff_health_article_create_forces_article_type(api_client):
+    staff = create_user(User.Role.ADMIN)
+    api_client.force_authenticate(staff)
+    created = api_client.post(
+        reverse("cms-health-article-list"),
+        {
+            "slug": "storage-safety",
+            "title": "Storage safety",
+            "title_dari": "نگهداری امن دوا",
+            "summary_dari": "دوا را دور از گرما نگه دارید.",
+            "body_dari": "شرایط روی بسته را تعقیب کنید.",
+            "content_type": ContentPage.ContentType.INFORMATIONAL,
+        },
+        format="json",
+    )
+
+    assert created.status_code == 201
+    article = ContentPage.objects.get(pk=created.data["id"])
+    assert article.content_type == ContentPage.ContentType.HEALTH_ARTICLE
+    assert article.created_by == staff
 
 
 def test_public_filtering_ordering_and_bilingual_fields(api_client):

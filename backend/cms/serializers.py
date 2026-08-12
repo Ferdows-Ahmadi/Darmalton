@@ -148,6 +148,7 @@ class ContentPageSerializer(ImageContentSerializer):
     class Meta:
         model = ContentPage
         fields = PUBLICATION_FIELDS + (
+            "content_type",
             "slug",
             "title",
             "title_dari",
@@ -159,9 +160,11 @@ class ContentPageSerializer(ImageContentSerializer):
             "image_url",
             "alt_text",
             "alt_text_dari",
+            "author_source",
         )
         read_only_fields = (
             "id",
+            "content_type",
             "status",
             "publish_from",
             "publish_until",
@@ -170,6 +173,13 @@ class ContentPageSerializer(ImageContentSerializer):
             "updated_at",
         )
         extra_kwargs = {"image": {"write_only": True}}
+
+
+class HealthArticleSerializer(ContentPageSerializer):
+    image_route_name = "cms-health-article-image"
+
+    class Meta(ContentPageSerializer.Meta):
+        pass
 
 
 class FeaturedMedicineSerializer(PublishableContentSerializer):
