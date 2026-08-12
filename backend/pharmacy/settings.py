@@ -135,6 +135,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "ENUM_NAME_OVERRIDES": {
         "OrderStatusEnum": "commerce.models.Order.Status",
+        "OrderPaymentStatusEnum": "commerce.models.Order.PaymentStatus",
         "PrescriptionStatusEnum": "prescriptions.models.Prescription.Status",
         "PurchaseOrderStatusEnum": "operations.models.PurchaseOrder.Status",
         "PurchasePaymentStatusEnum": "operations.models.PurchaseOrder.PaymentStatus",

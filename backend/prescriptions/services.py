@@ -118,7 +118,10 @@ def transition_prescription(
 ):
     locked = (
         Prescription.objects.select_for_update()
-        .select_related("customer", "reviewer")
+        # PostgreSQL cannot lock the nullable side of the OUTER JOIN produced by
+        # select_related("reviewer"). The reviewer is not read before this row
+        # is updated, so keep the lock scoped to the prescription/customer row.
+        .select_related("customer")
         .get(pk=prescription.pk)
     )
     if new_status not in ALLOWED_TRANSITIONS.get(locked.status, set()):
