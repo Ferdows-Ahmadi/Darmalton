@@ -11,7 +11,9 @@
 - Debug Android builds permit cleartext HTTP solely for private-LAN development.
   Release builds require HTTPS and production secrets/configuration.
 - Automatic LAN discovery is development-only and requires a Private Windows
-  network plus inbound TCP 8000 and UDP 53535 firewall rules. Guest Wi-Fi or
+  network plus inbound TCP 3000, TCP 8000, and UDP 53535 firewall rules. Run
+  `scripts/demo-start.ps1 -ConfigureFirewall` once from Administrator
+  PowerShell. Guest Wi-Fi or
   access points with client isolation can still prevent phone-to-laptop access;
   USB ADB reverse remains the deterministic fallback.
 - Wallets, stored payment methods, card gateways, ratings/reviews, courier chat,
@@ -20,18 +22,16 @@
   are functional; service zones, dynamic fees/ETAs, courier assignment, courier
   GPS updates, and customer tracking remain Phase 7 work.
 - The prescription backend, clients, authorization rules, guarded review
-  controls, and camera/gallery/file UI pass automated tests. A fresh
-  physical-device walkthrough of camera capture, upload, clarification,
+  controls, and camera/gallery/file UI pass automated tests. Physical file
+  selection, preview, upload, and live staff clarification now pass. A fresh
+  attended walkthrough of camera capture, customer clarification response,
   approval, authorized cart, and checkout is still required before release.
 - The current `file_picker` Android plugin still applies the legacy Kotlin
   Gradle plugin. Earlier debug builds succeeded, but Flutter warns that a future
   toolchain may require a plugin release migrated to built-in Kotlin.
-- The 2026-08-01 Phase 2 debug build did not produce a fresh APK. Gradle reached
-  `Preparing "Install Android SDK Platform 34 (revision 3)"`; the SDK directory
-  appeared, but the build stopped making meaningful progress and only its build
-  wrapper/daemon were terminated. Do not treat the older APK in `build/` as a
-  Phase 2 artifact; rerun one diagnostic build after repairing/confirming the
-  Android SDK installation.
+- Android debug APK builds now complete and install successfully. Flutter still
+  warns that the current `file_picker` plugin applies the legacy Kotlin Gradle
+  plugin; this is non-blocking with the verified toolchain.
 - 2026-08-04 follow-up: the prior locale-refresh hotfix experiment that made a
   custom localized-text widget tree depend directly on an inherited language
   widget was rejected. It triggered `_dependents.isEmpty` assertions when the
@@ -65,14 +65,17 @@
   location and default to quality-approved to preserve current sellable stock.
   Operations staff should assign locations and complete a physical verification
   before production cutover.
-- Medicine seed records use a neutral fallback until real, licensed product
-  photography is uploaded through the staff/admin image-management API.
-- The production CMS backend now manages bilingual scheduled banners,
+- All 20 current medicine seed records use a neutral fallback until real,
+  licensed product photography is uploaded through Django Admin. Run
+  `python manage.py report_missing_medicine_images` for the exact IDs.
+- The production CMS backend manages bilingual scheduled banners,
   announcements, informational pages, and featured-medicine placements with
-  guarded publication and image delivery, and the Next.js staff portal now has
-  complete management screens. The public website and Flutter home still render
-  their existing curated campaign/article sections; consuming the CMS public
-  read endpoints in those customer clients remains a separate checkpoint.
+  guarded publication and image delivery, and the Next.js staff portal has
+  complete management screens. Flutter now consumes scheduled `HOME_HERO`
+  banners with caching and autoplay. The public website still renders its
+  existing curated campaign sections; consuming public CMS data there remains a
+  separate checkpoint. No live banners are currently seeded, so operators must
+  upload and publish meeting content.
 - Staff CMS labels and workflow guidance are Dari-first, but validation text
   returned verbatim by Django can still be English. Localize the stable backend
   CMS validation messages before a fully Dari operator release.
@@ -90,11 +93,9 @@
   carts are not available offline. Endpoint rediscovery runs at startup and on
   explicit retry; continuous background reachability monitoring is deferred to
   the dedicated offline-sync phase.
-- OpenAPI generation completes, but validation still reports the pre-existing
-  untyped `HealthView` omission and one enum-name collision because multiple
-  resources expose different `payment_status` choice sets. Add a health response
-  serializer and the exact `ENUM_NAME_OVERRIDES` mapping before publishing a
-  generated SDK. The CMS endpoints add no schema warnings.
+- OpenAPI generation now has an explicit health response and distinct order
+  payment-status enum name. Generated clients still require normal versioning
+  and compatibility review before publication.
 - Historical order item and status-note snapshots preserve the text stored at
   order time. Newly seeded catalogue display names are Dari-first, but older
   snapshots can retain a Latin medicine name.

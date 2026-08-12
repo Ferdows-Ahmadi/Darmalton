@@ -8,6 +8,7 @@ $ErrorActionPreference = "Stop"
 $repo = Split-Path -Parent $PSScriptRoot
 $envFile = Join-Path $repo ".env"
 $adb = Join-Path $env:LOCALAPPDATA "Android\Sdk\platform-tools\adb.exe"
+$websitePort = 3000
 $backendPort = 8000
 $discoveryPort = 53535
 
@@ -101,6 +102,10 @@ $allowedHosts = "localhost,127.0.0.1,backend,$lanAddress"
 Set-EnvValue -Name "DJANGO_ALLOWED_HOSTS" -Value $allowedHosts
 $env:DARMALTON_DEV_API_HOST = $lanAddress
 
+$websiteReady = Ensure-FirewallRule `
+    -DisplayName "Darmalton development website" `
+    -Protocol TCP `
+    -Port $websitePort
 $tcpReady = Ensure-FirewallRule `
     -DisplayName "Darmalton development API" `
     -Protocol TCP `
@@ -156,7 +161,7 @@ if ($usbDevices.Count -gt 0) {
 } else {
     Write-Host "USB tunnel:     no authorized Android device detected"
 }
-if (-not ($tcpReady -and $udpReady)) {
+if (-not ($websiteReady -and $tcpReady -and $udpReady)) {
     Write-Host "LAN firewall:   action required; re-run as Administrator with -ConfigureFirewall" -ForegroundColor Yellow
 } else {
     Write-Host "LAN firewall:   ready (Private profile only)"

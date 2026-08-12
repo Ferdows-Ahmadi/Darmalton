@@ -31,6 +31,14 @@ Open:
 - Swagger: http://localhost:8000/api/docs/
 - Django Admin: http://localhost:8000/admin/
 
+For the physical Pixel and same-Wi-Fi meeting demo, use the single safe startup
+command and checklist in `docs/DEMO_RUNBOOK.md` and
+`docs/DEMO_ACCEPTANCE_CHECKLIST.md`. The script prints the current LAN links:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\demo-start.ps1
+```
+
 The staff portal accepts `STAFF`, `PHARMACIST`, and `ADMIN` accounts and sends
 unauthenticated visitors to its dedicated sign-in page while preserving the
 requested staff route. A staff account entered through the public sign-in page
@@ -95,7 +103,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\dev-up.ps1
 ```
 
 Run it once from an Administrator PowerShell with `-ConfigureFirewall` to add
-Private-profile rules for TCP 8000 and UDP 53535. It starts PostgreSQL, Django,
+Private-profile rules for TCP 3000, TCP 8000, and UDP 53535. It starts PostgreSQL, Django,
 the website, and the development discovery responder; updates the current
 private LAN address in the ignored `.env`; verifies backend health; and applies
 `adb reverse tcp:8000 tcp:8000` to every connected authorized Android device.

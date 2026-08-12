@@ -1,5 +1,34 @@
 # Build Log
 
+## 2026-08-05 - Meeting demo readiness checkpoint
+
+- Added an idempotent `scripts/demo-start.ps1` entry point that preserves
+  PostgreSQL volumes, verifies Docker/ADB/Flutter, waits for backend and website
+  health, configures USB or LAN mobile access, avoids unnecessary APK rebuilds,
+  installs/launches the Pixel app, and prints the current meeting URLs.
+- Added Flutter CMS `HOME_HERO` banner consumption with authenticated media,
+  scheduling/order rules, safe internal actions, cached offline rendering,
+  zero/one/many states, swipe controls, dots, and six-second autoplay.
+- Added a neutral medicine-image fallback and a
+  `report_missing_medicine_images` command. The current 20 demo medicines still
+  need operator-supplied licensed product photography.
+- Fixed mobile refresh so `/auth/refresh/` never inherits an expired bearer
+  token. A fresh APK was installed on Pixel 10 and a synthetic file upload
+  completed through the live prescription API and appeared in history.
+- Fixed PostgreSQL prescription transitions by removing the nullable reviewer
+  outer join from the row-lock query. The live synthetic record successfully
+  transitioned `SUBMITTED -> UNDER_REVIEW -> CLARIFICATION_REQUESTED`.
+- Completed live browser checks for public/shop routes, all staff operations and
+  CMS routes, CMS banner creation controls, the Next.js `/admin` bridge, Django
+  Admin login, and core Admin resource lists without runtime or console errors.
+- Verified physical Dari/English direction switching and persistence, offline
+  recovery after Docker restart, prescription source selection, file preview,
+  and upload. A full attended camera, address CRUD/GPS, and checkout pass remains
+  on the acceptance checklist.
+- Added `docs/DEMO_RUNBOOK.md` and `docs/DEMO_ACCEPTANCE_CHECKLIST.md` with
+  startup, firewall, exact access, demo accounts, content preparation, recovery,
+  presentation order, verified checks, and honest limitations.
+
 ## 2026-08-04 - Milestone 2 locale refresh stabilization follow-up
 
 - Completed the unfinished post-`35c5e41` locale-refresh repair in Flutter by

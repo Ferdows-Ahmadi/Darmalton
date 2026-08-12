@@ -43,7 +43,8 @@ The verified device path uses `scripts/dev-up.ps1`, which configures
 `adb reverse tcp:8000 tcp:8000` for authorized devices and publishes a bounded
 development-only LAN discovery response. The same debug APK selects USB first,
 then the discovered or remembered private address without rebuilding. Wi-Fi
-testing uses Private-profile TCP 8000 and UDP 53535 firewall rules; release
+testing and meeting access use Private-profile TCP 3000, TCP 8000, and UDP 53535
+firewall rules; release
 builds never use development discovery and require explicit HTTPS configuration.
 
 Google sign-in additionally requires `GOOGLE_CLIENT_ID` at Django/Next runtime
