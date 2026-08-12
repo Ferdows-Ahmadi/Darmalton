@@ -50,6 +50,9 @@ otherwise the endpoint returns `google_link_required`.
 | GET/POST | `/staff/categories/` | Operational category list/create |
 | GET/PATCH/PUT/DELETE | `/staff/categories/{id}/` | Category update; delete only when unused |
 | GET | `/staff/categories/{id}/image/` | Authenticated media for inactive records |
+| GET | `/staff/medicine-imports/template/` | Administrator-only two-sheet XLSX template |
+| POST | `/staff/medicine-imports/preview/` | Administrator-only XLSX/CSV validation; no catalogue mutation |
+| POST | `/staff/medicine-imports/{id}/confirm/` | Atomically confirm the caller's error-free preview |
 
 `Medicine`: `id`, `sku`, `brand_name`, optional `brand_name_dari`,
 `generic_name`, `manufacturer{name}`, `category{id,name,name_dari,slug}`,
@@ -57,6 +60,17 @@ otherwise the endpoint returns `google_link_required`.
 optional `description_dari`, `prescription_required`, `image_url`, `price`,
 `available_quantity`, `in_stock`. English/Latin fields remain the fallback;
 clients prefer populated Dari display fields.
+
+Bulk import accepts XLSX up to 10 MiB with exact `Medicines` and
+`Stock - Batches` sheets, or UTF-8 CSV for medicines only. Formulas and files
+over 5,000 data rows per sheet are rejected. Preview resolves dosage forms,
+categories, active suppliers, and active storage locations; validates SKU,
+barcode, dates, quantities, prices, and Yes/No fields; and persists only a
+normalized preview/report, not the source file. The operator must explicitly
+select `CREATE_NEW`, `UPDATE_EXISTING`, or `SKIP_EXISTING`. Confirmation is
+atomic, never overwrites batch quantities, skips duplicate batches, creates new
+batches pending quality inspection, and records their quantities through the
+immutable purchase inventory ledger.
 
 ### Medicine images
 
@@ -114,6 +128,9 @@ Customers and anonymous users cannot perform writes.
 | GET/POST | `/cms/pages/` | Public visible informational pages; staff management |
 | GET/PATCH/DELETE | `/cms/pages/{id}/` | UUID detail; staff writes only |
 | GET | `/cms/pages/{id}/image/` | Optional page image with the same visibility guard |
+| GET/POST | `/cms/health-articles/` | Public eligible articles; staff bilingual management |
+| GET/PATCH/DELETE | `/cms/health-articles/{id}/` | UUID detail; staff writes only |
+| GET | `/cms/health-articles/{id}/image/` | Article image with the same visibility guard |
 | GET/POST | `/cms/featured-medicines/` | Scheduled placements; inactive medicines are excluded publicly |
 | GET/PATCH/DELETE | `/cms/featured-medicines/{id}/` | UUID detail; staff writes only |
 | POST | `/cms/{resource}/{id}/publish/` | Staff transition with optional `publish_from` and `publish_until` |

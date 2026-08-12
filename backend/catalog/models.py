@@ -156,6 +156,7 @@ class Medicine(TimeStampedUUIDModel):
     barcode = models.CharField(max_length=64, unique=True, null=True, blank=True)
     description = models.TextField(blank=True)
     description_dari = models.TextField(blank=True)
+    storage_instructions = models.TextField(blank=True)
     prescription_required = models.BooleanField(default=False)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.ACTIVE)
 
@@ -169,6 +170,38 @@ class Medicine(TimeStampedUUIDModel):
 
     def __str__(self):
         return f"{self.brand_name} {self.strength}".strip()
+
+
+class MedicineImportJob(TimeStampedUUIDModel):
+    class Mode(models.TextChoices):
+        CREATE_NEW = "CREATE_NEW", "Create new only"
+        UPDATE_EXISTING = "UPDATE_EXISTING", "Update existing metadata"
+        SKIP_EXISTING = "SKIP_EXISTING", "Skip existing"
+
+    class Status(models.TextChoices):
+        PREVIEWED = "PREVIEWED", "Previewed"
+        COMPLETED = "COMPLETED", "Completed"
+        FAILED = "FAILED", "Failed"
+
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.RESTRICT,
+        related_name="medicine_import_jobs",
+    )
+    original_filename = models.CharField(max_length=255)
+    mode = models.CharField(max_length=24, choices=Mode.choices)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.PREVIEWED)
+    normalized_payload = models.JSONField(default=dict)
+    validation_report = models.JSONField(default=dict)
+    result_report = models.JSONField(default=dict, blank=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+        indexes = [models.Index(fields=("uploaded_by", "status", "-created_at"))]
+
+    def __str__(self):
+        return f"{self.original_filename} / {self.status}"
 
 
 def validate_medicine_image(value):

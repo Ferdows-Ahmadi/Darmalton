@@ -5,16 +5,18 @@ from uuid import UUID
 
 from django.conf import settings
 from django.db.models import Exists, OuterRef, Q, Subquery
-from django.http import FileResponse, HttpResponseNotModified
+from django.http import FileResponse, HttpResponse, HttpResponseNotModified
 from django.utils import timezone
 from rest_framework import filters, permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from rest_framework.response import Response
 
 from accounts.models import User
 from operations.permissions import IsOperationsStaff
 
+from .bulk_import import build_import_preview, confirm_import, import_template_bytes
 from .models import (
     Category,
     DosageForm,
@@ -22,6 +24,7 @@ from .models import (
     Manufacturer,
     Medicine,
     MedicineImage,
+    MedicineImportJob,
     RecordStatus,
 )
 from .serializers import (
@@ -29,6 +32,7 @@ from .serializers import (
     DosageFormSerializer,
     ManufacturerSerializer,
     MedicineImageSerializer,
+    MedicineImportJobSerializer,
     MedicineSerializer,
     StaffCategorySerializer,
     StaffMedicineSerializer,
@@ -47,6 +51,16 @@ class CanManageMedicineImages(permissions.BasePermission):
                 user.is_staff
                 or user.role in {User.Role.STAFF, User.Role.PHARMACIST, User.Role.ADMIN}
             )
+        )
+
+
+class IsCatalogueAdministrator(permissions.BasePermission):
+    message = "Only administrators may perform bulk catalogue imports."
+
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user and user.is_authenticated and (user.is_superuser or user.role == User.Role.ADMIN)
         )
 
 
@@ -271,6 +285,44 @@ class StaffMedicineViewSet(MedicineViewSet, viewsets.ModelViewSet):
         if ordering not in allowed:
             raise ValidationError({"ordering": "Select a supported medicine ordering."})
         return queryset.order_by(ordering, "id")
+
+
+class MedicineImportViewSet(viewsets.GenericViewSet):
+    permission_classes = (IsCatalogueAdministrator,)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+    serializer_class = MedicineImportJobSerializer
+    queryset = MedicineImportJob.objects.select_related("uploaded_by")
+    http_method_names = ("post", "get", "head", "options")
+
+    def get_queryset(self):
+        return super().get_queryset().filter(uploaded_by=self.request.user)
+
+    @action(detail=False, methods=("get",), url_path="template")
+    def template(self, request):
+        response = HttpResponse(
+            import_template_bytes(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = 'attachment; filename="darmalton-import-template.xlsx"'
+        response["X-Content-Type-Options"] = "nosniff"
+        return response
+
+    @action(detail=False, methods=("post",), url_path="preview")
+    def preview(self, request):
+        upload = request.FILES.get("file")
+        if upload is None:
+            raise ValidationError({"file": "Choose an XLSX or CSV file."})
+        job = build_import_preview(
+            upload=upload,
+            mode=str(request.data.get("mode", "")).strip(),
+            actor=request.user,
+        )
+        return Response(self.get_serializer(job).data, status=201)
+
+    @action(detail=True, methods=("post",), url_path="confirm")
+    def confirm(self, request, pk=None):
+        job = confirm_import(job=self.get_object(), actor=request.user)
+        return Response(self.get_serializer(job).data)
 
 
 class MedicineImageViewSet(viewsets.ModelViewSet):

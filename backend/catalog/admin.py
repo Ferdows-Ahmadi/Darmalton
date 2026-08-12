@@ -10,9 +10,35 @@ from .models import (
     Manufacturer,
     Medicine,
     MedicineImage,
+    MedicineImportJob,
     Pharmacy,
     PharmacyBranch,
 )
+
+
+@admin.register(MedicineImportJob)
+class MedicineImportJobAdmin(admin.ModelAdmin):
+    list_display = ("original_filename", "mode", "status", "uploaded_by", "created_at")
+    list_filter = ("mode", "status")
+    search_fields = ("original_filename", "uploaded_by__email")
+    readonly_fields = (
+        "uploaded_by",
+        "original_filename",
+        "mode",
+        "status",
+        "normalized_payload",
+        "validation_report",
+        "result_report",
+        "confirmed_at",
+        "created_at",
+        "updated_at",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class MedicineImageInline(admin.TabularInline):

@@ -5,6 +5,7 @@ from .views import (
     DosageFormViewSet,
     ManufacturerViewSet,
     MedicineImageViewSet,
+    MedicineImportViewSet,
     MedicineViewSet,
     StaffCategoryViewSet,
     StaffMedicineViewSet,
@@ -17,6 +18,7 @@ router.register("dosage-forms", DosageFormViewSet, basename="dosage-form")
 router.register("medicines", MedicineViewSet, basename="medicine")
 router.register("medicine-images", MedicineImageViewSet, basename="medicine-image")
 router.register("staff/medicines", StaffMedicineViewSet, basename="staff-medicine")
+router.register("staff/medicine-imports", MedicineImportViewSet, basename="staff-medicine-import")
 router.register("staff/categories", StaffCategoryViewSet, basename="staff-category")
 
 urlpatterns = router.urls

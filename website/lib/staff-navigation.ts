@@ -26,6 +26,7 @@ export const staffNavigationGroups: readonly {
     label: "کاتالوگ",
     items: [
       ["/staff/medicines", "داروها", "✚"],
+      ["/staff/medicines/import", "ورود گروهی", "⇧", adminRoles],
       ["/staff/categories", "دسته‌بندی‌ها", "▦"],
       ["/staff/inventory", "موجودی", "◫"],
       ["/staff/warehouses", "انبارها", "⌑"]
@@ -46,6 +47,7 @@ export const staffNavigationGroups: readonly {
       ["/staff/cms/banners", "بنرها", "▣"],
       ["/staff/cms/announcements", "اطلاعیه‌ها", "◉"],
       ["/staff/cms/pages", "صفحه‌ها", "▤"],
+      ["/staff/cms/health-articles", "مقاله‌های سلامت", "✚"],
       ["/staff/cms/featured-medicines", "داروهای ویژه", "✦"]
     ]
   },

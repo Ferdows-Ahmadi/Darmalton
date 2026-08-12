@@ -10,6 +10,7 @@ from .models import (
     Manufacturer,
     Medicine,
     MedicineImage,
+    MedicineImportJob,
 )
 
 
@@ -168,6 +169,7 @@ class MedicineSerializer(serializers.ModelSerializer):
             "pack_size",
             "description",
             "description_dari",
+            "storage_instructions",
             "prescription_required",
             "image_url",
             "images",
@@ -251,3 +253,23 @@ class StaffMedicineSerializer(MedicineSerializer):
             "created_at",
             "updated_at",
         )
+
+
+class MedicineImportJobSerializer(serializers.ModelSerializer):
+    uploaded_by_email = serializers.EmailField(source="uploaded_by.email", read_only=True)
+
+    class Meta:
+        model = MedicineImportJob
+        fields = (
+            "id",
+            "original_filename",
+            "mode",
+            "status",
+            "validation_report",
+            "result_report",
+            "uploaded_by_email",
+            "confirmed_at",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = fields

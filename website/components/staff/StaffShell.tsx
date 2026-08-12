@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 
 import { apiFetch } from "@/lib/api";
 import { isStaffRole, staffLoginPath } from "@/lib/auth-navigation";
-import { staffNavigationForRole } from "@/lib/staff-navigation";
+import { staffNavigation, staffNavigationForRole } from "@/lib/staff-navigation";
 import type { User } from "@/lib/types";
 
 export function StaffShell({ children }: { children: React.ReactNode }) {
@@ -70,8 +70,15 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
               <strong>{group.label}</strong>
               {group.items.map(([href, label, icon]) => {
                 const overview = href === "/staff" || href === "/staff/cms";
+                const moreSpecificMatch = staffNavigation.some(
+                  ([candidate]) =>
+                    candidate !== href &&
+                    candidate.startsWith(`${href}/`) &&
+                    (pathname === candidate || pathname.startsWith(`${candidate}/`))
+                );
                 const active =
-                  pathname === href || (!overview && pathname.startsWith(`${href}/`));
+                  pathname === href ||
+                  (!overview && !moreSpecificMatch && pathname.startsWith(`${href}/`));
                 return (
                   <Link className={active ? "active" : ""} href={href} key={href}>
                     <span aria-hidden="true">{icon}</span>
