@@ -1,0 +1,3 @@
+import assert from "node:assert/strict";import test from "node:test";import{orderActions}from"../lib/staff-orders.ts";import{returnActions}from"../lib/staff-returns.ts";
+test("order controls mirror server transition graph",()=>{assert.deepEqual(orderActions("PENDING"),["CONFIRMED","CANCELLED","REJECTED"]);assert.deepEqual(orderActions("OUT_FOR_DELIVERY"),["DELIVERED"]);assert.deepEqual(orderActions("DELIVERED"),[]);});
+test("return controls separate approval, receipt, verification and refund record",()=>{assert.deepEqual(returnActions("REQUESTED","REQUESTED"),["approve","reject"]);assert.deepEqual(returnActions("RECEIVED","DELIVERED"),["verify"]);assert.deepEqual(returnActions("REFUND_PENDING","DELIVERED"),["complete-refund"]);});
