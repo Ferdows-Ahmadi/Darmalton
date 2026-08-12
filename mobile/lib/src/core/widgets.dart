@@ -629,15 +629,33 @@ class CategoryTile extends StatelessWidget {
         Container(
           width: compact ? 48 : 62,
           height: compact ? 48 : 62,
-          decoration: const BoxDecoration(
+          padding: EdgeInsets.all(category.imageUrl.isEmpty ? 0 : 6),
+          decoration: BoxDecoration(
             color: DarmaltonColors.mint,
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(compact ? 15 : 18),
           ),
-          child: Icon(
-            categoryIcon(category.slug),
-            color: DarmaltonColors.teal,
-            size: compact ? 26 : 32,
-          ),
+          child: category.imageUrl.isEmpty
+              ? Icon(
+                  categoryIcon(category.slug),
+                  color: DarmaltonColors.teal,
+                  size: compact ? 26 : 32,
+                )
+              : ClipRRect(
+                  borderRadius: BorderRadius.circular(compact ? 10 : 12),
+                  child: CachedNetworkImage(
+                    imageUrl: category.imageUrl,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.contain,
+                    fadeInDuration: const Duration(milliseconds: 180),
+                    placeholder: (_, _) => const SkeletonBox(),
+                    errorWidget: (_, _, _) => Icon(
+                      categoryIcon(category.slug),
+                      color: DarmaltonColors.teal,
+                      size: compact ? 26 : 32,
+                    ),
+                  ),
+                ),
         ),
         const SizedBox(height: 10),
         Text(

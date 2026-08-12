@@ -43,6 +43,8 @@ class Category {
     required this.name,
     required this.nameDari,
     required this.slug,
+    this.imageUrl = '',
+    this.displayOrder = 0,
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
@@ -50,12 +52,16 @@ class Category {
     name: json['name'] as String,
     nameDari: json['name_dari'] as String? ?? '',
     slug: json['slug'] as String,
+    imageUrl: json['image_url'] as String? ?? '',
+    displayOrder: json['display_order'] as int? ?? 0,
   );
 
   final String id;
   final String name;
   final String nameDari;
   final String slug;
+  final String imageUrl;
+  final int displayOrder;
 
   String get displayName =>
       DariStrings.isEnglish || nameDari.isEmpty ? name : nameDari;
@@ -65,6 +71,8 @@ class Category {
     'name': name,
     'name_dari': nameDari,
     'slug': slug,
+    'image_url': imageUrl,
+    'display_order': displayOrder,
   };
 }
 
