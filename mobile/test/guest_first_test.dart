@@ -3,6 +3,8 @@ import 'package:darmalton_pharmacy/src/core/guest_session.dart';
 import 'package:darmalton_pharmacy/src/core/models.dart';
 import 'package:darmalton_pharmacy/src/core/providers.dart';
 import 'package:darmalton_pharmacy/src/features/auth/splash_screen.dart';
+import 'package:darmalton_pharmacy/src/features/auth/login_screen.dart';
+import 'package:darmalton_pharmacy/src/features/auth/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,6 +18,14 @@ const authenticatedUser = User(
   role: 'CUSTOMER',
 );
 
+const authenticatedAdmin = User(
+  id: 'admin-id',
+  email: 'admin@example.test',
+  firstName: 'Admin',
+  lastName: 'Test',
+  role: 'ADMIN',
+);
+
 class FixedAuthController extends AuthController {
   FixedAuthController(this.user);
 
@@ -23,6 +33,25 @@ class FixedAuthController extends AuthController {
 
   @override
   Future<User?> build() async => user;
+}
+
+class SuccessfulAuthController extends AuthController {
+  SuccessfulAuthController(this.result);
+
+  final User result;
+
+  @override
+  Future<User?> build() async => null;
+
+  @override
+  Future<void> login(String email, String password) async {
+    state = AsyncData(result);
+  }
+
+  @override
+  Future<void> register(Map<String, dynamic> data) async {
+    state = AsyncData(result);
+  }
 }
 
 class MemoryGuestSessionStore implements GuestSessionStore {
@@ -61,6 +90,55 @@ Widget splashHarness(User? user) {
   );
 }
 
+Widget authenticationHarness({
+  required User result,
+  required String initialLocation,
+}) {
+  final router = GoRouter(
+    initialLocation: initialLocation,
+    routes: [
+      GoRoute(
+        path: '/login',
+        builder: (_, state) =>
+            LoginScreen(returnTo: state.uri.queryParameters['returnTo']),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (_, state) =>
+            RegisterScreen(returnTo: state.uri.queryParameters['returnTo']),
+      ),
+      GoRoute(
+        path: '/catalogue',
+        builder: (_, _) => const Scaffold(body: Text('HOME_DESTINATION')),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (_, _) => const Scaffold(body: Text('PROFILE_DESTINATION')),
+      ),
+      GoRoute(
+        path: '/checkout',
+        builder: (_, _) => const Scaffold(body: Text('CHECKOUT_DESTINATION')),
+      ),
+    ],
+  );
+  return ProviderScope(
+    overrides: [
+      authProvider.overrideWith(() => SuccessfulAuthController(result)),
+    ],
+    child: MaterialApp.router(routerConfig: router),
+  );
+}
+
+Future<void> submitLogin(WidgetTester tester) async {
+  await tester.enterText(
+    find.byType(TextFormField).at(0),
+    'person@example.test',
+  );
+  await tester.enterText(find.byType(TextFormField).at(1), 'ValidPass123!');
+  await tester.tap(find.text('ورود').last);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   test('return destinations reject external and authentication loops', () {
     expect(
@@ -89,6 +167,66 @@ void main() {
     await tester.pumpWidget(splashHarness(authenticatedUser));
     await tester.pumpAndSettle();
     expect(find.text('خانه عمومی'), findsOneWidget);
+  });
+
+  testWidgets('normal customer login always opens Home', (tester) async {
+    await tester.pumpWidget(
+      authenticationHarness(
+        result: authenticatedUser,
+        initialLocation: '/login',
+      ),
+    );
+    await tester.pumpAndSettle();
+    await submitLogin(tester);
+    expect(find.text('HOME_DESTINATION'), findsOneWidget);
+    expect(find.text('PROFILE_DESTINATION'), findsNothing);
+  });
+
+  testWidgets('normal staff login in the customer app also opens Home', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      authenticationHarness(
+        result: authenticatedAdmin,
+        initialLocation: '/login',
+      ),
+    );
+    await tester.pumpAndSettle();
+    await submitLogin(tester);
+    expect(find.text('HOME_DESTINATION'), findsOneWidget);
+    expect(find.text('PROFILE_DESTINATION'), findsNothing);
+  });
+
+  testWidgets('login prompted by a protected route preserves that route', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      authenticationHarness(
+        result: authenticatedUser,
+        initialLocation: '/login?returnTo=%2Fcheckout',
+      ),
+    );
+    await tester.pumpAndSettle();
+    await submitLogin(tester);
+    expect(find.text('CHECKOUT_DESTINATION'), findsOneWidget);
+  });
+
+  testWidgets('normal registration opens Home', (tester) async {
+    await tester.pumpWidget(
+      authenticationHarness(
+        result: authenticatedUser,
+        initialLocation: '/register',
+      ),
+    );
+    await tester.pumpAndSettle();
+    final fields = find.byType(TextFormField);
+    await tester.enterText(fields.at(0), 'Customer');
+    await tester.enterText(fields.at(1), 'Test');
+    await tester.enterText(fields.at(2), 'customer@example.test');
+    await tester.enterText(fields.at(4), 'ValidPass123!');
+    await tester.tap(find.byIcon(Icons.person_add_alt_1_rounded));
+    await tester.pumpAndSettle();
+    expect(find.text('HOME_DESTINATION'), findsOneWidget);
   });
 
   testWidgets('protected action explains authentication and preserves intent', (

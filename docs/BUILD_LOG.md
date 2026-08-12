@@ -1,5 +1,26 @@
 # Build Log
 
+## 2026-08-13 - Full product hardening audit started
+
+- Established `docs/FULL_PRODUCT_QA.md` as the implementation-backed feature
+  and acceptance matrix for Flutter, the public website, the staff portal, and
+  cross-cutting release checks. It distinguishes automated evidence from live
+  browser/device acceptance instead of treating a green suite as usability
+  proof.
+- Audited the reported mobile login redirect issue. Normal login and
+  registration already resolve to `/catalogue`; only authentication prompted by
+  an explicit protected destination preserves that safe local `returnTo`.
+  Neither STAFF, PHARMACIST nor ADMIN roles have a customer-app redirect to
+  Profile.
+- Added focused regression coverage for normal customer login, ADMIN login in
+  the customer app, protected checkout return, registration, restored sessions,
+  and unsafe/external return destinations. All 11 focused authentication and
+  guest-first tests pass.
+- The localization inventory found 432 Dari/Persian source literals, 285 of
+  which do not yet have an exact English entry in the current lightweight
+  translation catalogue. The remaining localization phase is therefore a real
+  release task, not a documentation-only limitation.
+
 ## 2026-08-12 - Unified staff operations centre
 
 - Completed the normal `/staff` administration path for prescriptions,
