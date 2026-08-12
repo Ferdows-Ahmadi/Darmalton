@@ -6,6 +6,7 @@ import 'models.dart';
 
 const _categoriesKey = 'cache_public_categories_v1';
 const _promotionalBannersKey = 'cache_public_promotional_banners_v1';
+const _healthArticlesKey = 'cache_public_health_articles_v1';
 const _favoritesKey = 'cache_favorite_medicine_ids_v1';
 const _recentSearchesKey = 'cache_recent_searches_v1';
 const _recentlyViewedKey = 'cache_recently_viewed_medicine_ids_v1';
@@ -43,6 +44,15 @@ class LocalCacheStore {
         _promotionalBannersKey,
         banners.map((item) => item.toJson()).toList(),
       );
+
+  Future<List<HealthArticle>> readHealthArticles() async => (await _readList(
+    _healthArticlesKey,
+  )).map(HealthArticle.fromJson).toList();
+
+  Future<void> writeHealthArticles(List<HealthArticle> articles) => _writeList(
+    _healthArticlesKey,
+    articles.map((item) => item.toJson()).toList(),
+  );
 
   Future<List<Medicine>> readMedicines({
     String search = '',

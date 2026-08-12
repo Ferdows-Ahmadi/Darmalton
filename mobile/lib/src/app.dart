@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'core/design_system.dart';
 import 'core/auth_gate.dart';
 import 'core/app_settings.dart';
+import 'core/models.dart';
 import 'core/strings.dart';
 import 'core/widgets.dart';
 import 'features/auth/login_screen.dart';
@@ -17,6 +18,7 @@ import 'features/catalog/categories_screen.dart';
 import 'features/catalog/catalogue_screen.dart';
 import 'features/catalog/medicine_detail_screen.dart';
 import 'features/catalog/search_results_screen.dart';
+import 'features/catalog/health_article_screen.dart';
 import 'features/checkout/checkout_screen.dart';
 import 'features/orders/order_detail_screen.dart';
 import 'features/orders/order_history_screen.dart';
@@ -48,6 +50,14 @@ final routerProvider = Provider<GoRouter>(
         ),
       ),
       GoRoute(path: '/catalogue', builder: (_, _) => const CatalogueScreen()),
+      GoRoute(
+        path: '/health-articles/:slug',
+        builder: (_, state) {
+          final article = state.extra;
+          if (article is! HealthArticle) return const CatalogueScreen();
+          return HealthArticleScreen(article: article);
+        },
+      ),
       GoRoute(path: '/categories', builder: (_, _) => const CategoriesScreen()),
       GoRoute(
         path: '/search',

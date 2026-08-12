@@ -139,6 +139,91 @@ List<PromotionalBanner> normalizePromotionalBanners(
   return result.take(10).toList(growable: false);
 }
 
+class HealthArticle {
+  const HealthArticle({
+    required this.id,
+    required this.slug,
+    required this.title,
+    required this.titleDari,
+    required this.summary,
+    required this.summaryDari,
+    required this.body,
+    required this.bodyDari,
+    required this.imageUrl,
+    required this.altText,
+    required this.altTextDari,
+    required this.authorSource,
+    required this.displayOrder,
+  });
+  factory HealthArticle.fromJson(Map<String, dynamic> json) => HealthArticle(
+    id: json['id'] as String,
+    slug: json['slug'] as String? ?? '',
+    title: json['title'] as String? ?? '',
+    titleDari: json['title_dari'] as String? ?? '',
+    summary: json['summary'] as String? ?? '',
+    summaryDari: json['summary_dari'] as String? ?? '',
+    body: json['body'] as String? ?? '',
+    bodyDari: json['body_dari'] as String? ?? '',
+    imageUrl: json['image_url'] as String? ?? '',
+    altText: json['alt_text'] as String? ?? '',
+    altTextDari: json['alt_text_dari'] as String? ?? '',
+    authorSource: json['author_source'] as String? ?? '',
+    displayOrder: json['display_order'] as int? ?? 0,
+  );
+  final String id,
+      slug,
+      title,
+      titleDari,
+      summary,
+      summaryDari,
+      body,
+      bodyDari,
+      imageUrl,
+      altText,
+      altTextDari,
+      authorSource;
+  final int displayOrder;
+  String get displayTitle =>
+      DariStrings.isEnglish && title.isNotEmpty ? title : titleDari;
+  String get displaySummary =>
+      DariStrings.isEnglish && summary.isNotEmpty ? summary : summaryDari;
+  String get displayBody =>
+      DariStrings.isEnglish && body.isNotEmpty ? body : bodyDari;
+  String get semanticLabel => DariStrings.isEnglish && altText.isNotEmpty
+      ? altText
+      : (altTextDari.isNotEmpty ? altTextDari : displayTitle);
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'slug': slug,
+    'title': title,
+    'title_dari': titleDari,
+    'summary': summary,
+    'summary_dari': summaryDari,
+    'body': body,
+    'body_dari': bodyDari,
+    'image_url': imageUrl,
+    'alt_text': altText,
+    'alt_text_dari': altTextDari,
+    'author_source': authorSource,
+    'display_order': displayOrder,
+  };
+}
+
+List<HealthArticle> normalizeHealthArticles(Iterable<HealthArticle> articles) {
+  final rows =
+      articles
+          .where(
+            (item) =>
+                item.displayTitle.isNotEmpty && item.displayBody.isNotEmpty,
+          )
+          .toList()
+        ..sort((left, right) {
+          final order = left.displayOrder.compareTo(right.displayOrder);
+          return order != 0 ? order : left.id.compareTo(right.id);
+        });
+  return rows.take(12).toList(growable: false);
+}
+
 class Medicine {
   const Medicine({
     required this.id,

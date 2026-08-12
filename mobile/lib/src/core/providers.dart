@@ -334,6 +334,33 @@ final promotionalBannersProvider = StreamProvider<List<PromotionalBanner>>((
   }
 });
 
+final healthArticlesProvider = StreamProvider<List<HealthArticle>>((
+  ref,
+) async* {
+  final cache = ref.read(localCacheProvider);
+  final cached = normalizeHealthArticles(await cache.readHealthArticles());
+  if (cached.isNotEmpty) yield cached;
+  try {
+    final response = await ref
+        .read(apiClientProvider)
+        .get<Map<String, dynamic>>(
+          '/cms/health-articles/',
+          query: {'ordering': 'display_order', 'page_size': 12},
+        );
+    final fresh = normalizeHealthArticles(
+      (response.data!['results'] as List<dynamic>).map(
+        (item) => HealthArticle.fromJson(item as Map<String, dynamic>),
+      ),
+    );
+    await cache.writeHealthArticles(fresh);
+    ref.read(offlineProvider.notifier).markOnline();
+    yield fresh;
+  } on ApiException {
+    ref.read(offlineProvider.notifier).markOffline();
+    if (cached.isEmpty) rethrow;
+  }
+});
+
 final medicinesProvider = StreamProvider.family<List<Medicine>, CatalogueQuery>(
   (ref, query) async* {
     final cache = ref.read(localCacheProvider);

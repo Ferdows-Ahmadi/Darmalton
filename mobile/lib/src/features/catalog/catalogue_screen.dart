@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../core/auth_gate.dart';
 import '../../core/design_system.dart';
@@ -692,126 +693,131 @@ class _SeasonalCampaign extends StatelessWidget {
   );
 }
 
-class _HealthArticles extends StatelessWidget {
+class _HealthArticles extends ConsumerWidget {
   const _HealthArticles();
 
-  static const articles = [
-    (
-      'مصرف امن دوا',
-      'پنج نکته برای خواندن برچسب و زمان‌بندی درست.',
-      Icons.schedule_rounded,
-    ),
-    (
-      'نسخه شما چگونه بررسی می‌شود؟',
-      'روند محرمانه بررسی توسط فارمسست درملتون.',
-      Icons.receipt_long_outlined,
-    ),
-    (
-      'نگهداری دوا در خانه',
-      'دواها را دور از گرما، رطوبت و دسترس کودکان نگه دارید.',
-      Icons.home_outlined,
-    ),
-  ];
-
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SectionTitle(title: 'مقاله‌های سلامت'),
-        const SizedBox(height: 10),
-        SizedBox(
-          height: 184,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: articles.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final article = articles[index];
-              return SizedBox(
-                width: 252,
-                child: DarmaltonCard(
-                  padding: EdgeInsets.zero,
-                  onTap: () => showDialog<void>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      icon: Icon(article.$3, color: DarmaltonColors.teal),
-                      title: Text(article.$1),
-                      content: Text(
-                        '${article.$2}\n\nاین مطلب آموزشی است و جای مشوره داکتر یا فارمسست را نمی‌گیرد.',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('بستن'),
-                        ),
-                      ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final articles = ref.watch(healthArticlesProvider);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SectionTitle(title: 'مقاله‌های سلامت'),
+          const SizedBox(height: 10),
+          articles.when(
+            data: (items) => items.isEmpty
+                ? const DarmaltonCard(
+                    child: Text('هنوز مقاله سلامت منتشر نشده است.'),
+                  )
+                : SizedBox(
+                    height: 184,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: items.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 10),
+                      itemBuilder: (context, index) {
+                        final article = items[index];
+                        return SizedBox(
+                          width: 252,
+                          child: DarmaltonCard(
+                            padding: EdgeInsets.zero,
+                            onTap: () => context.push(
+                              '/health-articles/${article.slug}',
+                              extra: article,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(
+                                        DarmaltonRadius.medium,
+                                      ),
+                                    ),
+                                    child: Stack(
+                                      fit: StackFit.expand,
+                                      children: [
+                                        if (article.imageUrl.isNotEmpty)
+                                          CachedNetworkImage(
+                                            imageUrl: article.imageUrl,
+                                            fit: BoxFit.cover,
+                                            alignment: Alignment.centerRight,
+                                            memCacheWidth: 600,
+                                            errorWidget: (_, _, _) =>
+                                                const SizedBox.shrink(),
+                                          )
+                                        else
+                                          const ColoredBox(
+                                            color: DarmaltonColors.mint,
+                                          ),
+                                        ColoredBox(
+                                          color: DarmaltonColors.teal
+                                              .withValues(alpha: 0.12),
+                                        ),
+                                        Center(
+                                          child: const Icon(
+                                            Icons.health_and_safety_outlined,
+                                            size: 40,
+                                            color: DarmaltonColors.tealDark,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        article.displayTitle,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      Text(
+                                        article.displaySummary,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(DarmaltonRadius.medium),
-                          ),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.asset(
-                                'assets/branding/landing-hero.png',
-                                fit: BoxFit.cover,
-                                alignment: Alignment.centerRight,
-                                cacheWidth: 600,
-                              ),
-                              ColoredBox(
-                                color: DarmaltonColors.teal.withValues(
-                                  alpha: 0.12,
-                                ),
-                              ),
-                              Center(
-                                child: Icon(
-                                  article.$3,
-                                  size: 40,
-                                  color: DarmaltonColors.tealDark,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              article.$1,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            Text(
-                              article.$2,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+            loading: () => const SizedBox(
+              height: 184,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (_, _) => DarmaltonCard(
+              child: Row(
+                children: [
+                  const Expanded(child: Text('مقاله‌های سلامت دریافت نشد.')),
+                  TextButton(
+                    onPressed: () => ref.invalidate(healthArticlesProvider),
+                    child: const Text('تلاش دوباره'),
                   ),
-                ),
-              );
-            },
+                ],
+              ),
+            ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }
 
 class _BenefitStrip extends StatelessWidget {
