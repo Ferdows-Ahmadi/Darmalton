@@ -47,9 +47,12 @@
   attribution and an application user agent. Before production traffic, choose
   and configure a tile provider or self-hosting plan that satisfies capacity,
   caching, privacy, and usage-policy requirements.
-- The dedicated Next.js staff console provides responsive dashboards, live
-  searchable resource views, reports, and quick links. Complex operational
-  mutations remain intentionally delegated to guarded Django Admin workflows.
+- The custom Next.js staff portal is now the normal operational interface for
+  prescriptions, medicine/image management, category media, CMS, and ordinary
+  administrator account management. Some older procurement, warehouse,
+  inventory and return pages still expose their existing list-oriented views;
+  their backend mutations exist but need dedicated guided UI forms before all
+  advanced operations can be completed without low-level tooling.
 - Next.js route additions require rebuilding/redeploying the website image;
   restarting a container created from an older image will not make new staff
   routes available. The `/admin` bridge assumes backend port 8000 for local
@@ -65,9 +68,13 @@
   location and default to quality-approved to preserve current sellable stock.
   Operations staff should assign locations and complete a physical verification
   before production cutover.
-- All 20 current medicine seed records use a neutral fallback until real,
-  licensed product photography is uploaded through Django Admin. Run
+- Missing medicine photography uses a neutral fallback until real, licensed
+  product images are uploaded through `/staff/medicines`. Run
   `python manage.py report_missing_medicine_images` for the exact IDs.
+- The final automated browser runtime did not honor its temporary narrow
+  viewport override. Desktop role/workflow QA passed without console errors;
+  responsive CSS and the production build are green, but a fresh manual
+  narrow-browser visual pass remains advisable before a public staff rollout.
 - The production CMS backend manages bilingual scheduled banners,
   announcements, informational pages, and featured-medicine placements with
   guarded publication and image delivery, and the Next.js staff portal has

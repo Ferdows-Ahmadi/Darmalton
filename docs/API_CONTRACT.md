@@ -41,8 +41,15 @@ otherwise the endpoint returns `google_link_required`.
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/categories/` | Active categories |
+| GET | `/categories/{id}/image/` | Public category image or safe fallback |
+| GET | `/dosage-forms/` | Public read-only dosage-form lookup |
 | GET | `/medicines/?search=&category=&page=` | Active medicines, paginated |
 | GET | `/medicines/{id}/` | Medicine detail |
+| GET/POST | `/staff/medicines/` | Operational medicine list/create |
+| GET/PATCH/PUT | `/staff/medicines/{id}/` | Operational medicine detail/update |
+| GET/POST | `/staff/categories/` | Operational category list/create |
+| GET/PATCH/PUT/DELETE | `/staff/categories/{id}/` | Category update; delete only when unused |
+| GET | `/staff/categories/{id}/image/` | Authenticated media for inactive records |
 
 `Medicine`: `id`, `sku`, `brand_name`, optional `brand_name_dari`,
 `generic_name`, `manufacturer{name}`, `category{id,name,name_dari,slug}`,
@@ -65,6 +72,23 @@ Uploads accept actual JPEG, PNG, or WebP images up to 5 MiB and dimensions from
 filename or MIME header. Exactly one image can be primary per medicine; deleting
 it promotes the next image. Medicine responses contain ordered `images[]` and a
 primary `image_url`; clients use the neutral fallback when none exists.
+
+Category writes use the same validated JPEG/PNG/WebP limits. Category responses
+include `image_url`, `display_order`, bilingual names and parent linkage.
+Operational medicine/category routes require staff authentication and never
+duplicate catalogue models or storage.
+
+### Staff user administration
+
+| Method | Path | Notes |
+|---|---|---|
+| GET/POST | `/auth/staff/users/` | ADMIN-only account list and staff creation |
+| GET/PATCH/PUT | `/auth/staff/users/{id}/` | ADMIN-only role, password and activation maintenance |
+
+Account deletion is intentionally unavailable. New staff accounts require a
+Django-validated temporary password; password hashes are never serialized.
+Administrators cannot deactivate themselves or remove their own administrator
+role. Customers, ordinary staff and pharmacists receive HTTP 403.
 
 ## Content management
 

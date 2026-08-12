@@ -1,5 +1,36 @@
 # Build Log
 
+## 2026-08-12 - Unified staff operations centre
+
+- Completed the normal `/staff` administration path for prescriptions,
+  medicines and medicine images, category media, and administrator-managed
+  user/staff accounts. Daily work no longer links operators to Django Admin.
+- Added searchable, filterable and paginated medicine/category managers with
+  create/edit/state controls, guarded image upload/primary/delete workflows,
+  server validation, safe category deletion, and polished media fallbacks.
+- Added category image/display-order migration `catalog.0006`; it is applied to
+  the Docker PostgreSQL database. Flutter category cards now consume uploaded
+  category media after refresh and preserve it in the public offline cache.
+- Added ADMIN-only account administration for customer inspection, staff and
+  pharmacist creation, role/profile edits, secure temporary passwords,
+  activation/deactivation, and self-lockout prevention. Historical identities
+  are never deleted.
+- Grouped the staff navigation into dashboard, operations, catalogue,
+  procurement, content and administration. Sensitive destinations follow
+  backend roles, and the attention dashboard uses live filtered queues.
+- Final verification passed: Ruff, Django check/migration consistency, 82
+  backend tests, 20 website tests, TypeScript, ESLint, 38-route production
+  build, Compose validation, warning-free OpenAPI validation, the PostgreSQL
+  registration/catalogue/cart/address/checkout/order-transition smoke flow,
+  Flutter analyze and 52 Flutter tests.
+- Live desktop browser QA passed for ADMIN, PHARMACIST, STAFF and CUSTOMER:
+  grouped navigation, attention counts, medicine/image controls, category-media
+  form, user-management controls, customer rejection and a clean console.
+  Prescription clarification/approval/customer-state acceptance was completed
+  in the immediately preceding checkpoint. The responsive browser override did
+  not change the automation viewport, so narrow layout remains covered by CSS,
+  type/build tests rather than a fresh manual narrow-browser claim.
+
 ## 2026-08-12 - Operational staff prescription workflow
 
 - Replaced the read-only `/staff/prescriptions` table and Django Admin handoff

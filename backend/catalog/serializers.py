@@ -28,7 +28,7 @@ class CategorySerializer(serializers.ModelSerializer):
             "display_order",
         )
 
-    def get_image_url(self, obj):
+    def get_image_url(self, obj: Category) -> str:
         if not obj.image:
             return ""
         view = self.context.get("view")

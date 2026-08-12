@@ -13,5 +13,8 @@ implementation progress is in `docs/BUILD_LOG.md`.
    refund completion remains an explicit manual record.
 5. Add delivery assignment/live tracking, rate limiting, managed secrets/object
    storage, observability, backups, and CI across PostgreSQL/web/mobile.
-6. Build a dedicated staff operations console only if Django Admin and the
-   staff APIs are insufficient for the pharmacy's day-to-day workflow.
+6. Add guided create/edit workflows to the remaining list-oriented procurement,
+   warehouse, inventory, and return pages so advanced operations no longer need
+   low-level tools.
+7. Complete an attended narrow-browser visual pass for the custom staff portal;
+   the final automated browser runtime did not apply its requested viewport.

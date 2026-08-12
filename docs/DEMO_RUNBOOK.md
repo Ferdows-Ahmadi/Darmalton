@@ -89,10 +89,9 @@ more auto-advance every six seconds and remain swipeable.
 
 ### Medicine images
 
-Open `http://localhost:8000/admin/catalog/medicine/` and edit a medicine's
-image inline, or use `http://localhost:8000/admin/catalog/medicineimage/add/`.
-Select the medicine, upload an image, enter useful alt text, and mark the main
-image primary. Refresh the client; no rebuild is required. To list missing
+Open `http://localhost:3000/staff/medicines`, select a medicine, and use its
+image manager to upload, preview, choose the primary image, or safely remove an
+image. Refresh the customer client; no rebuild is required. To list missing
 images:
 
 ```powershell
@@ -111,7 +110,9 @@ provided.
 4. Upload a prescription from camera, gallery, or file and show its history.
 5. In the staff portal, open Prescriptions and perform review/clarification.
 6. Show CMS banner management and the resulting Pixel home carousel.
-7. Show inventory, suppliers, procurement, returns, reports, and Django Admin.
+7. Show catalogue, inventory, suppliers, procurement, returns, reports, and
+   ADMIN-only staff/user management in the custom staff portal.
+8. Mention Django Admin only as the hidden technical emergency fallback.
 
 ## Recovery and shutdown
 

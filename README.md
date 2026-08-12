@@ -43,8 +43,9 @@ The staff portal accepts `STAFF`, `PHARMACIST`, and `ADMIN` accounts and sends
 unauthenticated visitors to its dedicated sign-in page while preserving the
 requested staff route. A staff account entered through the public sign-in page
 is also routed to `/staff`; customer accounts cannot enter the staff portal.
-Django Admin remains a separate Django-session application. The staff console's
-`/admin` bridge opens it on backend port 8000 by default; set
+The custom portal is the normal interface for prescription review, catalogue
+and media management, CMS, and administrator account management. Django Admin
+remains a separate hidden technical fallback at backend port 8000; set
 `DJANGO_ADMIN_ORIGIN` when production routing uses a different backend origin.
 
 ## Google sign-in configuration

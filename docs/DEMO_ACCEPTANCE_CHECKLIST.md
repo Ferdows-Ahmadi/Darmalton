@@ -16,9 +16,12 @@ state; `[ ]` requires an attended check or meeting content.
 
 - [x] Public home and shop render RTL without console/runtime errors.
 - [x] Staff authentication sends unauthorized users to `/staff/login` and preserves routes.
-- [x] ADMIN reaches the dashboard and all operations/CMS navigation routes.
+- [x] ADMIN reaches the grouped dashboard and all operations/CMS navigation routes.
 - [x] Customer accounts remain blocked from staff pages.
-- [x] Django Admin is separate and its catalogue, images, users, and CMS lists load.
+- [x] Medicine/image, category/media, CMS, prescription, and user administration
+  controls are available in the custom staff portal.
+- [x] Django Admin remains separate as a technical fallback and is absent from
+  normal staff navigation.
 - [x] CMS create form exposes bilingual copy, scheduling, action, state, and guarded image upload.
 
 ## Pixel application
