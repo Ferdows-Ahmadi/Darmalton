@@ -34,7 +34,8 @@ export function StaffResourcePage({
   columns,
   statusOptions = [],
   actionLabel,
-  actionHref
+  actionHref,
+  statusParam = "status"
 }: {
   title: string;
   description: string;
@@ -43,6 +44,7 @@ export function StaffResourcePage({
   statusOptions?: readonly string[];
   actionLabel?: string;
   actionHref?: string;
+  statusParam?: string;
 }) {
   const [records, setRecords] = useState<StaffRecord[]>([]);
   const [count, setCount] = useState(0);
@@ -57,7 +59,7 @@ export function StaffResourcePage({
     setError("");
     const params = new URLSearchParams();
     if (appliedQuery) params.set("search", appliedQuery);
-    if (status) params.set("status", status);
+    if (status) params.set(statusParam, status);
     try {
       const payload = await apiFetch<PageResult<StaffRecord>>(
         `${endpoint}${params.size ? `?${params}` : ""}`
@@ -73,7 +75,12 @@ export function StaffResourcePage({
     } finally {
       setBusy(false);
     }
-  }, [appliedQuery, endpoint, status]);
+  }, [appliedQuery, endpoint, status, statusParam]);
+
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("status");
+    if (requested && statusOptions.includes(requested)) setStatus(requested);
+  }, [statusOptions]);
 
   useEffect(() => {
     void load();

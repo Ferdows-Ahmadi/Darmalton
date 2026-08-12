@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { apiFetch, money } from "@/lib/api";
-import type { PageResult } from "@/lib/types";
+import { dashboardMetricsForRole, type DashboardMetric } from "@/lib/staff-dashboard";
+import type { PageResult, User } from "@/lib/types";
 
 type DashboardOrder = {
   id: string;
@@ -15,154 +16,52 @@ type DashboardOrder = {
   placed_at: string;
 };
 
-const metrics = [
-  ["orders", "سفارش‌ها", "▤", "/staff/orders"],
-  ["prescriptions", "نسخه‌های منتظر", "Rx", "/staff/prescriptions"],
-  ["inventory", "بچ‌های موجودی", "▦", "/staff/inventory"],
-  ["returns", "درخواست‌های مرجوعی", "↺", "/staff/returns"]
-] as const;
-
 export default function StaffDashboard() {
+  const [user, setUser] = useState<User | null>(null);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [orders, setOrders] = useState<DashboardOrder[]>([]);
   const [busy, setBusy] = useState(true);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function load() {
-      const endpoints = {
-        orders: "staff/orders/",
-        prescriptions: "staff/prescriptions/?status=SUBMITTED",
-        inventory: "operations/inventory-batches/",
-        returns: "operations/returns/"
-      };
-      const entries = await Promise.allSettled(
-        Object.entries(endpoints).map(async ([key, endpoint]) => {
-          const result = await apiFetch<PageResult<DashboardOrder>>(endpoint);
-          return [key, result] as const;
+  const metrics = useMemo(() => dashboardMetricsForRole(user?.role || "STAFF"), [user]);
+
+  const load = useCallback(async () => {
+    setBusy(true);
+    setError("");
+    try {
+      const profile = await apiFetch<User>("auth/me/");
+      setUser(profile);
+      const visible = dashboardMetricsForRole(profile.role);
+      const results = await Promise.allSettled(
+        visible.map(async ([key, , , , endpoint]) => {
+          const result = await apiFetch<PageResult<unknown>>(endpoint);
+          return [key, result.count] as const;
         })
       );
       const nextCounts: Record<string, number> = {};
-      for (const entry of entries) {
-        if (entry.status === "fulfilled") {
-          nextCounts[entry.value[0]] = entry.value[1].count;
-          if (entry.value[0] === "orders") {
-            setOrders(entry.value[1].results.slice(0, 6));
-          }
-        }
-      }
+      results.forEach((result) => {
+        if (result.status === "fulfilled") nextCounts[result.value[0]] = result.value[1];
+      });
       setCounts(nextCounts);
+      const recent = await apiFetch<PageResult<DashboardOrder>>("staff/orders/?ordering=-placed_at");
+      setOrders(recent.results.slice(0, 6));
+      if (results.some((result) => result.status === "rejected")) {
+        setError("بخشی از شمارنده‌ها در دسترس نبود؛ داده‌های موجود نمایش داده شده‌اند.");
+      }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "دریافت داشبورد ناموفق بود.");
+    } finally {
       setBusy(false);
     }
-    void load();
   }, []);
 
-  const maxCount = Math.max(1, ...Object.values(counts));
+  useEffect(() => { void load(); }, [load]);
 
-  return (
-    <section className="staff-page staff-dashboard">
-      <header className="staff-page-heading">
-        <div>
-          <span className="staff-eyebrow">امروز در درملتون</span>
-          <h1>نمای کلی عملیات</h1>
-          <p>سفارش، نسخه، موجودی و مرجوعی‌های نیازمند توجه را یک‌جا ببینید.</p>
-        </div>
-        <span className="staff-live-indicator">● داده زنده سرور</span>
-      </header>
-
-      <div className="staff-metric-grid">
-        {metrics.map(([key, label, icon, href]) => (
-          <Link className="staff-metric-card" href={href} key={key}>
-            <span className="staff-metric-icon">{icon}</span>
-            <span>{label}</span>
-            <strong>{busy ? "…" : (counts[key] || 0).toLocaleString("fa-AF")}</strong>
-            <small>مشاهده جزئیات ←</small>
-          </Link>
-        ))}
-      </div>
-
-      <div className="staff-dashboard-grid">
-        <article className="staff-panel">
-          <div className="staff-panel-heading">
-            <div>
-              <span className="staff-eyebrow">حجم کاری</span>
-              <h2>نمای سریع بخش‌ها</h2>
-            </div>
-            <span>بر اساس شمار رکوردهای فعال</span>
-          </div>
-          <div className="staff-bar-chart" aria-label="مقایسه حجم کاری بخش‌ها">
-            {metrics.map(([key, label]) => (
-              <div key={key}>
-                <span>{label}</span>
-                <i>
-                  <b
-                    style={{
-                      width: `${Math.max(8, ((counts[key] || 0) / maxCount) * 100)}%`
-                    }}
-                  />
-                </i>
-                <strong>{counts[key] || 0}</strong>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="staff-panel staff-attention">
-          <div className="staff-panel-heading">
-            <div>
-              <span className="staff-eyebrow">اولویت امروز</span>
-              <h2>کارهای پیشنهادی</h2>
-            </div>
-          </div>
-          <Link href="/staff/prescriptions">بررسی نسخه‌های تازه</Link>
-          <Link href="/staff/inventory">کنترل بچ‌های قرنطین‌شده</Link>
-          <Link href="/staff/purchase-orders">پیگیری خریدهای در انتظار</Link>
-          <Link href="/staff/returns">رسیدگی به مرجوعی‌ها</Link>
-        </article>
-      </div>
-
-      <article className="staff-panel">
-        <div className="staff-panel-heading">
-          <div>
-            <span className="staff-eyebrow">آخرین فعالیت</span>
-            <h2>سفارش‌های تازه</h2>
-          </div>
-          <Link href="/staff/orders">همه سفارش‌ها</Link>
-        </div>
-        <div className="staff-table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>شماره سفارش</th>
-                <th>مشتری</th>
-                <th>وضعیت</th>
-                <th>مبلغ</th>
-                <th>زمان</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.length ? (
-                orders.map((order) => (
-                  <tr key={order.id}>
-                    <td dir="ltr">{order.order_number}</td>
-                    <td>{order.customer_email}</td>
-                    <td>
-                      <span className={`staff-status status-${order.status}`}>
-                        {order.status.replaceAll("_", " ")}
-                      </span>
-                    </td>
-                    <td>{money(order.grand_total)}</td>
-                    <td>{new Date(order.placed_at).toLocaleDateString("fa-AF")}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5}>سفارش تازه‌ای برای نمایش وجود ندارد.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </article>
-    </section>
-  );
+  return <section className="staff-page staff-dashboard">
+    <header className="staff-page-heading"><div><span className="staff-eyebrow">امروز در درملتون</span><h1>چه چیزی نیازمند توجه است؟</h1><p>کارهای عملیاتی واقعی را بر اساس نقش خود ببینید و مستقیماً به صف مربوط بروید.</p></div><button className="staff-dashboard-refresh" onClick={() => void load()} disabled={busy}>{busy ? "در حال تازه‌سازی…" : "تازه‌سازی داده‌ها"}</button></header>
+    {error && <div className="staff-dashboard-warning" role="alert"><span>{error}</span><button onClick={() => void load()}>تلاش دوباره</button></div>}
+    <div className="staff-metric-grid staff-attention-grid">{metrics.map(([key,label,icon,href]:DashboardMetric)=><Link className="staff-metric-card" href={href} key={key}><span className="staff-metric-icon">{icon}</span><span>{label}</span><strong>{busy?"…":(counts[key]??0).toLocaleString("fa-AF")}</strong><small>{(counts[key]??0)>0?"بازکردن صف کار ←":"مورد تازه‌ای نیست"}</small></Link>)}</div>
+    <div className="staff-dashboard-grid"><article className="staff-panel staff-attention"><div className="staff-panel-heading"><div><span className="staff-eyebrow">میان‌برهای عملیاتی</span><h2>مدیریت روزانه</h2></div></div><Link href="/staff/medicines">مدیریت دارو و تصاویر</Link><Link href="/staff/categories">مدیریت دسته‌بندی‌ها</Link>{user?.role==="ADMIN"&&<Link href="/staff/users">مدیریت کاربران و کارکنان</Link>}<Link href="/staff/cms">مدیریت محتوای عمومی</Link></article><article className="staff-panel staff-dashboard-principle"><span className="staff-eyebrow">اصل عملیاتی</span><h2>همه کارها در همین پنل</h2><p>نسخه، کاتالوگ، کاربران، موجودی، تدارکات و محتوا از مسیرهای عادی پنل درملتون مدیریت می‌شوند. Django Admin فقط راه اضطراری فنی است و در منوی روزمره نمایش داده نمی‌شود.</p></article></div>
+    <article className="staff-panel"><div className="staff-panel-heading"><div><span className="staff-eyebrow">آخرین فعالیت</span><h2>سفارش‌های تازه</h2></div><Link href="/staff/orders">همه سفارش‌ها</Link></div><div className="staff-table-scroll"><table><thead><tr><th>شماره سفارش</th><th>مشتری</th><th>وضعیت</th><th>مبلغ</th><th>زمان</th></tr></thead><tbody>{orders.length?orders.map(order=><tr key={order.id}><td dir="ltr">{order.order_number}</td><td>{order.customer_email}</td><td><span className={`staff-status status-${order.status}`}>{order.status.replaceAll("_"," ")}</span></td><td>{money(order.grand_total)}</td><td>{new Date(order.placed_at).toLocaleDateString("fa-AF")}</td></tr>):<tr><td colSpan={5}>{busy?"در حال دریافت…":"سفارش تازه‌ای برای نمایش وجود ندارد."}</td></tr>}</tbody></table></div></article>
+  </section>;
 }

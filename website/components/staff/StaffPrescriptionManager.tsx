@@ -161,6 +161,11 @@ export function StaffPrescriptionManager() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("status");
+    if (requested && prescriptionStatuses.some((value) => value === requested)) setStatus(requested);
+  }, []);
+
   useEffect(() => setPage(1), [appliedQuery, ordering, status]);
 
   useEffect(() => {

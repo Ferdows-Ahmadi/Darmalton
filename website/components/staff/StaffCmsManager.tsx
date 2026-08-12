@@ -170,6 +170,13 @@ export function StaffCmsManager({ resource }: { resource: CmsResource }) {
   }, [load]);
 
   useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("status");
+    if (requested && ["DRAFT", "PUBLISHED", "ARCHIVED"].includes(requested)) {
+      setStatus(requested);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!localPreview) return;
     return () => URL.revokeObjectURL(localPreview);
   }, [localPreview]);

@@ -7,6 +7,7 @@ export default function StaffInventoryPage() {
       description="بچ‌ها، تاریخ انقضا، محل نگهداری، قرنطین و تأیید شمارش را بررسی کنید."
       endpoint="operations/inventory-batches/"
       statusOptions={["PENDING", "APPROVED", "QUARANTINED", "REJECTED"]}
+      statusParam="quality_status"
       columns={[
         { key: "medicine_name", label: "محصول" },
         { key: "batch_number", label: "شماره بچ" },

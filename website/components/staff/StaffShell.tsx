@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 
 import { apiFetch } from "@/lib/api";
 import { isStaffRole, staffLoginPath } from "@/lib/auth-navigation";
-import { staffNavigation } from "@/lib/staff-navigation";
+import { staffNavigationForRole } from "@/lib/staff-navigation";
 import type { User } from "@/lib/types";
 
 export function StaffShell({ children }: { children: React.ReactNode }) {
@@ -65,20 +65,25 @@ export function StaffShell({ children }: { children: React.ReactNode }) {
           <span>پنل عملیات</span>
         </div>
         <nav aria-label="منوی پنل کارمندان">
-          {staffNavigation.map(([href, label, icon]) => {
-            const active =
-              pathname === href || (href !== "/staff" && pathname.startsWith(`${href}/`));
-            return (
-              <Link className={active ? "active" : ""} href={href} key={href}>
-                <span aria-hidden="true">{icon}</span>
-                {label}
-              </Link>
-            );
-          })}
+          {staffNavigationForRole(user.role).map((group) => (
+            <section className="staff-nav-group" key={group.label}>
+              <strong>{group.label}</strong>
+              {group.items.map(([href, label, icon]) => {
+                const overview = href === "/staff" || href === "/staff/cms";
+                const active =
+                  pathname === href || (!overview && pathname.startsWith(`${href}/`));
+                return (
+                  <Link className={active ? "active" : ""} href={href} key={href}>
+                    <span aria-hidden="true">{icon}</span>
+                    {label}
+                  </Link>
+                );
+              })}
+            </section>
+          ))}
         </nav>
         <div className="staff-sidebar-footer">
           <Link href="/shop">مشاهده فروشگاه</Link>
-          <a href="/admin">Django Admin</a>
         </div>
       </aside>
       <section className="staff-workspace">
