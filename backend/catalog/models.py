@@ -15,6 +15,35 @@ class RecordStatus(models.TextChoices):
     INACTIVE = "INACTIVE", "Inactive"
 
 
+def validate_image_size(value):
+    if value.size > 5 * 1024 * 1024:
+        raise ValidationError("Images must be 5 MB or smaller.")
+
+
+def validate_catalog_image(value):
+    position = value.tell() if hasattr(value, "tell") else 0
+    try:
+        value.seek(0)
+        with Image.open(value) as image:
+            image.verify()
+        value.seek(0)
+        with Image.open(value) as image:
+            image_format = (image.format or "").upper()
+            width, height = image.size
+    except (UnidentifiedImageError, OSError, ValueError) as exc:
+        raise ValidationError("Upload a valid JPEG, PNG, or WebP image.") from exc
+    finally:
+        if hasattr(value, "seek"):
+            value.seek(position)
+
+    if image_format not in {"JPEG", "PNG", "WEBP"}:
+        raise ValidationError("Upload a JPEG, PNG, or WebP image.")
+    if width < 128 or height < 128:
+        raise ValidationError("Images must be at least 128 by 128 pixels.")
+    if width > 6000 or height > 6000:
+        raise ValidationError("Images must not exceed 6000 pixels per side.")
+
+
 class Pharmacy(TimeStampedUUIDModel):
     name = models.CharField(max_length=160)
     legal_name = models.CharField(max_length=200, blank=True)
@@ -53,17 +82,31 @@ class Category(TimeStampedUUIDModel):
     name = models.CharField(max_length=120)
     name_dari = models.CharField(max_length=120, blank=True)
     slug = models.SlugField(max_length=140, unique=True)
+    image = models.ImageField(
+        upload_to="categories/%Y/%m/",
+        blank=True,
+        validators=[
+            FileExtensionValidator(["jpg", "jpeg", "png", "webp"]),
+            validate_image_size,
+            validate_catalog_image,
+        ],
+    )
+    display_order = models.PositiveIntegerField(default=0)
     status = models.CharField(
         max_length=16, choices=RecordStatus.choices, default=RecordStatus.ACTIVE
     )
 
     class Meta:
-        ordering = ("name",)
+        ordering = ("display_order", "name")
         verbose_name_plural = "categories"
 
     def clean(self):
         if self.parent_id and self.parent_id == self.id:
             raise ValidationError({"parent": "A category cannot be its own parent."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -128,33 +171,8 @@ class Medicine(TimeStampedUUIDModel):
         return f"{self.brand_name} {self.strength}".strip()
 
 
-def validate_image_size(value):
-    if value.size > 5 * 1024 * 1024:
-        raise ValidationError("Medicine images must be 5 MB or smaller.")
-
-
 def validate_medicine_image(value):
-    position = value.tell() if hasattr(value, "tell") else 0
-    try:
-        value.seek(0)
-        with Image.open(value) as image:
-            image.verify()
-        value.seek(0)
-        with Image.open(value) as image:
-            image_format = (image.format or "").upper()
-            width, height = image.size
-    except (UnidentifiedImageError, OSError, ValueError) as exc:
-        raise ValidationError("Upload a valid JPEG, PNG, or WebP image.") from exc
-    finally:
-        if hasattr(value, "seek"):
-            value.seek(position)
-
-    if image_format not in {"JPEG", "PNG", "WEBP"}:
-        raise ValidationError("Upload a JPEG, PNG, or WebP image.")
-    if width < 128 or height < 128:
-        raise ValidationError("Medicine images must be at least 128 by 128 pixels.")
-    if width > 6000 or height > 6000:
-        raise ValidationError("Medicine images must not exceed 6000 pixels per side.")
+    validate_catalog_image(value)
 
 
 class MedicineImage(TimeStampedUUIDModel):

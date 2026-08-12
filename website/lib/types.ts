@@ -12,6 +12,10 @@ export type Category = {
   name: string;
   name_dari: string;
   slug: string;
+  parent_id?: string | null;
+  image_url?: string;
+  display_order?: number;
+  status?: string;
 };
 
 export type Medicine = {
@@ -41,6 +45,19 @@ export type Medicine = {
   price: string | null;
   available_quantity: number;
   in_stock: boolean;
+  barcode?: string | null;
+  status?: "DRAFT" | "ACTIVE" | "INACTIVE" | "RECALLED";
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type Manufacturer = { id: string; name: string };
+
+export type DosageForm = {
+  id: string;
+  code: string;
+  name: string;
+  name_dari: string;
 };
 
 export type CartItem = {

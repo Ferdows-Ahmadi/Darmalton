@@ -14,9 +14,44 @@ from .models import (
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Category
-        fields = ("id", "name", "name_dari", "slug", "parent_id")
+        fields = (
+            "id",
+            "name",
+            "name_dari",
+            "slug",
+            "parent_id",
+            "image_url",
+            "display_order",
+        )
+
+    def get_image_url(self, obj):
+        if not obj.image:
+            return ""
+        view = self.context.get("view")
+        basename = getattr(view, "basename", "category")
+        route = "staff-category-image" if basename == "staff-category" else "category-image"
+        path = reverse(route, kwargs={"pk": obj.pk})
+        request = self.context.get("request")
+        return request.build_absolute_uri(path) if request else path
+
+
+class StaffCategorySerializer(CategorySerializer):
+    class Meta(CategorySerializer.Meta):
+        fields = CategorySerializer.Meta.fields + ("image", "status", "created_at", "updated_at")
+        extra_kwargs = {"image": {"write_only": True, "required": False}}
+        read_only_fields = ("id", "image_url", "created_at", "updated_at")
+
+    def update(self, instance, validated_data):
+        old_image = instance.image
+        replacing = "image" in validated_data
+        updated = super().update(instance, validated_data)
+        if replacing and old_image and old_image.name != updated.image.name:
+            old_image.storage.delete(old_image.name)
+        return updated
 
 
 class NamedSerializer(serializers.ModelSerializer):
@@ -173,3 +208,46 @@ class MedicineSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         path = "/static/medicine-fallback.svg"
         return request.build_absolute_uri(path) if request else path
+
+
+class StaffMedicineSerializer(MedicineSerializer):
+    manufacturer_id = serializers.PrimaryKeyRelatedField(
+        source="manufacturer",
+        queryset=Manufacturer.objects.all(),
+        allow_null=True,
+        required=False,
+    )
+    category_id = serializers.PrimaryKeyRelatedField(
+        source="category",
+        queryset=Category.objects.all(),
+        allow_null=True,
+        required=False,
+    )
+    dosage_form_id = serializers.PrimaryKeyRelatedField(
+        source="dosage_form",
+        queryset=DosageForm.objects.all(),
+    )
+
+    class Meta(MedicineSerializer.Meta):
+        fields = MedicineSerializer.Meta.fields + (
+            "manufacturer_id",
+            "category_id",
+            "dosage_form_id",
+            "barcode",
+            "status",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "id",
+            "manufacturer",
+            "category",
+            "dosage_form",
+            "image_url",
+            "images",
+            "price",
+            "available_quantity",
+            "in_stock",
+            "created_at",
+            "updated_at",
+        )

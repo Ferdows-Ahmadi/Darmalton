@@ -7,19 +7,31 @@ from django.conf import settings
 from django.db.models import Exists, OuterRef, Q, Subquery
 from django.http import FileResponse, HttpResponseNotModified
 from django.utils import timezone
-from rest_framework import permissions, viewsets
+from rest_framework import filters, permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 
 from accounts.models import User
+from operations.permissions import IsOperationsStaff
 
-from .models import Category, InventoryBatch, Manufacturer, Medicine, MedicineImage, RecordStatus
+from .models import (
+    Category,
+    DosageForm,
+    InventoryBatch,
+    Manufacturer,
+    Medicine,
+    MedicineImage,
+    RecordStatus,
+)
 from .serializers import (
     CategorySerializer,
+    DosageFormSerializer,
     ManufacturerSerializer,
     MedicineImageSerializer,
     MedicineSerializer,
+    StaffCategorySerializer,
+    StaffMedicineSerializer,
 )
 
 
@@ -31,7 +43,10 @@ class CanManageMedicineImages(permissions.BasePermission):
         return bool(
             user
             and user.is_authenticated
-            and (user.is_staff or user.role in {User.Role.STAFF, User.Role.ADMIN})
+            and (
+                user.is_staff
+                or user.role in {User.Role.STAFF, User.Role.PHARMACIST, User.Role.ADMIN}
+            )
         )
 
 
@@ -41,12 +56,64 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
     queryset = Category.objects.filter(status=RecordStatus.ACTIVE).select_related("parent")
 
+    @action(detail=True, methods=("get",), url_path="image")
+    def image(self, request, pk=None):
+        instance = self.get_object()
+        if not instance.image:
+            fallback = settings.BASE_DIR / "static" / "medicine-fallback.svg"
+            return FileResponse(fallback.open("rb"), content_type="image/svg+xml")
+        content_type = mimetypes.guess_type(instance.image.name)[0] or "application/octet-stream"
+        response = FileResponse(instance.image.open("rb"), content_type=content_type)
+        response["Cache-Control"] = "public, max-age=3600, stale-while-revalidate=86400"
+        response["X-Content-Type-Options"] = "nosniff"
+        return response
+
+
+class StaffCategoryViewSet(viewsets.ModelViewSet):
+    serializer_class = StaffCategorySerializer
+    permission_classes = (IsOperationsStaff,)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
+    search_fields = ("name", "name_dari", "slug")
+    ordering_fields = ("display_order", "name", "created_at", "updated_at")
+    ordering = ("display_order", "name")
+    queryset = Category.objects.select_related("parent").all()
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        status = self.request.query_params.get("status", "").strip()
+        return queryset.filter(status=status) if status else queryset
+
+    @action(detail=True, methods=("get",), url_path="image")
+    def image(self, request, pk=None):
+        instance = self.get_object()
+        if not instance.image:
+            fallback = settings.BASE_DIR / "static" / "medicine-fallback.svg"
+            return FileResponse(fallback.open("rb"), content_type="image/svg+xml")
+        content_type = mimetypes.guess_type(instance.image.name)[0] or "application/octet-stream"
+        return FileResponse(instance.image.open("rb"), content_type=content_type)
+
+    def perform_destroy(self, instance):
+        image = instance.image
+        if instance.children.exists() or instance.medicines.exists():
+            raise ValidationError("Deactivate categories that are already in use.")
+        super().perform_destroy(instance)
+        if image:
+            image.storage.delete(image.name)
+
 
 class ManufacturerViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
     pagination_class = None
     serializer_class = ManufacturerSerializer
     queryset = Manufacturer.objects.order_by("name")
+
+
+class DosageFormViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    pagination_class = None
+    serializer_class = DosageFormSerializer
+    queryset = DosageForm.objects.order_by("name")
 
 
 class MedicineViewSet(viewsets.ReadOnlyModelViewSet):
@@ -153,6 +220,57 @@ class MedicineViewSet(viewsets.ReadOnlyModelViewSet):
         if not parsed.is_finite() or parsed < 0:
             raise ValidationError({name: "Enter a valid non-negative price."})
         return parsed
+
+
+class StaffMedicineViewSet(MedicineViewSet, viewsets.ModelViewSet):
+    permission_classes = (IsOperationsStaff,)
+    serializer_class = StaffMedicineSerializer
+    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
+    search_fields = ("brand_name", "brand_name_dari", "generic_name", "sku", "barcode")
+    ordering_fields = ("brand_name", "sku", "created_at", "updated_at")
+    ordering = ("brand_name",)
+    http_method_names = ("get", "post", "patch", "put", "head", "options")
+    queryset = (
+        Medicine.objects.select_related("manufacturer", "category", "dosage_form")
+        .prefetch_related("images", "batches__branch")
+        .all()
+    )
+
+    def get_queryset(self):
+        queryset = self.queryset
+        status = self.request.query_params.get("status", "").strip()
+        prescription_required = self.request.query_params.get("prescription_required", "").strip()
+        if status:
+            queryset = queryset.filter(status=status)
+        if prescription_required:
+            queryset = queryset.filter(
+                prescription_required=self._boolean_parameter(
+                    "prescription_required", prescription_required
+                )
+            )
+        search = self.request.query_params.get("search", "").strip()
+        if search:
+            queryset = queryset.filter(
+                Q(brand_name__icontains=search)
+                | Q(brand_name_dari__icontains=search)
+                | Q(generic_name__icontains=search)
+                | Q(sku__icontains=search)
+                | Q(barcode__icontains=search)
+            )
+        ordering = self.request.query_params.get("ordering", "brand_name").strip()
+        allowed = {
+            "brand_name",
+            "-brand_name",
+            "sku",
+            "-sku",
+            "created_at",
+            "-created_at",
+            "updated_at",
+            "-updated_at",
+        }
+        if ordering not in allowed:
+            raise ValidationError({"ordering": "Select a supported medicine ordering."})
+        return queryset.order_by(ordering, "id")
 
 
 class MedicineImageViewSet(viewsets.ModelViewSet):
