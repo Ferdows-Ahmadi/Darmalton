@@ -94,6 +94,15 @@ class SupplierSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class PharmacyBranchOperationsSerializer(serializers.ModelSerializer):
+    pharmacy_name = serializers.CharField(source="pharmacy.name", read_only=True)
+
+    class Meta:
+        model = PharmacyBranch
+        fields = ("id", "name", "pharmacy_name", "phone", "address_text", "status")
+        read_only_fields = fields
+
+
 class PurchaseOrderItemSerializer(serializers.ModelSerializer):
     medicine_id = serializers.PrimaryKeyRelatedField(
         source="medicine",
@@ -241,19 +250,33 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
 
 
 class WarehouseSerializer(serializers.ModelSerializer):
+    branch_name = serializers.CharField(source="branch.name", read_only=True)
+    location_count = serializers.IntegerField(read_only=True)
+    stock_quantity = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Warehouse
         fields = (
             "id",
             "branch",
+            "branch_name",
             "code",
             "name",
             "address",
             "is_active",
+            "location_count",
+            "stock_quantity",
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "created_at", "updated_at")
+        read_only_fields = (
+            "id",
+            "branch_name",
+            "location_count",
+            "stock_quantity",
+            "created_at",
+            "updated_at",
+        )
 
     def validate_code(self, value):
         return value.strip().upper()
@@ -262,6 +285,8 @@ class WarehouseSerializer(serializers.ModelSerializer):
 class StorageLocationSerializer(serializers.ModelSerializer):
     warehouse_code = serializers.CharField(source="warehouse.code", read_only=True)
     branch_id = serializers.UUIDField(source="warehouse.branch.id", read_only=True)
+    stock_quantity = serializers.IntegerField(read_only=True)
+    batch_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = StorageLocation
@@ -276,6 +301,8 @@ class StorageLocationSerializer(serializers.ModelSerializer):
             "shelf",
             "temperature_zone",
             "is_active",
+            "stock_quantity",
+            "batch_count",
             "created_at",
             "updated_at",
         )
@@ -283,6 +310,8 @@ class StorageLocationSerializer(serializers.ModelSerializer):
             "id",
             "warehouse_code",
             "branch_id",
+            "stock_quantity",
+            "batch_count",
             "created_at",
             "updated_at",
         )

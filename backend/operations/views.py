@@ -1,7 +1,9 @@
+from django.db.models import Count, Sum
+from django.db.models.functions import Coalesce
 from rest_framework import filters, mixins, response, status, viewsets
 from rest_framework.decorators import action
 
-from catalog.models import InventoryBatch
+from catalog.models import InventoryBatch, PharmacyBranch
 
 from .models import (
     InventoryTransaction,
@@ -16,6 +18,7 @@ from .serializers import (
     InventoryAdjustmentInputSerializer,
     InventoryBatchOperationsSerializer,
     InventoryTransactionSerializer,
+    PharmacyBranchOperationsSerializer,
     PurchaseOrderSerializer,
     PurchaseReceiptSerializer,
     QualityInspectionInputSerializer,
@@ -78,6 +81,13 @@ class SupplierViewSet(viewsets.ModelViewSet):
                 elif normalized in {"false", "0"}:
                     queryset = queryset.filter(**{field: False})
         return queryset
+
+
+class PharmacyBranchOperationsViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsOperationsStaff,)
+    serializer_class = PharmacyBranchOperationsSerializer
+    pagination_class = None
+    queryset = PharmacyBranch.objects.select_related("pharmacy").order_by("name")
 
 
 class PurchaseOrderViewSet(viewsets.ModelViewSet):
@@ -177,7 +187,10 @@ class WarehouseViewSet(viewsets.ModelViewSet):
     http_method_names = ("get", "post", "put", "patch", "head", "options")
     permission_classes = (IsOperationsStaff,)
     serializer_class = WarehouseSerializer
-    queryset = Warehouse.objects.select_related("branch")
+    queryset = Warehouse.objects.select_related("branch").annotate(
+        location_count=Count("locations", distinct=True),
+        stock_quantity=Coalesce(Sum("locations__batches__available_quantity"), 0),
+    )
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ("code", "name", "branch__name", "address")
     ordering_fields = ("code", "name", "created_at")
@@ -198,7 +211,12 @@ class StorageLocationViewSet(viewsets.ModelViewSet):
     http_method_names = ("get", "post", "put", "patch", "head", "options")
     permission_classes = (IsOperationsStaff,)
     serializer_class = StorageLocationSerializer
-    queryset = StorageLocation.objects.select_related("warehouse", "warehouse__branch")
+    queryset = StorageLocation.objects.select_related(
+        "warehouse", "warehouse__branch"
+    ).annotate(
+        batch_count=Count("batches", distinct=True),
+        stock_quantity=Coalesce(Sum("batches__available_quantity"), 0),
+    )
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ("code", "name", "rack", "shelf", "warehouse__code")
     ordering_fields = ("code", "rack", "shelf", "created_at")
@@ -212,6 +230,9 @@ class StorageLocationViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(warehouse=warehouse)
         if branch:
             queryset = queryset.filter(warehouse__branch=branch)
+        is_active = self.request.query_params.get("is_active")
+        if is_active and is_active.lower() in {"true", "false"}:
+            queryset = queryset.filter(is_active=is_active.lower() == "true")
         return queryset
 
 

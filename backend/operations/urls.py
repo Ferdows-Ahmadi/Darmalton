@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     InventoryBatchOperationsViewSet,
     InventoryTransactionViewSet,
+    PharmacyBranchOperationsViewSet,
     PurchaseOrderViewSet,
     ReturnRequestViewSet,
     StaffReturnRequestViewSet,
@@ -12,6 +13,11 @@ from .views import (
 )
 
 router = DefaultRouter()
+router.register(
+    "operations/branches",
+    PharmacyBranchOperationsViewSet,
+    basename="operations-branch",
+)
 router.register("operations/suppliers", SupplierViewSet, basename="supplier")
 router.register(
     "operations/purchase-orders",

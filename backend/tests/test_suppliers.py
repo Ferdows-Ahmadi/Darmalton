@@ -99,3 +99,40 @@ def test_supplier_rating_is_bounded(operations_client):
     )
     assert response.status_code == 400
     assert "rating" in response.data["error"]["fields"]
+
+
+@pytest.mark.django_db
+def test_operations_lookups_and_location_totals(
+    operations_client,
+    branch,
+    medicine,
+):
+    from operations.models import StorageLocation, Warehouse
+
+    warehouse = Warehouse.objects.create(branch=branch, code="WH-OPS", name="Operations")
+    location = StorageLocation.objects.create(
+        warehouse=warehouse,
+        code="OPS-A-01",
+        rack="A",
+        shelf="01",
+    )
+    batch = medicine.batches.get()
+    batch.storage_location = location
+    batch.save(update_fields=("storage_location", "updated_at"))
+
+    branches = operations_client.get("/api/v1/operations/branches/")
+    assert branches.status_code == 200
+    assert any(item["id"] == str(branch.pk) for item in branches.data)
+
+    warehouses = operations_client.get("/api/v1/operations/warehouses/")
+    assert warehouses.status_code == 200
+    row = next(item for item in warehouses.data["results"] if item["id"] == str(warehouse.pk))
+    assert row["branch_name"] == branch.name
+    assert row["location_count"] == 1
+    assert row["stock_quantity"] == batch.available_quantity
+
+    locations = operations_client.get("/api/v1/operations/storage-locations/?is_active=true")
+    assert locations.status_code == 200
+    row = next(item for item in locations.data["results"] if item["id"] == str(location.pk))
+    assert row["batch_count"] == 1
+    assert row["stock_quantity"] == batch.available_quantity

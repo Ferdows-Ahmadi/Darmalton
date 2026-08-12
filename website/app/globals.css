@@ -4013,17 +4013,20 @@ a.staff-metric-card:hover {
 
 /* Staff catalogue and user operations */
 .staff-catalogue-toolbar,
-.staff-user-toolbar {
+.staff-user-toolbar,
+.staff-operations-toolbar {
   flex-wrap: wrap;
 }
 
 .staff-catalogue-toolbar form,
-.staff-user-toolbar form {
+.staff-user-toolbar form,
+.staff-operations-toolbar form {
   flex: 1 1 340px;
 }
 
 .staff-catalogue-toolbar select,
-.staff-user-toolbar select {
+.staff-user-toolbar select,
+.staff-operations-toolbar select {
   min-width: 145px;
 }
 
