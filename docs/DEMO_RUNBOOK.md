@@ -61,9 +61,8 @@ On the laptop:
 | Backend health | `http://localhost:8000/api/v1/health/` |
 
 For teammates, replace `localhost` with the IPv4 address printed by
-`demo-start.ps1`. On the currently verified network it is `192.168.0.113`, so
-the public site is `http://192.168.0.113:3000/`. DHCP can change this address;
-always trust the links printed on meeting day.
+`demo-start.ps1`. DHCP can change this address between networks and meetings,
+so always trust the links printed by the script on meeting day.
 
 ## Demo-only accounts
 
