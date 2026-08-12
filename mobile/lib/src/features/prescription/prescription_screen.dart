@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/api_client.dart';
 import '../../core/design_system.dart';
 import '../../core/localized_text.dart';
 import '../../core/models.dart';
@@ -32,6 +33,14 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
   double? _progress;
   bool _submitting = false;
   String _error = '';
+
+  Future<bool> _handleExpiredSession(Object error) async {
+    if (error is! ApiException || error.statusCode != 401) return false;
+    await ref.read(authProvider.notifier).sessionExpired();
+    if (!mounted) return true;
+    context.go('/login?returnTo=${Uri.encodeComponent('/prescription')}');
+    return true;
+  }
 
   @override
   void dispose() {
@@ -109,7 +118,9 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
             : 'عکس دریافت نشد. دوباره تلاش کنید.';
       });
     } catch (error) {
-      if (mounted) setState(() => _error = '$error');
+      if (!await _handleExpiredSession(error) && mounted) {
+        setState(() => _error = '$error');
+      }
     }
   }
 
@@ -170,7 +181,9 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
         ),
       );
     } catch (error) {
-      if (mounted) setState(() => _error = '$error');
+      if (!await _handleExpiredSession(error) && mounted) {
+        setState(() => _error = '$error');
+      }
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -181,7 +194,7 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
       await ref.read(prescriptionRepositoryProvider).cancel(prescription.id);
       ref.invalidate(prescriptionsProvider);
     } catch (error) {
-      if (mounted) {
+      if (!await _handleExpiredSession(error) && mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('$error')));
@@ -223,7 +236,7 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
           .respond(prescription.id, response);
       ref.invalidate(prescriptionsProvider);
     } catch (error) {
-      if (mounted) {
+      if (!await _handleExpiredSession(error) && mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('$error')));

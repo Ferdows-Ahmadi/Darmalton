@@ -37,7 +37,9 @@ class ApiClient {
         onRequest: (options, handler) async {
           options.baseUrl = await _endpointManager.ensureResolved();
           final token = await _storage.read(key: 'access_token');
-          if (token != null) options.headers['Authorization'] = 'Bearer $token';
+          if (token != null && shouldAttachAuthorization(options)) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
           handler.next(options);
         },
         onError: (error, handler) async {
@@ -49,7 +51,9 @@ class ApiClient {
                 final response = await _dio.post<Map<String, dynamic>>(
                   '/auth/refresh/',
                   data: {'refresh': refresh},
-                  options: Options(extra: {'retried': true}),
+                  options: Options(
+                    extra: {'retried': true, 'skipAuthorization': true},
+                  ),
                 );
                 await saveTokens(response.data!);
                 final request = error.requestOptions;
@@ -82,6 +86,10 @@ class ApiClient {
 
   static String normalizeApiBaseUrl(String value) {
     return ApiEndpointManager.normalizeApiBaseUrl(value);
+  }
+
+  static bool shouldAttachAuthorization(RequestOptions options) {
+    return options.extra['skipAuthorization'] != true;
   }
 
   Future<Response<T>> get<T>(String path, {Map<String, dynamic>? query}) async {

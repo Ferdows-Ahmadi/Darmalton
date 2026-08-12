@@ -3,6 +3,7 @@ import 'package:darmalton_pharmacy/src/core/models.dart';
 import 'package:darmalton_pharmacy/src/core/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:dio/dio.dart';
 
 void main() {
   test('API base URL is normalized consistently', () {
@@ -17,6 +18,22 @@ void main() {
     expect(
       ApiClient.normalizeApiBaseUrl('https://api.example.test/api'),
       'https://api.example.test/api/v1',
+    );
+  });
+
+  test('token refresh requests never reuse an invalid bearer token', () {
+    expect(
+      ApiClient.shouldAttachAuthorization(RequestOptions(path: '/orders/')),
+      isTrue,
+    );
+    expect(
+      ApiClient.shouldAttachAuthorization(
+        RequestOptions(
+          path: '/auth/refresh/',
+          extra: const {'skipAuthorization': true},
+        ),
+      ),
+      isFalse,
     );
   });
 
