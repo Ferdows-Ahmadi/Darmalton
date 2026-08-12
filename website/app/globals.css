@@ -4018,6 +4018,20 @@ a.staff-metric-card:hover {
   flex-wrap: wrap;
 }
 
+.staff-operation-modal { max-width: 1080px; }
+.staff-operation-detail { padding: 24px; display: grid; gap: 20px; }
+.staff-operation-detail dl { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 1px; background: #e3eeee; border: 1px solid #e3eeee; border-radius: 14px; overflow: hidden; }
+.staff-operation-detail dl div { background: white; padding: 14px; }
+.staff-operation-detail dt { color: #6d8186; font-size: 12px; }
+.staff-operation-detail dd { margin: 4px 0 0; font-weight: 700; }
+.staff-line-items, .staff-receipt-items { display: grid; gap: 12px; }
+.staff-line-items > div { display: grid; grid-template-columns: minmax(240px,2fr) 100px 140px auto; gap: 8px; }
+.staff-receipt-items fieldset { border: 1px solid #dce8e8; border-radius: 14px; padding: 16px; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.staff-receipt-items legend { color: #087f7b; font-weight: 800; padding: 0 8px; }
+.staff-history-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.staff-history-list li { display: grid; grid-template-columns: 160px minmax(160px,1fr) 2fr; gap: 10px; padding: 12px; border: 1px solid #e2ebeb; border-radius: 12px; }
+@media(max-width:680px){.staff-operation-detail dl{grid-template-columns:1fr 1fr}.staff-line-items>div,.staff-receipt-items fieldset{grid-template-columns:1fr}.staff-history-list li{grid-template-columns:1fr}}
+
 .staff-catalogue-toolbar form,
 .staff-user-toolbar form,
 .staff-operations-toolbar form {

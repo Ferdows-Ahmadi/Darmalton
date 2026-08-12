@@ -1,5 +1,6 @@
 from django.db.models import Count, Sum
 from django.db.models.functions import Coalesce
+from django.utils import timezone
 from rest_framework import filters, mixins, response, status, viewsets
 from rest_framework.decorators import action
 
@@ -266,6 +267,22 @@ class InventoryBatchOperationsViewSet(
             value = self.request.query_params.get(field)
             if value:
                 queryset = queryset.filter(**{field: value})
+        warehouse = self.request.query_params.get("warehouse")
+        if warehouse:
+            queryset = queryset.filter(storage_location__warehouse=warehouse)
+        expiry_before = self.request.query_params.get("expiry_before")
+        if expiry_before:
+            queryset = queryset.filter(expiry_date__lte=expiry_before)
+        stock = self.request.query_params.get("stock")
+        if stock == "out":
+            queryset = queryset.filter(available_quantity=0)
+        elif stock == "low":
+            queryset = queryset.filter(available_quantity__gt=0, available_quantity__lte=10)
+        elif stock == "available":
+            queryset = queryset.filter(available_quantity__gt=0)
+        expiry = self.request.query_params.get("expiry")
+        if expiry == "expired":
+            queryset = queryset.filter(expiry_date__lte=timezone.localdate())
         return queryset
 
     @action(detail=True, methods=("post",))
