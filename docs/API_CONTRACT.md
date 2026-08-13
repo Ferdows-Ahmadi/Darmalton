@@ -50,6 +50,9 @@ otherwise the endpoint returns `google_link_required`.
 | GET/POST | `/staff/categories/` | Operational category list/create |
 | GET/PATCH/PUT/DELETE | `/staff/categories/{id}/` | Category update; delete only when unused |
 | GET | `/staff/categories/{id}/image/` | Authenticated media for inactive records |
+| GET/POST | `/staff/manufacturers/` | Operational manufacturer list/create with optional logo |
+| GET/PATCH/PUT/DELETE | `/staff/manufacturers/{id}/` | Manufacturer update; delete only when unused |
+| GET | `/staff/manufacturers/{id}/logo/` | Authenticated logo for inactive records |
 | GET | `/staff/medicine-imports/template/` | Administrator-only two-sheet XLSX template |
 | POST | `/staff/medicine-imports/preview/` | Administrator-only XLSX/CSV validation; no catalogue mutation |
 | POST | `/staff/medicine-imports/{id}/confirm/` | Atomically confirm the caller's error-free preview |
@@ -182,7 +185,13 @@ deleting a default promotes a safe replacement when one exists.
 - `/auth/me/` reads and updates `preferred_language` (`fa` or `en`). New users
   default to Dari. Customer phone input accepts common Afghan local/`0093`/`+93`
   forms and Persian/Arabic digits, then stores compact E.164.
-- `GET /manufacturers/` is anonymous and read-only.
+- `GET /manufacturers/` is anonymous and read-only, returns active records in
+  configured display order, and exposes `name`, optional `name_dari`, country,
+  website, and a public guarded `logo_url`. `GET /manufacturers/{id}/logo/`
+  serves an uploaded logo or the neutral catalogue fallback with cache headers.
+- Operations staff manage manufacturers through `/staff/manufacturers/` and
+  the authenticated `/staff/manufacturers/{id}/logo/` route. A manufacturer
+  referenced by medicine history cannot be deleted; it can be deactivated.
 - `GET /medicines/` supports `search`, `category`, `manufacturer`,
   `prescription_required`, `in_stock`, `min_price`, `max_price`, and `ordering`.
   Supported ordering values are the allowlisted catalogue name and current-price

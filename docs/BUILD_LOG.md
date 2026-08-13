@@ -606,3 +606,25 @@
   switching, protected-route English guidance, and English offline/exit chrome.
   Full milestone regression, browser, and physical-device verification remain
   scheduled after the remaining product-hardening phases.
+
+## 2026-08-13 - Catalogue discovery and manufacturer management
+
+- Replaced repeated or misleading discovery blocks with live, distinct
+  category shelves and truthful catalogue sections. Category actions now open
+  the existing server-filtered search surface, and medicine cards expose
+  localized product facts, manufacturer context, prescription state, stable
+  imagery, and safe add-to-cart availability.
+- Extended the existing manufacturer entity without duplicating catalogue
+  models. Active manufacturers now support Dari names, validated guarded logo
+  media, staff-controlled display order, country/website metadata, and safe
+  activation/deactivation. Used manufacturers cannot be deleted.
+- Added `/staff/manufacturers` to the existing staff catalogue manager with
+  search, status/order controls, create/edit/detail, logo replacement, and
+  deletion protection. Flutter Home consumes the same public data as a
+  horizontally scrollable brand surface and opens a manufacturer-filtered
+  catalogue rather than a decorative placeholder.
+- Applied PostgreSQL migration `catalog.0008`. Ruff formatting/lint, Django
+  checks, migration consistency, 23 focused catalogue/staff API tests, website
+  tests/typecheck/ESLint, and focused Flutter analysis/widget tests passed.
+  Production website build and attended responsive/device QA are recorded
+  separately when run; no broad milestone regression was claimed here.

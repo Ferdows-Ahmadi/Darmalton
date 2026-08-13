@@ -165,6 +165,7 @@ abstract final class DariStrings {
     'غیرفعال‌کردن حساب': 'Deactivate account',
     'محصولی موجود نیست': 'No products are available',
     'دواهای پرطرفدار': 'Popular medicines',
+    'محصولات کاتالوگ': 'Catalogue products',
     'پیشنهادهای امروز': "Today's picks",
     'ادامه خرید': 'Continue shopping',
     'برندها': 'Brands',

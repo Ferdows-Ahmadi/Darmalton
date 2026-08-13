@@ -29,8 +29,8 @@ or disabled because the required production integration is unavailable, and
 | Account security/deactivation | `/settings/security` | Authenticated | Change password or confirm irreversible deactivation | Backend account tests | Physical form audit open | PARTIAL |
 | Home CMS hero | Home | All | Only eligible scheduled banners; cached fallback; safe internal actions | `promotion_carousel_test.dart` | Zero-state and carousel previously checked | PASS |
 | Home search/quick actions | Home | All | Open one search surface; Rx action requires auth | Widget coverage and route audit | Device interaction open | PARTIAL |
-| Category discovery | `/categories` | All | Useful discovery shelves and filtered See-all paths | Category media tests | Redesign and device QA open | OPEN |
-| Manufacturer discovery | Home brand section | All | Real manufacturers, logo/fallback, swipe, filtered navigation | Coverage pending | Redesign open | OPEN |
+| Category discovery | `/categories` | All | Useful live category shelves and filtered See-all paths | Category media and focused widget tests | Redesign automated; device QA open | PARTIAL |
+| Manufacturer discovery | Home brand section | All | Real active manufacturers, guarded logo/fallback, swipe, filtered navigation | Backend staff/API tests plus Flutter analyze/widget tests | Device QA open | PARTIAL |
 | Catalogue/search | `/search` | All | Search, recent search, filters, sorting, pagination, clear/cancel | Language/filter regression tests | Prior filter smoke passed; full matrix open | PARTIAL |
 | Medicine details | `/medicines/:id` | All | Localized product facts, safe Rx/add-to-cart actions and imagery | Model/widget tests | Device audit open | PARTIAL |
 | Medicine imagery | Shared medicine image | All | Contain fit, stable dimensions, cache and neutral fallback | `app_test.dart` | Missing licensed demo photography documented | PARTIAL |
@@ -75,6 +75,7 @@ or disabled because the required production integration is unavailable, and
 | `/staff/customers` | STAFF/PHARMACIST/ADMIN | Safe customer lookup without excess disclosure | Tests/browser QA | PASS |
 | `/staff/medicines` and `/import` | STAFF/PHARMACIST/ADMIN; import ADMIN | Catalogue/media management and validated staged import | Tests/browser QA | PASS |
 | `/staff/categories` | Operations roles | Category CRUD/media/order | Tests/browser QA | PASS |
+| `/staff/manufacturers` | Operations roles | Manufacturer CRUD/logo/order/status with safe used-record deletion | Backend/web tests; browser QA pending | PARTIAL |
 | `/staff/inventory`, `/ledger` | Operations roles | Stock truth, quality/quarantine, auditable movements | Backend/web tests | PASS |
 | `/staff/warehouses`, `/locations` | Operations roles | Warehouse/rack/shelf management | Tests/browser QA | PASS |
 | `/staff/suppliers` | Operations roles | Supplier lifecycle | Tests/browser QA | PASS |
@@ -91,7 +92,7 @@ or disabled because the required production integration is unavailable, and
 | Area | Required evidence | Current state |
 |---|---|---|
 | Anonymous/customer/staff/pharmacist/admin permissions | Targeted API tests plus UI visibility and IDOR attempts | Existing targeted coverage; full role matrix OPEN |
-| Media validation/access | MIME, extension, size, replacement, cache, guarded/public access | Prescription/catalogue/CMS coverage; manufacturer logo OPEN |
+| Media validation/access | MIME, extension, size, replacement, cache, guarded/public access | Prescription/catalogue/CMS/manufacturer automated coverage; full manual matrix OPEN |
 | Network failure | Startup offline, cached/uncached state, retry, session expiry and recovery | Partial automated/device evidence; exhaustive pass OPEN |
 | Accessibility | Text scale, semantics, focus, contrast, touch targets, reduced motion, RTL order | Partial settings coverage; systematic pass OPEN |
 | Performance | Query counts, rebuild/API duplication, image memory, controller/timer disposal | OPEN |
@@ -102,12 +103,11 @@ or disabled because the required production integration is unavailable, and
 1. Finish the English-copy audit across every Flutter screen; backend-authored
    catalogue/CMS content can fall back to Dari only when its English field is
    genuinely empty.
-2. Redesign Home hierarchy, shared medicine cards, category discovery, and
-   real manufacturer cards using backend data.
+2. Complete device QA for the redesigned Home hierarchy, shared medicine
+   cards, category discovery, and real manufacturer cards.
 3. Implement the safe approved-prescription-to-cart path and customer in-app
    notification presentation.
 4. Remove or hide remaining unsupported courier and other placeholder actions.
 5. Complete attended Pixel camera, address CRUD/GPS, and COD checkout checks.
 6. Integrate the eligible public CMS resources into the website and run the
    complete browser/role matrix after the redesigns stabilize.
-

@@ -15,6 +15,7 @@ test("staff navigation is grouped without duplicate operational destinations", (
   const allPaths = staffNavigation.map(([href]) => href);
   assert.equal(new Set(allPaths).size, allPaths.length);
   assert.ok(allPaths.includes("/staff/medicines"));
+  assert.ok(allPaths.includes("/staff/manufacturers"));
   assert.ok(allPaths.includes("/staff/cms/banners"));
 });
 

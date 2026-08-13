@@ -163,7 +163,10 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Manufacturer)
 class ManufacturerAdmin(admin.ModelAdmin):
-    search_fields = ("name",)
+    list_display = ("name", "name_dari", "country_code", "display_order", "status")
+    list_filter = ("status", "country_code")
+    search_fields = ("name", "name_dari", "country_code")
+    ordering = ("display_order", "name")
 
 
 @admin.register(DosageForm)

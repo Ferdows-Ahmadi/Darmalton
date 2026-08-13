@@ -1,6 +1,6 @@
-export type CatalogueResource = "medicines" | "categories";
+export type CatalogueResource = "medicines" | "categories" | "manufacturers";
 
-export const catalogueResources = ["medicines", "categories"] as const;
+export const catalogueResources = ["medicines", "categories", "manufacturers"] as const;
 
 export const catalogueConfigs = {
   medicines: {
@@ -12,6 +12,11 @@ export const catalogueConfigs = {
     endpoint: "staff/categories/",
     title: "مدیریت دسته‌بندی‌ها",
     singular: "دسته‌بندی"
+  },
+  manufacturers: {
+    endpoint: "staff/manufacturers/",
+    title: "مدیریت تولیدکنندگان",
+    singular: "تولیدکننده"
   }
 } as const;
 

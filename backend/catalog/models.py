@@ -114,11 +114,25 @@ class Category(TimeStampedUUIDModel):
 
 class Manufacturer(TimeStampedUUIDModel):
     name = models.CharField(max_length=180, unique=True)
+    name_dari = models.CharField(max_length=180, blank=True)
     country_code = models.CharField(max_length=2, blank=True)
     website = models.URLField(blank=True)
+    logo = models.ImageField(
+        upload_to="manufacturers/%Y/%m/",
+        blank=True,
+        validators=[
+            FileExtensionValidator(["jpg", "jpeg", "png", "webp"]),
+            validate_image_size,
+            validate_catalog_image,
+        ],
+    )
+    display_order = models.PositiveIntegerField(default=0)
     status = models.CharField(
         max_length=16, choices=RecordStatus.choices, default=RecordStatus.ACTIVE
     )
+
+    class Meta:
+        ordering = ("display_order", "name")
 
     def __str__(self):
         return self.name

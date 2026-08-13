@@ -8,6 +8,7 @@ from .views import (
     MedicineImportViewSet,
     MedicineViewSet,
     StaffCategoryViewSet,
+    StaffManufacturerViewSet,
     StaffMedicineViewSet,
 )
 
@@ -20,5 +21,6 @@ router.register("medicine-images", MedicineImageViewSet, basename="medicine-imag
 router.register("staff/medicines", StaffMedicineViewSet, basename="staff-medicine")
 router.register("staff/medicine-imports", MedicineImportViewSet, basename="staff-medicine-import")
 router.register("staff/categories", StaffCategoryViewSet, basename="staff-category")
+router.register("staff/manufacturers", StaffManufacturerViewSet, basename="staff-manufacturer")
 
 urlpatterns = router.urls

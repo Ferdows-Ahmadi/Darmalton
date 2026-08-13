@@ -60,9 +60,58 @@ class NamedSerializer(serializers.ModelSerializer):
         fields = ("id", "name")
 
 
-class ManufacturerSerializer(NamedSerializer):
-    class Meta(NamedSerializer.Meta):
+class ManufacturerSerializer(serializers.ModelSerializer):
+    logo_url = serializers.SerializerMethodField()
+
+    class Meta:
         model = Manufacturer
+        fields = (
+            "id",
+            "name",
+            "name_dari",
+            "country_code",
+            "website",
+            "logo_url",
+            "display_order",
+        )
+
+    def get_logo_url(self, obj: Manufacturer) -> str:
+        if not obj.logo:
+            return ""
+        view = self.context.get("view")
+        basename = getattr(view, "basename", "manufacturer")
+        route = (
+            "staff-manufacturer-logo" if basename == "staff-manufacturer" else "manufacturer-logo"
+        )
+        path = reverse(route, kwargs={"pk": obj.pk})
+        request = self.context.get("request")
+        return request.build_absolute_uri(path) if request else path
+
+
+class StaffManufacturerSerializer(ManufacturerSerializer):
+    class Meta(ManufacturerSerializer.Meta):
+        fields = ManufacturerSerializer.Meta.fields + (
+            "logo",
+            "status",
+            "created_at",
+            "updated_at",
+        )
+        extra_kwargs = {"logo": {"write_only": True, "required": False}}
+        read_only_fields = ("id", "logo_url", "created_at", "updated_at")
+
+    def validate_country_code(self, value):
+        normalized = value.strip().upper()
+        if normalized and (len(normalized) != 2 or not normalized.isalpha()):
+            raise serializers.ValidationError("Use a two-letter country code.")
+        return normalized
+
+    def update(self, instance, validated_data):
+        old_logo = instance.logo
+        replacing = "logo" in validated_data
+        updated = super().update(instance, validated_data)
+        if replacing and old_logo and old_logo.name != updated.logo.name:
+            old_logo.storage.delete(old_logo.name)
+        return updated
 
 
 class DosageFormSerializer(serializers.ModelSerializer):

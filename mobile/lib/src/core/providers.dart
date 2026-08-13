@@ -263,7 +263,13 @@ class CatalogueQuery {
   );
 }
 
-typedef ManufacturerOption = ({String id, String name});
+typedef ManufacturerOption = ({
+  String id,
+  String name,
+  String nameDari,
+  String logoUrl,
+  String countryCode,
+});
 
 final manufacturersProvider = FutureProvider<List<ManufacturerOption>>((
   ref,
@@ -276,6 +282,9 @@ final manufacturersProvider = FutureProvider<List<ManufacturerOption>>((
         (item) => (
           id: (item as Map<String, dynamic>)['id'] as String,
           name: item['name'] as String,
+          nameDari: item['name_dari'] as String? ?? '',
+          logoUrl: item['logo_url'] as String? ?? '',
+          countryCode: item['country_code'] as String? ?? '',
         ),
       )
       .toList();

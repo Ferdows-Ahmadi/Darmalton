@@ -51,7 +51,18 @@ export type Medicine = {
   updated_at?: string;
 };
 
-export type Manufacturer = { id: string; name: string };
+export type Manufacturer = {
+  id: string;
+  name: string;
+  name_dari: string;
+  country_code: string;
+  website: string;
+  logo_url: string;
+  display_order: number;
+  status?: "ACTIVE" | "INACTIVE";
+  created_at?: string;
+  updated_at?: string;
+};
 
 export type DosageForm = {
   id: string;

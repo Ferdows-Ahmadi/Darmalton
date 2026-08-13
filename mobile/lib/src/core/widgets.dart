@@ -533,11 +533,52 @@ class CompactMedicineCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(DarmaltonRadius.medium),
-              ),
-              child: MedicineImage(medicine: medicine),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(DarmaltonRadius.medium),
+                    ),
+                    child: MedicineImage(medicine: medicine),
+                  ),
+                ),
+                if (medicine.prescriptionRequired)
+                  PositionedDirectional(
+                    top: 9,
+                    start: 9,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.94),
+                        borderRadius: BorderRadius.circular(99),
+                        border: Border.all(color: DarmaltonColors.mintStrong),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.receipt_long_outlined,
+                            size: 15,
+                            color: DarmaltonColors.tealDark,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            DariStrings.t('نسخه‌ای', 'Rx'),
+                            style: const TextStyle(
+                              color: DarmaltonColors.tealDark,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
           Padding(
@@ -553,10 +594,25 @@ class CompactMedicineCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 LtrText(
-                  '${medicine.genericName} · ${medicine.strength}',
+                  [
+                    medicine.genericName,
+                    medicine.strength,
+                  ].where((value) => value.isNotEmpty).join(' · '),
                   maxLines: 1,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
+                if (medicine.manufacturer.isNotEmpty &&
+                    medicine.manufacturer != 'Not listed') ...[
+                  const SizedBox(height: 2),
+                  LtrText(
+                    medicine.manufacturer,
+                    maxLines: 1,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: DarmaltonColors.muted,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -575,10 +631,17 @@ class CompactMedicineCard extends StatelessWidget {
                       ),
                     ),
                     IconButton.filledTonal(
-                      tooltip: DariStrings.addToCart,
+                      tooltip: medicine.prescriptionRequired
+                          ? DariStrings.t(
+                              'ارسال نسخه برای بررسی',
+                              'Submit prescription for review',
+                            )
+                          : DariStrings.addToCart,
                       onPressed: medicine.inStock ? onAdd : null,
-                      icon: const Icon(
-                        Icons.add_shopping_cart_rounded,
+                      icon: Icon(
+                        medicine.prescriptionRequired
+                            ? Icons.receipt_long_outlined
+                            : Icons.add_shopping_cart_rounded,
                         size: 20,
                       ),
                       visualDensity: VisualDensity.compact,

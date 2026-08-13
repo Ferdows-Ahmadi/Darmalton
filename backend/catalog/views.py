@@ -35,6 +35,7 @@ from .serializers import (
     MedicineImportJobSerializer,
     MedicineSerializer,
     StaffCategorySerializer,
+    StaffManufacturerSerializer,
     StaffMedicineSerializer,
 )
 
@@ -120,7 +121,52 @@ class ManufacturerViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
     pagination_class = None
     serializer_class = ManufacturerSerializer
-    queryset = Manufacturer.objects.order_by("name")
+    queryset = Manufacturer.objects.filter(status=RecordStatus.ACTIVE)
+
+    @action(detail=True, methods=("get",), url_path="logo")
+    def logo(self, request, pk=None):
+        instance = self.get_object()
+        if not instance.logo:
+            fallback = settings.BASE_DIR / "static" / "medicine-fallback.svg"
+            return FileResponse(fallback.open("rb"), content_type="image/svg+xml")
+        content_type = mimetypes.guess_type(instance.logo.name)[0] or "application/octet-stream"
+        response = FileResponse(instance.logo.open("rb"), content_type=content_type)
+        response["Cache-Control"] = "public, max-age=3600, stale-while-revalidate=86400"
+        response["X-Content-Type-Options"] = "nosniff"
+        return response
+
+
+class StaffManufacturerViewSet(viewsets.ModelViewSet):
+    serializer_class = StaffManufacturerSerializer
+    permission_classes = (IsOperationsStaff,)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
+    search_fields = ("name", "name_dari", "country_code")
+    ordering_fields = ("display_order", "name", "created_at", "updated_at")
+    ordering = ("display_order", "name")
+    queryset = Manufacturer.objects.all()
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        status = self.request.query_params.get("status", "").strip()
+        return queryset.filter(status=status) if status else queryset
+
+    @action(detail=True, methods=("get",), url_path="logo")
+    def logo(self, request, pk=None):
+        instance = self.get_object()
+        if not instance.logo:
+            fallback = settings.BASE_DIR / "static" / "medicine-fallback.svg"
+            return FileResponse(fallback.open("rb"), content_type="image/svg+xml")
+        content_type = mimetypes.guess_type(instance.logo.name)[0] or "application/octet-stream"
+        return FileResponse(instance.logo.open("rb"), content_type=content_type)
+
+    def perform_destroy(self, instance):
+        logo = instance.logo
+        if instance.medicines.exists():
+            raise ValidationError("Deactivate manufacturers that are already in use.")
+        super().perform_destroy(instance)
+        if logo:
+            logo.storage.delete(logo.name)
 
 
 class DosageFormViewSet(viewsets.ReadOnlyModelViewSet):

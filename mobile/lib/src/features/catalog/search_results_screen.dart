@@ -16,11 +16,13 @@ class SearchResultsScreen extends ConsumerStatefulWidget {
   const SearchResultsScreen({
     this.initialCategory = '',
     this.initialQuery = '',
+    this.initialManufacturer = '',
     super.key,
   });
 
   final String initialCategory;
   final String initialQuery;
+  final String initialManufacturer;
 
   @override
   ConsumerState<SearchResultsScreen> createState() =>
@@ -33,7 +35,7 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
   _SortMode _sort = _SortMode.name;
   bool _inStockOnly = false;
   bool? _prescriptionFilter;
-  String _manufacturer = '';
+  late String _manufacturer = widget.initialManufacturer;
   double? _minPrice;
   double? _maxPrice;
 

@@ -28,6 +28,7 @@ export const staffNavigationGroups: readonly {
       ["/staff/medicines", "داروها", "✚"],
       ["/staff/medicines/import", "ورود گروهی", "⇧", adminRoles],
       ["/staff/categories", "دسته‌بندی‌ها", "▦"],
+      ["/staff/manufacturers", "تولیدکنندگان", "◇"],
       ["/staff/inventory", "موجودی", "◫"],
       ["/staff/warehouses", "انبارها", "⌑"]
     ]

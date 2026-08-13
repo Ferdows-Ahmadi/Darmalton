@@ -100,6 +100,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     const query = CatalogueQuery();
     final medicines = ref.watch(medicinesProvider(query));
     final categories = ref.watch(categoriesProvider);
+    final manufacturers = ref.watch(manufacturersProvider);
     final banners = ref.watch(promotionalBannersProvider);
     final recentlyViewed =
         ref.watch(recentlyViewedProvider).value ?? const <String>[];
@@ -235,7 +236,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 22, 16, 8),
                 sliver: SliverToBoxAdapter(
                   child: SectionTitle(
-                    title: 'دواهای پرطرفدار',
+                    title: 'محصولات کاتالوگ',
                     action: DariStrings.seeAll,
                     onAction: () => context.push('/search'),
                   ),
@@ -286,6 +287,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                   data: (items) => _DiscoverySections(
                     medicines: items,
                     recentlyViewedIds: recentlyViewed,
+                    manufacturers: manufacturers,
                     onAdd: (medicine) => _addToCart(context, ref, medicine),
                   ),
                 ),
@@ -433,43 +435,25 @@ class _DiscoverySections extends StatelessWidget {
   const _DiscoverySections({
     required this.medicines,
     required this.recentlyViewedIds,
+    required this.manufacturers,
     required this.onAdd,
   });
 
   final List<Medicine> medicines;
   final List<String> recentlyViewedIds;
+  final AsyncValue<List<ManufacturerOption>> manufacturers;
   final ValueChanged<Medicine> onAdd;
 
   @override
   Widget build(BuildContext context) {
-    final recommended = medicines.skip(4).take(6).toList();
-    final today = medicines
-        .where((item) => !item.prescriptionRequired)
-        .take(4)
-        .toList();
     final recentById = {for (final item in medicines) item.id: item};
     final recent = recentlyViewedIds
         .map((id) => recentById[id])
         .whereType<Medicine>()
         .toList();
-    final brands =
-        medicines
-            .map((item) => item.manufacturer)
-            .where((name) => name.isNotEmpty && name != 'Not listed')
-            .toSet()
-            .take(8)
-            .toList()
-          ..sort();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (recommended.isNotEmpty)
-          _MedicineShelf(
-            title: 'پیشنهاد برای شما',
-            medicines: recommended,
-            onAdd: onAdd,
-          ),
         if (recent.isNotEmpty)
           _MedicineShelf(
             title: 'ادامه خرید',
@@ -477,8 +461,7 @@ class _DiscoverySections extends StatelessWidget {
             medicines: recent,
             onAdd: onAdd,
           ),
-        if (today.isNotEmpty) _TodayOffers(medicines: today, onAdd: onAdd),
-        if (brands.isNotEmpty) _TopBrands(brands: brands),
+        _TopBrands(manufacturers: manufacturers),
         const _SeasonalCampaign(),
         const _HealthArticles(),
       ],
@@ -533,115 +516,127 @@ class _MedicineShelf extends StatelessWidget {
   );
 }
 
-class _TodayOffers extends StatelessWidget {
-  const _TodayOffers({required this.medicines, required this.onAdd});
+class _TopBrands extends StatelessWidget {
+  const _TopBrands({required this.manufacturers});
 
-  final List<Medicine> medicines;
-  final ValueChanged<Medicine> onAdd;
+  final AsyncValue<List<ManufacturerOption>> manufacturers;
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+    padding: const EdgeInsets.only(top: 22),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionTitle(
-          title: 'پیشنهادهای امروز',
-          action: 'قیمت زنده از سرور',
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: SectionTitle(title: 'برندهای برتر'),
         ),
-        const SizedBox(height: 8),
-        ...medicines.map(
-          (medicine) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: DarmaltonCard(
-              padding: const EdgeInsets.all(10),
-              onTap: () => context.push('/medicines/${medicine.id}'),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 74,
-                    height: 74,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: MedicineImage(
-                        medicine: medicine,
-                        padding: const EdgeInsets.all(6),
+        const SizedBox(height: 10),
+        manufacturers.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: SkeletonBox(height: 188),
+          ),
+          error: (_, _) => const SizedBox.shrink(),
+          data: (items) => items.isEmpty
+              ? const SizedBox.shrink()
+              : SizedBox(
+                  height: 188,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: items.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) => _BrandCard(
+                      manufacturer: items[index],
+                      onTap: () => context.push(
+                        '/search?manufacturer=${items[index].id}',
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          medicine.displayName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        Text(
-                          '${medicine.strength} · ${medicine.displayDosageForm}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        Text(
-                          medicine.price == null
-                              ? DariStrings.unavailable
-                              : '${medicine.price} ${DariStrings.afn}',
-                          style: const TextStyle(
-                            color: DarmaltonColors.teal,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton.filledTonal(
-                    tooltip: DariStrings.addToCart,
-                    onPressed: medicine.inStock ? () => onAdd(medicine) : null,
-                    icon: const Icon(Icons.add_shopping_cart_rounded),
-                  ),
-                ],
-              ),
-            ),
-          ),
+                ),
         ),
       ],
     ),
   );
 }
 
-class _TopBrands extends StatelessWidget {
-  const _TopBrands({required this.brands});
+class _BrandCard extends StatelessWidget {
+  const _BrandCard({required this.manufacturer, required this.onTap});
 
-  final List<String> brands;
+  final ManufacturerOption manufacturer;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SectionTitle(title: 'برندهای برتر'),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: brands
-              .map(
-                (brand) => ActionChip(
-                  avatar: const Icon(Icons.verified_outlined, size: 18),
-                  label: LtrText(brand),
-                  onPressed: () => context.push(
-                    '/search?query=${Uri.encodeQueryComponent(brand)}',
-                  ),
+  Widget build(BuildContext context) {
+    final displayName = DariStrings.isEnglish || manufacturer.nameDari.isEmpty
+        ? manufacturer.name
+        : manufacturer.nameDari;
+    final initials = manufacturer.name
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .take(2)
+        .map((part) => part.characters.first.toUpperCase())
+        .join();
+    return SizedBox(
+      width: 150,
+      child: DarmaltonCard(
+        padding: const EdgeInsets.all(14),
+        onTap: onTap,
+        child: Column(
+          children: [
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: DarmaltonColors.canvas,
+                  borderRadius: BorderRadius.circular(DarmaltonRadius.medium),
+                  border: Border.all(color: DarmaltonColors.line),
                 ),
-              )
-              .toList(),
+                child: manufacturer.logoUrl.isEmpty
+                    ? Center(
+                        child: Text(
+                          initials.isEmpty ? 'D' : initials,
+                          textDirection: TextDirection.ltr,
+                          style: const TextStyle(
+                            color: DarmaltonColors.tealDark,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      )
+                    : CachedNetworkImage(
+                        imageUrl: manufacturer.logoUrl,
+                        fit: BoxFit.contain,
+                        memCacheWidth: 420,
+                        errorWidget: (_, _, _) => const Icon(
+                          Icons.local_pharmacy_outlined,
+                          color: DarmaltonColors.teal,
+                          size: 40,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              displayName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            if (manufacturer.countryCode.isNotEmpty)
+              LtrText(
+                manufacturer.countryCode,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+          ],
         ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 class _SeasonalCampaign extends StatelessWidget {

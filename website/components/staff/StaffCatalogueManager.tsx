@@ -16,9 +16,11 @@ import type { Category, DosageForm, Manufacturer, Medicine, PageResult } from "@
 type FieldErrors = Record<string, string[] | string>;
 type CategoryForm = { name: string; name_dari: string; slug: string; parent_id: string; display_order: string; status: string };
 type MedicineForm = { sku: string; barcode: string; brand_name: string; brand_name_dari: string; generic_name: string; manufacturer_id: string; category_id: string; dosage_form_id: string; strength: string; pack_size: string; description: string; description_dari: string; prescription_required: boolean; status: string };
+type ManufacturerForm = { name: string; name_dari: string; country_code: string; website: string; display_order: string; status: string };
 
 const emptyCategory: CategoryForm = { name: "", name_dari: "", slug: "", parent_id: "", display_order: "0", status: "ACTIVE" };
 const emptyMedicine: MedicineForm = { sku: "", barcode: "", brand_name: "", brand_name_dari: "", generic_name: "", manufacturer_id: "", category_id: "", dosage_form_id: "", strength: "", pack_size: "", description: "", description_dari: "", prescription_required: false, status: "DRAFT" };
+const emptyManufacturer: ManufacturerForm = { name: "", name_dari: "", country_code: "", website: "", display_order: "0", status: "ACTIVE" };
 
 function errorText(error: unknown) {
   return error instanceof Error ? error.message : "درخواست انجام نشد. دوباره کوشش کنید.";
@@ -53,10 +55,15 @@ function categoryToForm(item: Category): CategoryForm {
   return { name: item.name, name_dari: item.name_dari, slug: item.slug, parent_id: item.parent_id || "", display_order: String(item.display_order || 0), status: item.status || "ACTIVE" };
 }
 
+function manufacturerToForm(item: Manufacturer): ManufacturerForm {
+  return { name: item.name, name_dari: item.name_dari, country_code: item.country_code, website: item.website, display_order: String(item.display_order || 0), status: item.status || "ACTIVE" };
+}
+
 export function StaffCatalogueManager({ resource }: { resource: CatalogueResource }) {
   const config = catalogueConfigs[resource];
   const medicineMode = resource === "medicines";
-  const [items, setItems] = useState<(Medicine | Category)[]>([]);
+  const manufacturerMode = resource === "manufacturers";
+  const [items, setItems] = useState<(Medicine | Category | Manufacturer)[]>([]);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
@@ -69,11 +76,12 @@ export function StaffCatalogueManager({ resource }: { resource: CatalogueResourc
   const [listError, setListError] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [selected, setSelected] = useState<Medicine | Category | null>(null);
+  const [selected, setSelected] = useState<Medicine | Category | Manufacturer | null>(null);
   const [modal, setModal] = useState<"create" | "edit" | "view" | null>(null);
-  const [confirm, setConfirm] = useState<{ item: Medicine | Category; action: "toggle" | "delete" } | null>(null);
+  const [confirm, setConfirm] = useState<{ item: Medicine | Category | Manufacturer; action: "toggle" | "delete" } | null>(null);
   const [categoryForm, setCategoryForm] = useState<CategoryForm>(emptyCategory);
   const [medicineForm, setMedicineForm] = useState<MedicineForm>(emptyMedicine);
+  const [manufacturerForm, setManufacturerForm] = useState<ManufacturerForm>(emptyManufacturer);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
@@ -92,7 +100,7 @@ export function StaffCatalogueManager({ resource }: { resource: CatalogueResourc
     if (status) params.set("status", status);
     if (medicineMode && prescription) params.set("prescription_required", prescription);
     try {
-      const payload = await apiFetch<PageResult<Medicine | Category>>(`${config.endpoint}?${params}`);
+      const payload = await apiFetch<PageResult<Medicine | Category | Manufacturer>>(`${config.endpoint}?${params}`);
       setItems(payload.results);
       setCount(payload.count);
     } catch (caught) {
@@ -104,6 +112,7 @@ export function StaffCatalogueManager({ resource }: { resource: CatalogueResourc
 
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
+    if (!medicineMode) return;
     Promise.all([
       apiFetch<Category[]>("categories/"),
       apiFetch<Manufacturer[]>("manufacturers/"),
@@ -111,12 +120,12 @@ export function StaffCatalogueManager({ resource }: { resource: CatalogueResourc
     ]).then(([categoryRows, makerRows, forms]) => {
       setCategories(categoryRows); setManufacturers(makerRows); setDosageForms(forms);
     }).catch(() => undefined);
-  }, []);
+  }, [medicineMode]);
   useEffect(() => () => { if (preview.startsWith("blob:")) URL.revokeObjectURL(preview); }, [preview]);
 
   const pages = Math.max(1, Math.ceil(count / 20));
-  const title = (item: Medicine | Category) => medicineMode ? ((item as Medicine).brand_name_dari || (item as Medicine).brand_name) : ((item as Category).name_dari || (item as Category).name);
-  const currentStatus = (item: Medicine | Category) => item.status || "ACTIVE";
+  const title = (item: Medicine | Category | Manufacturer) => medicineMode ? ((item as Medicine).brand_name_dari || (item as Medicine).brand_name) : manufacturerMode ? ((item as Manufacturer).name_dari || (item as Manufacturer).name) : ((item as Category).name_dari || (item as Category).name);
+  const currentStatus = (item: Medicine | Category | Manufacturer) => item.status || "ACTIVE";
   const categoryRows = useMemo(() => categories.filter((row) => row.id !== selected?.id), [categories, selected]);
 
   function clearModal() {
@@ -124,12 +133,13 @@ export function StaffCatalogueManager({ resource }: { resource: CatalogueResourc
   }
 
   function openCreate() {
-    setSelected(null); setCategoryForm(emptyCategory); setMedicineForm(emptyMedicine); setModal("create"); setError(""); setFieldErrors({}); setFile(null); setPreview("");
+    setSelected(null); setCategoryForm(emptyCategory); setMedicineForm(emptyMedicine); setManufacturerForm(emptyManufacturer); setModal("create"); setError(""); setFieldErrors({}); setFile(null); setPreview("");
   }
 
-  function open(item: Medicine | Category, mode: "view" | "edit") {
+  function open(item: Medicine | Category | Manufacturer, mode: "view" | "edit") {
     setSelected(item); setModal(mode); setError(""); setFieldErrors({}); setFile(null); setPreview("");
     if (medicineMode) setMedicineForm(medicineToForm(item as Medicine));
+    else if (manufacturerMode) setManufacturerForm(manufacturerToForm(item as Manufacturer));
     else setCategoryForm(categoryToForm(item as Category));
   }
 
@@ -147,6 +157,11 @@ export function StaffCatalogueManager({ resource }: { resource: CatalogueResourc
       if (medicineMode) {
         const payload = { ...medicineForm, barcode: medicineForm.barcode || null, manufacturer_id: medicineForm.manufacturer_id || null, category_id: medicineForm.category_id || null };
         await apiFetch(path, { method: selected ? "PATCH" : "POST", body: JSON.stringify(payload) });
+      } else if (manufacturerMode) {
+        const body = new FormData();
+        Object.entries(manufacturerForm).forEach(([key, value]) => body.append(key, value));
+        if (file) body.append("logo", file);
+        await apiFetch(path, { method: selected ? "PATCH" : "POST", body });
       } else {
         const body = new FormData();
         Object.entries(categoryForm).forEach(([key, value]) => body.append(key, value));
@@ -154,7 +169,7 @@ export function StaffCatalogueManager({ resource }: { resource: CatalogueResourc
         await apiFetch(path, { method: selected ? "PATCH" : "POST", body });
       }
       setNotice(`${config.singular} با موفقیت ذخیره شد.`); clearModal(); await load();
-      if (!medicineMode) setCategories(await apiFetch<Category[]>("categories/"));
+      if (!medicineMode && !manufacturerMode) setCategories(await apiFetch<Category[]>("categories/"));
     } catch (caught) {
       if (caught instanceof ApiError) setFieldErrors(caught.fields);
       setError(errorText(caught));
@@ -215,13 +230,13 @@ export function StaffCatalogueManager({ resource }: { resource: CatalogueResourc
       <select aria-label="مرتب‌سازی" value={ordering} onChange={(event) => { setPage(1); setOrdering(event.target.value); }}>{medicineMode ? <><option value="brand_name">نام الفبایی</option><option value="-updated_at">تازه‌ترین تغییر</option><option value="sku">کد SKU</option></> : <><option value="display_order">ترتیب نمایش</option><option value="name">نام الفبایی</option><option value="-updated_at">تازه‌ترین تغییر</option></>}</select>
     </div>
     <section className="staff-table-card">
-      {busy ? <div className="staff-table-state" role="status"><span className="staff-loader"/>در حال دریافت اطلاعات…</div> : listError ? <div className="staff-table-state error"><strong>دریافت اطلاعات ناموفق بود</strong><span>{listError}</span><button onClick={() => void load()}>تلاش دوباره</button></div> : !items.length ? <div className="staff-table-state"><strong>موردی پیدا نشد</strong><span>فیلترها را تغییر دهید یا نخستین مورد را ایجاد کنید.</span></div> : <div className="staff-table-scroll"><table><thead><tr><th>تصویر</th><th>{medicineMode ? "دارو" : "دسته‌بندی"}</th><th>{medicineMode ? "SKU / نوع" : "نامک / ترتیب"}</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>{items.map((item) => <tr key={item.id}><td><Image className="staff-catalogue-thumb" src={apiAssetUrl((item as Medicine).image_url)} width={72} height={72} alt={title(item)} unoptimized/></td><td><strong>{title(item)}</strong><small className="staff-cms-latin">{medicineMode ? (item as Medicine).brand_name : (item as Category).name}</small></td><td>{medicineMode ? <><bdi>{(item as Medicine).sku}</bdi><small>{(item as Medicine).prescription_required ? "نسخه‌ای" : "بدون نسخه"}</small></> : <><bdi>{(item as Category).slug}</bdi><small>ترتیب {(item as Category).display_order || 0}</small></>}</td><td><span className={`status-pill status-${currentStatus(item)}`}>{catalogueStatusLabel(currentStatus(item))}</span></td><td><div className="staff-row-actions"><button onClick={() => open(item,"view")}>مشاهده</button><button onClick={() => open(item,"edit")}>ویرایش</button><button onClick={() => setConfirm({item,action:"toggle"})}>{currentStatus(item)==="ACTIVE" ? "غیرفعال" : "فعال"}</button>{!medicineMode && <button className="danger" onClick={() => setConfirm({item,action:"delete"})}>حذف</button>}</div></td></tr>)}</tbody></table></div>}
+      {busy ? <div className="staff-table-state" role="status"><span className="staff-loader"/>در حال دریافت اطلاعات…</div> : listError ? <div className="staff-table-state error"><strong>دریافت اطلاعات ناموفق بود</strong><span>{listError}</span><button onClick={() => void load()}>تلاش دوباره</button></div> : !items.length ? <div className="staff-table-state"><strong>موردی پیدا نشد</strong><span>فیلترها را تغییر دهید یا نخستین مورد را ایجاد کنید.</span></div> : <div className="staff-table-scroll"><table><thead><tr><th>تصویر</th><th>{medicineMode ? "دارو" : manufacturerMode ? "تولیدکننده" : "دسته‌بندی"}</th><th>{medicineMode ? "SKU / نوع" : manufacturerMode ? "کشور / ترتیب" : "نامک / ترتیب"}</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>{items.map((item) => <tr key={item.id}><td><Image className="staff-catalogue-thumb" src={apiAssetUrl(medicineMode ? (item as Medicine).image_url : manufacturerMode ? (item as Manufacturer).logo_url : (item as Category).image_url)} width={72} height={72} alt={title(item)} unoptimized/></td><td><strong>{title(item)}</strong><small className="staff-cms-latin">{medicineMode ? (item as Medicine).brand_name : manufacturerMode ? (item as Manufacturer).name : (item as Category).name}</small></td><td>{medicineMode ? <><bdi>{(item as Medicine).sku}</bdi><small>{(item as Medicine).prescription_required ? "نسخه‌ای" : "بدون نسخه"}</small></> : manufacturerMode ? <><bdi>{(item as Manufacturer).country_code || "—"}</bdi><small>ترتیب {(item as Manufacturer).display_order || 0}</small></> : <><bdi>{(item as Category).slug}</bdi><small>ترتیب {(item as Category).display_order || 0}</small></>}</td><td><span className={`status-pill status-${currentStatus(item)}`}>{catalogueStatusLabel(currentStatus(item))}</span></td><td><div className="staff-row-actions"><button onClick={() => open(item,"view")}>مشاهده</button><button onClick={() => open(item,"edit")}>ویرایش</button><button onClick={() => setConfirm({item,action:"toggle"})}>{currentStatus(item)==="ACTIVE" ? "غیرفعال" : "فعال"}</button>{!medicineMode && <button className="danger" onClick={() => setConfirm({item,action:"delete"})}>حذف</button>}</div></td></tr>)}</tbody></table></div>}
     </section>
     <div className="staff-pagination"><button disabled={page<=1||busy} onClick={() => setPage((value)=>value-1)}>صفحه قبل</button><span>صفحه {page} از {pages} · {count.toLocaleString("fa-AF")} مورد</span><button disabled={page>=pages||busy} onClick={() => setPage((value)=>value+1)}>صفحه بعد</button></div>
     {modal && <div className="staff-modal-backdrop" onMouseDown={(event)=>{if(event.target===event.currentTarget&&!saving)clearModal();}}><section className="staff-modal staff-catalogue-modal" role="dialog" aria-modal="true" aria-labelledby="catalogue-modal-title"><header><div><span className="staff-eyebrow">{modal==="create"?"ایجاد":modal==="edit"?"ویرایش":"جزئیات"}</span><h2 id="catalogue-modal-title">{selected ? title(selected) : `${config.singular} تازه`}</h2></div><button aria-label="بستن پنجره" onClick={clearModal} disabled={saving}>×</button></header>
-      {modal==="view" && selected ? <div className="staff-catalogue-detail"><Image src={apiAssetUrl((selected as Medicine).image_url)} width={520} height={360} alt={title(selected)} unoptimized/><dl>{Object.entries(medicineMode ? {"نام دری":(selected as Medicine).brand_name_dari,"نام انگلیسی":(selected as Medicine).brand_name,"نام عمومی":(selected as Medicine).generic_name,"قدرت":(selected as Medicine).strength,"بسته":(selected as Medicine).pack_size,"وضعیت":catalogueStatusLabel(selected.status)} : {"نام دری":(selected as Category).name_dari,"نام انگلیسی":(selected as Category).name,"نامک":(selected as Category).slug,"ترتیب":String((selected as Category).display_order||0),"وضعیت":catalogueStatusLabel(selected.status)}).map(([key,value])=><div key={key}><dt>{key}</dt><dd>{value||"—"}</dd></div>)}</dl>{medicineMode && <MedicineImages medicine={selected as Medicine} saving={saving} error={error} imageFile={imageFile} setImageFile={setImageFile} imageAlt={imageAlt} setImageAlt={setImageAlt} imagePrimary={imagePrimary} setImagePrimary={setImagePrimary} upload={uploadMedicineImage} mutate={mutateMedicineImage}/>}</div> : <form className="staff-cms-form" onSubmit={save}>{medicineMode ? <MedicineFields value={medicineForm} setValue={setMedicineForm} errors={fieldErrors} categories={categoryRows} manufacturers={manufacturers} dosageForms={dosageForms}/> : <CategoryFields value={categoryForm} setValue={setCategoryForm} errors={fieldErrors} categories={categoryRows} preview={preview || apiAssetUrl((selected as Category | null)?.image_url)} onFile={selectFile}/>} {error && <p className="form-error staff-form-wide" role="alert">{error}</p>}<footer className="staff-modal-actions staff-form-wide"><button type="button" onClick={clearModal} disabled={saving}>انصراف</button><button className="staff-primary-action" disabled={saving}>{saving?"در حال ذخیره…":"ذخیره"}</button></footer></form>}
+      {modal==="view" && selected ? <div className="staff-catalogue-detail"><Image src={apiAssetUrl(medicineMode ? (selected as Medicine).image_url : manufacturerMode ? (selected as Manufacturer).logo_url : (selected as Category).image_url)} width={520} height={360} alt={title(selected)} unoptimized/><dl>{Object.entries(medicineMode ? {"نام دری":(selected as Medicine).brand_name_dari,"نام انگلیسی":(selected as Medicine).brand_name,"نام عمومی":(selected as Medicine).generic_name,"قدرت":(selected as Medicine).strength,"بسته":(selected as Medicine).pack_size,"وضعیت":catalogueStatusLabel(selected.status)} : manufacturerMode ? {"نام دری":(selected as Manufacturer).name_dari,"نام انگلیسی":(selected as Manufacturer).name,"کشور":(selected as Manufacturer).country_code,"وب‌سایت":(selected as Manufacturer).website,"ترتیب":String((selected as Manufacturer).display_order||0),"وضعیت":catalogueStatusLabel(selected.status)} : {"نام دری":(selected as Category).name_dari,"نام انگلیسی":(selected as Category).name,"نامک":(selected as Category).slug,"ترتیب":String((selected as Category).display_order||0),"وضعیت":catalogueStatusLabel(selected.status)}).map(([key,value])=><div key={key}><dt>{key}</dt><dd>{value||"—"}</dd></div>)}</dl>{medicineMode && <MedicineImages medicine={selected as Medicine} saving={saving} error={error} imageFile={imageFile} setImageFile={setImageFile} imageAlt={imageAlt} setImageAlt={setImageAlt} imagePrimary={imagePrimary} setImagePrimary={setImagePrimary} upload={uploadMedicineImage} mutate={mutateMedicineImage}/>}</div> : <form className="staff-cms-form" onSubmit={save}>{medicineMode ? <MedicineFields value={medicineForm} setValue={setMedicineForm} errors={fieldErrors} categories={categoryRows} manufacturers={manufacturers} dosageForms={dosageForms}/> : manufacturerMode ? <ManufacturerFields value={manufacturerForm} setValue={setManufacturerForm} errors={fieldErrors} preview={preview || apiAssetUrl((selected as Manufacturer | null)?.logo_url)} onFile={selectFile}/> : <CategoryFields value={categoryForm} setValue={setCategoryForm} errors={fieldErrors} categories={categoryRows} preview={preview || apiAssetUrl((selected as Category | null)?.image_url)} onFile={selectFile}/>} {error && <p className="form-error staff-form-wide" role="alert">{error}</p>}<footer className="staff-modal-actions staff-form-wide"><button type="button" onClick={clearModal} disabled={saving}>انصراف</button><button className="staff-primary-action" disabled={saving}>{saving?"در حال ذخیره…":"ذخیره"}</button></footer></form>}
     </section></div>}
-    {confirm && <div className="staff-modal-backdrop"><section className="staff-modal staff-confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="catalogue-confirm-title"><header><div><span className="staff-eyebrow">تأیید عملیات</span><h2 id="catalogue-confirm-title">{confirm.action==="delete"?"حذف دسته‌بندی":"تغییر وضعیت"}</h2></div><button onClick={()=>setConfirm(null)} aria-label="بستن">×</button></header><div className="staff-confirm-copy"><strong>{title(confirm.item)}</strong><p>{confirm.action==="delete"?"تنها دسته‌بندی استفاده‌نشده حذف می‌شود؛ در غیر آن سرور از حذف جلوگیری می‌کند.":"نمایش عمومی این مورد متناسب با وضعیت تازه تغییر می‌کند."}</p>{error&&<p className="form-error">{error}</p>}</div><footer className="staff-modal-actions"><button onClick={()=>setConfirm(null)}>انصراف</button><button className={confirm.action==="delete"?"staff-danger-action":"staff-primary-action"} disabled={saving} onClick={()=>void mutate()}>{saving?"در حال اجرا…":"تأیید"}</button></footer></section></div>}
+    {confirm && <div className="staff-modal-backdrop"><section className="staff-modal staff-confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="catalogue-confirm-title"><header><div><span className="staff-eyebrow">تأیید عملیات</span><h2 id="catalogue-confirm-title">{confirm.action==="delete"?`حذف ${config.singular}`:"تغییر وضعیت"}</h2></div><button onClick={()=>setConfirm(null)} aria-label="بستن">×</button></header><div className="staff-confirm-copy"><strong>{title(confirm.item)}</strong><p>{confirm.action==="delete"?"تنها مورد استفاده‌نشده حذف می‌شود؛ در غیر آن سرور از حذف جلوگیری می‌کند.":"نمایش عمومی این مورد متناسب با وضعیت تازه تغییر می‌کند."}</p>{error&&<p className="form-error">{error}</p>}</div><footer className="staff-modal-actions"><button onClick={()=>setConfirm(null)}>انصراف</button><button className={confirm.action==="delete"?"staff-danger-action":"staff-primary-action"} disabled={saving} onClick={()=>void mutate()}>{saving?"در حال اجرا…":"تأیید"}</button></footer></section></div>}
   </main>;
 }
 
@@ -232,6 +247,11 @@ function Input({ label, name, value, onChange, error, required=false, dir }: { l
 function CategoryFields({value,setValue,errors,categories,preview,onFile}:{value:CategoryForm;setValue:(value:CategoryForm)=>void;errors:FieldErrors;categories:Category[];preview:string;onFile:(file?:File)=>void}) {
   const set=(key:keyof CategoryForm,next:string)=>setValue({...value,[key]:next});
   return <><Input label="نام دری" name="name_dari" value={value.name_dari} onChange={(v)=>set("name_dari",v)} error={fieldMessage(errors,"name_dari")}/><Input label="نام انگلیسی / اصلی" name="name" value={value.name} onChange={(v)=>set("name",v)} error={fieldMessage(errors,"name")} required dir="ltr"/><Input label="نامک (slug)" name="slug" value={value.slug} onChange={(v)=>set("slug",v)} error={fieldMessage(errors,"slug")} required dir="ltr"/><label><span>دسته والد</span><select value={value.parent_id} onChange={(e)=>set("parent_id",e.target.value)}><option value="">بدون والد</option>{categories.map((item)=><option value={item.id} key={item.id}>{item.name_dari||item.name}</option>)}</select></label><Input label="ترتیب نمایش" name="display_order" value={value.display_order} onChange={(v)=>set("display_order",v)} error={fieldMessage(errors,"display_order")}/><label><span>وضعیت</span><select value={value.status} onChange={(e)=>set("status",e.target.value)}><option value="ACTIVE">فعال</option><option value="INACTIVE">غیرفعال</option></select></label><label className="staff-cms-file staff-form-wide"><span>تصویر دسته‌بندی</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e)=>onFile(e.target.files?.[0])}/><small>JPEG، PNG یا WebP؛ ۱۲۸ تا ۶۰۰۰ پیکسل؛ حداکثر ۵ مگابایت</small>{fieldMessage(errors,"image")&&<em>{fieldMessage(errors,"image")}</em>}</label>{preview&&<Image className="staff-cms-form-preview staff-form-wide" src={preview} width={720} height={320} alt="پیش‌نمایش دسته‌بندی" unoptimized/>}</>;
+}
+
+function ManufacturerFields({value,setValue,errors,preview,onFile}:{value:ManufacturerForm;setValue:(value:ManufacturerForm)=>void;errors:FieldErrors;preview:string;onFile:(file?:File)=>void}) {
+  const set=(key:keyof ManufacturerForm,next:string)=>setValue({...value,[key]:next});
+  return <><Input label="نام دری" name="name_dari" value={value.name_dari} onChange={(v)=>set("name_dari",v)} error={fieldMessage(errors,"name_dari")}/><Input label="نام انگلیسی / رسمی" name="name" value={value.name} onChange={(v)=>set("name",v)} error={fieldMessage(errors,"name")} required dir="ltr"/><Input label="کد دوحرفی کشور" name="country_code" value={value.country_code} onChange={(v)=>set("country_code",v.toUpperCase())} error={fieldMessage(errors,"country_code")} dir="ltr"/><Input label="وب‌سایت" name="website" value={value.website} onChange={(v)=>set("website",v)} error={fieldMessage(errors,"website")} dir="ltr"/><Input label="ترتیب نمایش" name="display_order" value={value.display_order} onChange={(v)=>set("display_order",v)} error={fieldMessage(errors,"display_order")}/><label><span>وضعیت</span><select value={value.status} onChange={(e)=>set("status",e.target.value)}><option value="ACTIVE">فعال</option><option value="INACTIVE">غیرفعال</option></select></label><label className="staff-cms-file staff-form-wide"><span>لوگوی تولیدکننده</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e)=>onFile(e.target.files?.[0])}/><small>اختیاری؛ JPEG، PNG یا WebP؛ ۱۲۸ تا ۶۰۰۰ پیکسل؛ حداکثر ۵ مگابایت</small>{fieldMessage(errors,"logo")&&<em>{fieldMessage(errors,"logo")}</em>}</label>{preview&&<Image className="staff-cms-form-preview staff-form-wide" src={preview} width={720} height={320} alt="پیش‌نمایش لوگوی تولیدکننده" unoptimized/>}</>;
 }
 
 function MedicineFields({value,setValue,errors,categories,manufacturers,dosageForms}:{value:MedicineForm;setValue:(value:MedicineForm)=>void;errors:FieldErrors;categories:Category[];manufacturers:Manufacturer[];dosageForms:DosageForm[]}) {

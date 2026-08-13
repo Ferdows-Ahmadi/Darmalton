@@ -6,7 +6,7 @@ from PIL import Image
 from rest_framework.test import APIClient
 
 from accounts.models import User
-from catalog.models import Category, Medicine, RecordStatus
+from catalog.models import Category, Manufacturer, Medicine, RecordStatus
 
 
 def png(name="catalog.png"):
@@ -96,3 +96,63 @@ def test_catalogue_lookups_include_dosage_forms(api_client, medicine):
     assert response.status_code == 200
     assert any(item["id"] == str(medicine.dosage_form_id) for item in response.data)
 
+
+@pytest.mark.django_db
+def test_manufacturer_crud_logo_and_public_visibility(
+    operations_client, api_client, settings, tmp_path
+):
+    settings.MEDIA_ROOT = tmp_path
+    client, _ = operations_client
+    created = client.post(
+        "/api/v1/staff/manufacturers/",
+        {
+            "name": "Example Health",
+            "name_dari": "نمونه سلامت",
+            "country_code": "af",
+            "website": "https://example.test",
+            "display_order": 3,
+            "status": RecordStatus.ACTIVE,
+            "logo": png("manufacturer.png"),
+        },
+        format="multipart",
+    )
+    assert created.status_code == 201
+    assert created.data["country_code"] == "AF"
+    assert created.data["logo_url"].endswith(
+        f"/api/v1/staff/manufacturers/{created.data['id']}/logo/"
+    )
+    assert client.get(created.data["logo_url"]).status_code == 200
+
+    public = api_client.get("/api/v1/manufacturers/")
+    visible = next(row for row in public.data if row["id"] == created.data["id"])
+    assert visible["name_dari"] == "نمونه سلامت"
+    assert visible["logo_url"].endswith(f"/api/v1/manufacturers/{created.data['id']}/logo/")
+
+    deactivated = client.patch(
+        f"/api/v1/staff/manufacturers/{created.data['id']}/",
+        {"status": RecordStatus.INACTIVE},
+        format="json",
+    )
+    assert deactivated.status_code == 200
+    assert not any(
+        row["id"] == created.data["id"] for row in api_client.get("/api/v1/manufacturers/").data
+    )
+    assert Manufacturer.objects.filter(pk=created.data["id"]).exists()
+
+
+@pytest.mark.django_db
+def test_used_manufacturer_must_be_deactivated_not_deleted(operations_client, medicine):
+    client, _ = operations_client
+    response = client.delete(f"/api/v1/staff/manufacturers/{medicine.manufacturer_id}/")
+    assert response.status_code == 400
+    assert Manufacturer.objects.filter(pk=medicine.manufacturer_id).exists()
+
+
+@pytest.mark.django_db
+def test_customer_cannot_manage_manufacturers(authenticated_client):
+    response = authenticated_client.post(
+        "/api/v1/staff/manufacturers/",
+        {"name": "Blocked manufacturer"},
+        format="json",
+    )
+    assert response.status_code == 403

@@ -66,6 +66,8 @@ final routerProvider = Provider<GoRouter>(
           child: SearchResultsScreen(
             initialCategory: state.uri.queryParameters['category'] ?? '',
             initialQuery: state.uri.queryParameters['query'] ?? '',
+            initialManufacturer:
+                state.uri.queryParameters['manufacturer'] ?? '',
           ),
         ),
       ),
