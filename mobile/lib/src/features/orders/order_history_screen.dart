@@ -97,7 +97,7 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
                     );
                   }
                   return RefreshIndicator(
-                    onRefresh: () async => ref.invalidate(ordersProvider),
+                    onRefresh: () => ref.refresh(ordersProvider.future),
                     child: ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                       itemCount: filtered.length,

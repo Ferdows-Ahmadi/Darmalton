@@ -14,9 +14,14 @@ import '../../core/providers.dart';
 import '../../core/strings.dart';
 import '../../core/widgets.dart';
 
-Future<void> showAddressSelector(BuildContext context, WidgetRef ref) async {
+bool shouldClearSelectedAddress({
+  required String? selectedAddressId,
+  required String deletedAddressId,
+}) => selectedAddressId == deletedAddressId;
+
+Future<String?> showAddressSelector(BuildContext context, WidgetRef ref) async {
   final user = await ref.read(authProvider.future);
-  if (!context.mounted) return;
+  if (!context.mounted) return null;
   if (user == null) {
     await showModalBottomSheet<void>(
       context: context,
@@ -51,10 +56,10 @@ Future<void> showAddressSelector(BuildContext context, WidgetRef ref) async {
         ),
       ),
     );
-    return;
+    return null;
   }
 
-  await showModalBottomSheet<void>(
+  return showModalBottomSheet<String>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
@@ -194,8 +199,9 @@ Future<void> _selectAddress(
         sheetContext,
       ).showSnackBar(SnackBar(content: Text('$error')));
     }
+    return;
   }
-  if (sheetContext.mounted) Navigator.pop(sheetContext);
+  if (sheetContext.mounted) Navigator.pop(sheetContext, address.id);
 }
 
 Future<void> selectDeliveryAddress(
@@ -244,9 +250,16 @@ Future<void> _deleteAddress(
   );
   if (confirmed != true) return;
   try {
-    await ref.read(apiClientProvider).delete('/addresses/${address.id}/');
     final user = await ref.read(authProvider.future);
-    if (user != null) {
+    final selectedId = user == null
+        ? null
+        : await ref.read(localCacheProvider).readSelectedAddressId(user.id);
+    await ref.read(apiClientProvider).delete('/addresses/${address.id}/');
+    if (user != null &&
+        shouldClearSelectedAddress(
+          selectedAddressId: selectedId,
+          deletedAddressId: address.id,
+        )) {
       await ref.read(localCacheProvider).deleteSelectedAddressId(user.id);
     }
     ref.invalidate(addressesProvider);
@@ -519,12 +532,14 @@ Future<void> showAddressEditor(
                                   try {
                                     final position =
                                         await _getCurrentLocation();
+                                    if (!sheetContext.mounted) return;
                                     setSheetState(() {
                                       latitude = position.latitude;
                                       longitude = position.longitude;
                                       submitError = null;
                                     });
                                   } on Object catch (error) {
+                                    if (!sheetContext.mounted) return;
                                     setSheetState(() {
                                       submitError = error is FormatException
                                           ? error.message
@@ -547,7 +562,10 @@ Future<void> showAddressEditor(
                                     latitude: latitude,
                                     longitude: longitude,
                                   );
-                                  if (selected == null) return;
+                                  if (!sheetContext.mounted ||
+                                      selected == null) {
+                                    return;
+                                  }
                                   setSheetState(() {
                                     latitude = selected.latitude;
                                     longitude = selected.longitude;
@@ -694,6 +712,7 @@ Future<void> showAddressEditor(
                                       Navigator.pop(sheetContext);
                                     }
                                   } catch (error) {
+                                    if (!sheetContext.mounted) return;
                                     setSheetState(() {
                                       saving = false;
                                       submitError = '$error';

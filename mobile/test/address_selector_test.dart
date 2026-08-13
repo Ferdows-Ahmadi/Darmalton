@@ -1,9 +1,94 @@
 import 'package:darmalton_pharmacy/src/features/addresses/address_selector.dart';
+import 'package:darmalton_pharmacy/src/features/checkout/checkout_screen.dart';
+import 'package:darmalton_pharmacy/src/core/models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  const defaultAddress = Address(
+    id: 'default',
+    label: 'Home',
+    recipientName: 'Customer',
+    recipientPhone: '+93700123456',
+    province: 'Kabul',
+    city: 'Kabul',
+    district: '',
+    streetAddress: 'Street 1',
+    landmark: '',
+    deliveryInstructions: '',
+    isDefault: true,
+  );
+  const selectedAddress = Address(
+    id: 'selected',
+    label: 'Office',
+    recipientName: 'Customer',
+    recipientPhone: '+93700123456',
+    province: 'Kabul',
+    city: 'Kabul',
+    district: '',
+    streetAddress: 'Street 2',
+    landmark: '',
+    deliveryInstructions: '',
+    isDefault: false,
+  );
+
+  test('checkout waits for and restores the persisted address selection', () {
+    expect(
+      resolveCheckoutAddressId(
+        addresses: const [defaultAddress, selectedAddress],
+        currentId: null,
+        persistedId: null,
+        selectionInitialized: false,
+        persistedSelectionLoaded: false,
+      ),
+      isNull,
+    );
+    expect(
+      resolveCheckoutAddressId(
+        addresses: const [defaultAddress, selectedAddress],
+        currentId: null,
+        persistedId: selectedAddress.id,
+        selectionInitialized: false,
+        persistedSelectionLoaded: true,
+      ),
+      selectedAddress.id,
+    );
+  });
+
+  test(
+    'checkout keeps a newly selected valid address during provider refresh',
+    () {
+      expect(
+        resolveCheckoutAddressId(
+          addresses: const [defaultAddress, selectedAddress],
+          currentId: selectedAddress.id,
+          persistedId: defaultAddress.id,
+          selectionInitialized: true,
+          persistedSelectionLoaded: true,
+        ),
+        selectedAddress.id,
+      );
+    },
+  );
+
+  test('deleting an unrelated address preserves the selected address', () {
+    expect(
+      shouldClearSelectedAddress(
+        selectedAddressId: selectedAddress.id,
+        deletedAddressId: defaultAddress.id,
+      ),
+      isFalse,
+    );
+    expect(
+      shouldClearSelectedAddress(
+        selectedAddressId: selectedAddress.id,
+        deletedAddressId: selectedAddress.id,
+      ),
+      isTrue,
+    );
+  });
+
   testWidgets(
     'address editor supports manual fields and optional map location',
     (tester) async {

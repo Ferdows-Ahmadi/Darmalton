@@ -46,6 +46,21 @@ class _FilledCart extends ConsumerWidget {
 
   final Cart cart;
 
+  Future<void> _mutate(
+    BuildContext context,
+    Future<void> Function() mutation,
+  ) async {
+    try {
+      await mutation();
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$error')));
+      }
+    }
+  }
+
   Future<void> _confirmRemove(
     BuildContext context,
     WidgetRef ref,
@@ -68,9 +83,11 @@ class _FilledCart extends ConsumerWidget {
         ],
       ),
     );
-    if (remove == true) {
-      await ref.read(cartProvider.notifier).remove(item.id);
-    }
+    if (remove != true || !context.mounted) return;
+    await _mutate(
+      context,
+      () => ref.read(cartProvider.notifier).remove(item.id),
+    );
   }
 
   @override
@@ -93,14 +110,20 @@ class _FilledCart extends ConsumerWidget {
             item: item,
             onDecrease: item.quantity <= 1
                 ? null
-                : () => ref
-                      .read(cartProvider.notifier)
-                      .updateQuantity(item, item.quantity - 1),
+                : () => _mutate(
+                    context,
+                    () => ref
+                        .read(cartProvider.notifier)
+                        .updateQuantity(item, item.quantity - 1),
+                  ),
             onIncrease: item.quantity >= item.availableQuantity
                 ? null
-                : () => ref
-                      .read(cartProvider.notifier)
-                      .updateQuantity(item, item.quantity + 1),
+                : () => _mutate(
+                    context,
+                    () => ref
+                        .read(cartProvider.notifier)
+                        .updateQuantity(item, item.quantity + 1),
+                  ),
             onRemove: () => _confirmRemove(context, ref, item),
           ),
         ),

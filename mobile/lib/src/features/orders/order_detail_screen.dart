@@ -28,7 +28,7 @@ class OrderDetailScreen extends ConsumerWidget {
             onRetry: () => ref.invalidate(orderProvider(id)),
           ),
           data: (item) => RefreshIndicator(
-            onRefresh: () async => ref.invalidate(orderProvider(id)),
+            onRefresh: () => ref.refresh(orderProvider(id).future),
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
               children: [

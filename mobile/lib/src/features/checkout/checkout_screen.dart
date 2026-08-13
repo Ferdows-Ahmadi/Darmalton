@@ -12,6 +12,23 @@ import '../../core/strings.dart';
 import '../../core/widgets.dart';
 import '../addresses/address_selector.dart';
 
+String? resolveCheckoutAddressId({
+  required List<Address> addresses,
+  required String? currentId,
+  required String? persistedId,
+  required bool selectionInitialized,
+  required bool persistedSelectionLoaded,
+}) {
+  if (addresses.isEmpty) return null;
+  final currentIsValid = addresses.any((item) => item.id == currentId);
+  if (selectionInitialized && currentIsValid) return currentId;
+  if (!persistedSelectionLoaded) return currentIsValid ? currentId : null;
+  final persistedIsValid = addresses.any((item) => item.id == persistedId);
+  if (persistedIsValid) return persistedId;
+  return addresses.where((item) => item.isDefault).firstOrNull?.id ??
+      addresses.first.id;
+}
+
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
 
@@ -21,6 +38,7 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String? _selected;
+  bool _selectionInitialized = false;
   bool _busy = false;
 
   Future<void> _confirmAndPlaceOrder() async {
@@ -75,7 +93,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     final addresses = ref.watch(addressesProvider);
-    final persistedSelected = ref.watch(selectedAddressIdProvider).value;
+    final persistedSelection = ref.watch(selectedAddressIdProvider);
+    final persistedSelected = persistedSelection.value;
     final cart = ref.watch(cartProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('پرداخت')),
@@ -86,18 +105,21 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           onRetry: () => ref.invalidate(addressesProvider),
         ),
         data: (items) {
-          if (items.isNotEmpty) {
-            final validPersisted = items
-                .where((item) => item.id == persistedSelected)
-                .firstOrNull;
-            final validCurrent = items
-                .where((item) => item.id == _selected)
-                .firstOrNull;
-            _selected =
-                validPersisted?.id ??
-                validCurrent?.id ??
-                items.where((item) => item.isDefault).firstOrNull?.id ??
-                items.first.id;
+          if (items.isEmpty) {
+            _selected = null;
+            _selectionInitialized = false;
+          } else {
+            final resolved = resolveCheckoutAddressId(
+              addresses: items,
+              currentId: _selected,
+              persistedId: persistedSelected,
+              selectionInitialized: _selectionInitialized,
+              persistedSelectionLoaded: persistedSelection.hasValue,
+            );
+            if (resolved != null) {
+              _selected = resolved;
+              _selectionInitialized = true;
+            }
           }
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
@@ -106,7 +128,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 icon: Icons.location_on_outlined,
                 title: 'آدرس تحویل',
                 action: TextButton.icon(
-                  onPressed: () => showAddressSelector(context, ref),
+                  onPressed: () async {
+                    final selected = await showAddressSelector(context, ref);
+                    if (mounted && selected != null) {
+                      setState(() {
+                        _selected = selected;
+                        _selectionInitialized = true;
+                      });
+                    }
+                  },
                   icon: const Icon(Icons.edit_location_alt_outlined, size: 18),
                   label: Text(items.isEmpty ? 'افزودن آدرس' : 'مدیریت آدرس‌ها'),
                 ),

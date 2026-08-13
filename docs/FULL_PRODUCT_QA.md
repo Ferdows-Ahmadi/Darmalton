@@ -37,8 +37,8 @@ or disabled because the required production integration is unavailable, and
 | Favorites/recently viewed/searches | Catalogue/detail/settings | All | Persist public preferences locally and clear on request | Local-cache contract tests | Device behavior audit open | PARTIAL |
 | Guest cart | `/cart` | Anonymous | Add/update/remove/persist and merge safely after auth | Guest/local-cache tests | Full transition re-check open | PARTIAL |
 | Authenticated cart | `/cart` | Customer | Server price/stock authority; enforce Rx authorization | Backend API tests | Device flow open | PARTIAL |
-| Addresses | Checkout selector | Customer | CRUD/default/manual/GPS/map confirm/cancel, cached offline selection | `address_selector_test.dart` | Attended complete walkthrough open | PARTIAL |
-| Checkout/COD | `/checkout` | Customer | Validate address/cart/Rx/stock and explicitly confirm COD once | Backend smoke/service tests | Attended checkout open | PARTIAL |
+| Addresses | Checkout selector | Customer | CRUD/default/manual/GPS/map confirm/cancel, cached offline selection | Selection timing/deletion regressions plus `address_selector_test.dart` | Attended complete walkthrough open | PARTIAL |
+| Checkout/COD | `/checkout` | Customer | Validate address/cart/Rx/stock and explicitly confirm COD once | Focused backend address/cart/order/ledger tests | Attended checkout open | PARTIAL |
 | Orders | `/orders`, `/orders/:id` | Customer | History/detail/status/snapshots without fake courier controls | Backend and client checks | Device audit open | PARTIAL |
 | Prescription upload | `/prescription` | Customer | Camera/gallery/file, preview/remove/progress/retry and guarded upload | Prescription camera/upload tests | File flow passed; attended camera open | PARTIAL |
 | Prescription lifecycle | `/prescription` | Customer | History, clarification response, rejection/approval and obvious next action | Backend transition tests | Browser staff/customer flow passed | PARTIAL |

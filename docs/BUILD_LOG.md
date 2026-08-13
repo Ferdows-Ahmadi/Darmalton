@@ -664,3 +664,20 @@
 - All 37 website tests, strict TypeScript, ESLint, and the 41-route production
   build passed. Flutter formatting/analyze and 14 focused app, language, and
   notification tests passed.
+
+## 2026-08-13 - Customer checkout and address reliability
+
+- Fixed checkout address initialization so it waits for the cached selection,
+  preserves a newly tapped address during provider refresh, and immediately
+  receives selections made in the shared address manager.
+- Deleting an unrelated address no longer clears the selected-address cache.
+  Address GPS/map/save callbacks now stop safely if their sheet was dismissed,
+  avoiding late state updates on disposed UI.
+- Cart quantity/removal errors now surface through the existing actionable
+  error presentation instead of becoming unhandled asynchronous failures.
+  Order history and detail pull-to-refresh now wait for the replacement server
+  response before ending the refresh indicator.
+- Flutter analyze passed with no findings. Twenty-five focused address, local
+  cache, navigation/offline, and guest/auth tests passed, including three new
+  address-selection regressions. Six targeted Django address/cart/order/ledger
+  invariants passed.
