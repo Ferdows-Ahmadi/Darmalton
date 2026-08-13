@@ -74,13 +74,6 @@ export default function OrderPage() {
           تازه‌سازی وضعیت
         </button>
       </div>
-      <div className="tracking-placeholder">
-        <span aria-hidden="true">⌖</span>
-        <div>
-          <strong>پیگیری مرحله‌ای سفارش</strong>
-          <p>موقعیت زنده پیک در این نسخه پشتیبانی نمی‌شود.</p>
-        </div>
-      </div>
       <div className="status-timeline">
         {order.status_history.map((item) => (
           <div key={item.id}>

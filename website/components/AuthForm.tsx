@@ -216,16 +216,20 @@ export function AuthForm({
       </button>
       {audience === "customer" && (
         <>
-          <div className="auth-divider" aria-hidden="true">
-            <span>یا</span>
-          </div>
-          <GoogleSignInButton
-            clientId={googleClientId}
-            mode={mode}
-            busy={busy}
-            onCredential={submitGoogle}
-            onError={setError}
-          />
+          {googleClientId && (
+            <>
+              <div className="auth-divider" aria-hidden="true">
+                <span>یا</span>
+              </div>
+              <GoogleSignInButton
+                clientId={googleClientId}
+                mode={mode}
+                busy={busy}
+                onCredential={submitGoogle}
+                onError={setError}
+              />
+            </>
+          )}
           <p className="auth-switch">
             {register ? "قبلاً ثبت‌نام کرده‌اید؟" : "حساب کاربری ندارید؟"}{" "}
             <Link

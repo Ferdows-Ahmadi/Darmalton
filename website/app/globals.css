@@ -1127,35 +1127,6 @@ button:disabled {
   color: var(--muted);
 }
 
-.tracking-placeholder {
-  padding: 19px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background:
-    linear-gradient(110deg, transparent 0 45%, rgba(7, 157, 155, 0.08) 46% 48%, transparent 49%),
-    var(--mint);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-}
-
-.tracking-placeholder > span {
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  color: white;
-  background: var(--teal);
-  border-radius: 50%;
-  font-size: 26px;
-}
-
-.tracking-placeholder p {
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-}
-
 .status-timeline {
   margin: 28px 0 34px;
 }
@@ -1242,7 +1213,7 @@ button:disabled {
 .account-stats {
   margin-top: 18px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   background: white;
   border: 1px solid var(--line);
   border-radius: 18px;

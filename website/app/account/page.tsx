@@ -63,10 +63,6 @@ export default function AccountPage() {
               <strong>{addressCount.toLocaleString("fa-AF")}</strong>
               <span>آدرس ذخیره‌شده</span>
             </div>
-            <div>
-              <strong>—</strong>
-              <span>کیف پول؛ به‌زودی</span>
-            </div>
           </div>
           <div className="profile-menu">
             <Link href="/orders">

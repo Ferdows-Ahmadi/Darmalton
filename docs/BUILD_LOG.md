@@ -648,3 +648,19 @@
   checks/migration consistency, all 8 focused prescription/notification tests,
   website tests/typecheck/ESLint, Flutter analyze, and 21 focused Flutter tests
   passed. Attended browser and Pixel verification remain in the final QA pass.
+
+## 2026-08-13 - Truthful customer service affordances
+
+- Removed the public account wallet placeholder and the order-detail live
+  courier placeholder. Cash on delivery and recorded server status history stay
+  visible; future wallet and tracking foundations remain gated for their planned
+  integrations.
+- Customer Google sign-in is now shown only when a real client ID is configured
+  on both Next.js and Flutter. The provider implementation remains intact, but
+  an unconfigured build no longer advertises an action that cannot complete.
+- Removed the disabled biometric settings row while retaining password change
+  and account-deactivation controls. Biometric implementation remains a
+  documented platform security checkpoint rather than a simulated toggle.
+- All 37 website tests, strict TypeScript, ESLint, and the 41-route production
+  build passed. Flutter formatting/analyze and 14 focused app, language, and
+  notification tests passed.

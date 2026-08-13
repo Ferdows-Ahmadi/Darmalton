@@ -322,20 +322,6 @@ class _SecuritySettingsScreenState
             loading: _saving,
             onPressed: _saving ? null : _changePassword,
           ),
-          const SizedBox(height: 24),
-          const Divider(),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(Icons.fingerprint_rounded),
-            title: Text('ورود بایومتریک'),
-            subtitle: Text(
-              DariStrings.t(
-                'پس از بررسی ذخیره امن کلید در Android و iOS فعال خواهد شد.',
-                'This will be enabled after secure key storage is reviewed on Android and iOS.',
-              ),
-            ),
-            trailing: Chip(label: Text('غیرفعال')),
-          ),
           const SizedBox(height: 16),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(

@@ -7,7 +7,8 @@
   cannot complete in repository CI/local verification until an operator supplies
   `GOOGLE_CLIENT_ID`, the server-only secret, authorized website origins, and
   Android package/SHA registration. Invalid, unavailable, linking-conflict, and
-  verified-claim paths are covered by deterministic backend/client tests.
+  verified-claim paths are covered by deterministic backend/client tests. The
+  customer action stays hidden when the client ID is absent.
 - Debug Android builds permit cleartext HTTP solely for private-LAN development.
   Release builds require HTTPS and production secrets/configuration.
 - Automatic LAN discovery is development-only and requires a Private Windows
@@ -18,7 +19,8 @@
   USB ADB reverse remains the deterministic fallback.
 - Wallets, stored payment methods, card gateways, ratings/reviews, courier chat,
   and live courier tracking remain gated rather than simulated. Cash on delivery
-  is the only enabled checkout payment method. Address GPS and map pin capture
+  is the only enabled checkout payment method; wallet/card controls and account
+  balance placeholders stay hidden. Address GPS and map pin capture
   are functional; service zones, dynamic fees/ETAs, courier assignment, courier
   GPS updates, and customer tracking remain Phase 7 work.
 - The prescription backend, clients, authorization rules, guarded staff review

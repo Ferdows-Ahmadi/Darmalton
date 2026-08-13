@@ -39,7 +39,7 @@ or disabled because the required production integration is unavailable, and
 | Authenticated cart | `/cart` | Customer | Server price/stock authority; enforce Rx authorization | Backend API tests | Device flow open | PARTIAL |
 | Addresses | Checkout selector | Customer | CRUD/default/manual/GPS/map confirm/cancel, cached offline selection | `address_selector_test.dart` | Attended complete walkthrough open | PARTIAL |
 | Checkout/COD | `/checkout` | Customer | Validate address/cart/Rx/stock and explicitly confirm COD once | Backend smoke/service tests | Attended checkout open | PARTIAL |
-| Orders | `/orders`, `/orders/:id` | Customer | History/detail/status/snapshots without fake courier controls | Backend tests | UI cleanup and device audit open | PARTIAL |
+| Orders | `/orders`, `/orders/:id` | Customer | History/detail/status/snapshots without fake courier controls | Backend and client checks | Device audit open | PARTIAL |
 | Prescription upload | `/prescription` | Customer | Camera/gallery/file, preview/remove/progress/retry and guarded upload | Prescription camera/upload tests | File flow passed; attended camera open | PARTIAL |
 | Prescription lifecycle | `/prescription` | Customer | History, clarification response, rejection/approval and obvious next action | Backend transition tests | Browser staff/customer flow passed | PARTIAL |
 | Approved Rx cart | Prescription/card/cart | Customer | Idempotently add an approved bundle; customer still confirms checkout | Backend atomicity/permission tests plus Flutter model/analyze tests | Browser/device flow open | PARTIAL |
@@ -108,7 +108,6 @@ or disabled because the required production integration is unavailable, and
    cards, category discovery, and real manufacturer cards.
 3. Complete browser and device QA for the safe approved-prescription-to-cart
    path and customer in-app notification presentation.
-4. Remove or hide remaining unsupported courier and other placeholder actions.
-5. Complete attended Pixel camera, address CRUD/GPS, and COD checkout checks.
-6. Integrate the eligible public CMS resources into the website and run the
+4. Complete attended Pixel camera, address CRUD/GPS, and COD checkout checks.
+5. Integrate the eligible public CMS resources into the website and run the
    complete browser/role matrix after the redesigns stabilize.

@@ -186,33 +186,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     onPressed: state.isLoading ? null : _submit,
                     loading: state.isLoading,
                   ),
-                  const SizedBox(height: 18),
-                  const Row(
-                    children: [
-                      Expanded(child: Divider()),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('یا'),
-                      ),
-                      Expanded(child: Divider()),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  GoogleAuthButton(
-                    label: 'ایجاد حساب با گوگل',
-                    enabled: googleConfigured,
-                    loading: state.isLoading,
-                    onPressed: _submitGoogle,
-                  ),
-                  if (!googleConfigured) ...[
-                    const SizedBox(height: 8),
-                    const Text(
-                      'ورود با گوگل در این نسخه تنظیم نشده است.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: DarmaltonColors.muted,
-                        fontSize: 12,
-                      ),
+                  if (googleConfigured) ...[
+                    const SizedBox(height: 18),
+                    const Row(
+                      children: [
+                        Expanded(child: Divider()),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Text('یا'),
+                        ),
+                        Expanded(child: Divider()),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    GoogleAuthButton(
+                      label: 'ایجاد حساب با گوگل',
+                      enabled: true,
+                      loading: state.isLoading,
+                      onPressed: _submitGoogle,
                     ),
                   ],
                   const SizedBox(height: 10),
