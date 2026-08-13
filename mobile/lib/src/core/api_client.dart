@@ -37,7 +37,9 @@ class ApiClient {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           options.baseUrl = await _endpointManager.ensureResolved();
+          if (handler.isCompleted) return;
           final token = await _storage.read(key: 'access_token');
+          if (handler.isCompleted) return;
           if (token != null && shouldAttachAuthorization(options)) {
             options.headers['Authorization'] = 'Bearer $token';
           }

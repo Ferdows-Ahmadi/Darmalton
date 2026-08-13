@@ -212,9 +212,7 @@ class StorageLocationViewSet(viewsets.ModelViewSet):
     http_method_names = ("get", "post", "put", "patch", "head", "options")
     permission_classes = (IsOperationsStaff,)
     serializer_class = StorageLocationSerializer
-    queryset = StorageLocation.objects.select_related(
-        "warehouse", "warehouse__branch"
-    ).annotate(
+    queryset = StorageLocation.objects.select_related("warehouse", "warehouse__branch").annotate(
         batch_count=Count("batches", distinct=True),
         stock_quantity=Coalesce(Sum("batches__available_quantity"), 0),
     )

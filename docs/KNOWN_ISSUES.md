@@ -40,11 +40,13 @@
   catalogue filter modal dismissed. The finalized approach keeps app settings as
   the single source of truth and uses explicit language-aware string resolution
   plus safe post-dismiss filter state application.
-- The requested full manual Pixel regression matrix (navigation, addresses,
-  catalogue, prescription, offline, and all back-stack interactions) remains
-  partially open in this run; automated Flutter coverage and the debug APK build
-  are green, but complete physical interaction-based sign-off still requires a
-  full attended walkthrough.
+- Pixel 10 QA now covers fresh install/cold launch, Dari-first Home, Settings,
+  persisted English/LTR switching, live branding/catalogue data, compact
+  offline presentation, Retry recovery, and clean post-fix logcat. Camera
+  composition, GPS/map placement, destructive address operations, every
+  back-stack permutation, and approved-prescription checkout still require an
+  attended walkthrough because they need human positioning, confirmation, or
+  deliberate mutation of demo data.
 - Development map previews use the OpenStreetMap standard tile endpoint with
   attribution and an application user agent. Before production traffic, choose
   and configure a tile provider or self-hosting plan that satisfies capacity,
@@ -110,6 +112,9 @@
 - OpenAPI generation now has an explicit health response and distinct order
   payment-status enum name. Generated clients still require normal versioning
   and compatibility review before publication.
+- OpenAPI validation reports one non-blocking enum naming warning
+  (`Status372Enum`). Add an explicit `ENUM_NAME_OVERRIDES` entry before
+  publishing generated clients; there are no schema validation errors.
 - Historical order item and status-note snapshots preserve the text stored at
   order time. Newly seeded catalogue display names are Dari-first, but older
   snapshots can retain a Latin medicine name.

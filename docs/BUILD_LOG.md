@@ -706,3 +706,31 @@
   `8LMF4`) created by `admin@example.test`; they were named example/second/third
   banner and one linked customers into the staff CMS. Audit history was
   preserved and no real operator content was removed.
+
+## 2026-08-13 - Final milestone verification
+
+- Completed the full repository verification pass against PostgreSQL: Django
+  system and migration checks, Ruff, 97 backend tests, 41 website tests,
+  strict TypeScript, ESLint, the 42-route Next.js production build, Flutter
+  analysis, all 66 Flutter tests, Compose validation, applied-migration checks,
+  and the integrated registration-to-admin-order-transition smoke flow passed.
+- OpenAPI validation completed with zero errors and one non-blocking enum-name
+  warning. The generated schema is usable, but an explicit enum-name override
+  remains release hygiene before publishing a versioned SDK.
+- Browser QA verified the public site and staff portal without document
+  overflow at 1440, 1024 and 320 pixels. Admin and pharmacist sessions reached
+  the intended staff pages; a customer was redirected to staff login with an
+  explicit forbidden reason. The live prescription history and state-aware
+  actions remained visible through the normal staff UI.
+- Built and installed a fresh Android debug APK on the connected Pixel 10
+  (`com.darmalton.pharmacy`, version `1.0.0`/code `1`). Dari-first Home,
+  branding, live catalogue media, Settings, persisted English LTR switching,
+  offline messaging, dismiss/retry controls and online recovery were verified.
+  Physical screenshots are stored in `docs/qa/2026-08-13-device/`.
+- Physical offline QA exposed an async Dio request-interceptor race which could
+  complete a handler after its request had already been cancelled. Added a
+  completion guard, reran focused endpoint/auth tests and Flutter analysis,
+  rebuilt/reinstalled the APK, and repeated offline/retry with no Flutter,
+  Dio, fatal or unhandled logcat errors.
+- Final APK: `mobile/build/app/outputs/flutter-apk/app-debug.apk`, SHA-256
+  `E81B87296B2D28CC118A96747ED6B0639B372A4E1283777D99B08570E7D48BF2`.
