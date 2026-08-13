@@ -90,8 +90,9 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
               labelText: DariStrings.translate('نام'),
               prefixIcon: const Icon(Icons.person_outline_rounded),
             ),
-            validator: (value) =>
-                value?.trim().isEmpty == true ? 'نام را وارد کنید.' : null,
+            validator: (value) => value?.trim().isEmpty == true
+                ? DariStrings.translate('نام را وارد کنید.')
+                : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -197,9 +198,13 @@ class _SecuritySettingsScreenState
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'ورود به حساب متوقف می‌شود و سفارش‌های تاریخی برای الزامات '
-              'داروخانه محفوظ می‌ماند. برای فعال‌سازی دوباره با پشتیبانی تماس بگیرید.',
+            Text(
+              DariStrings.t(
+                'ورود به حساب متوقف می‌شود و سفارش‌های تاریخی برای الزامات '
+                    'داروخانه محفوظ می‌ماند. برای فعال‌سازی دوباره با پشتیبانی تماس بگیرید.',
+                'Sign-in will be disabled, while historical orders remain available '
+                    'for pharmacy obligations. Contact support to reactivate your account.',
+              ),
             ),
             const SizedBox(height: 14),
             TextField(
@@ -282,8 +287,9 @@ class _SecuritySettingsScreenState
             decoration: InputDecoration(
               labelText: DariStrings.t('رمز عبور فعلی', 'Current password'),
             ),
-            validator: (value) =>
-                value?.isEmpty == true ? 'رمز فعلی را وارد کنید.' : null,
+            validator: (value) => value?.isEmpty == true
+                ? DariStrings.translate('رمز فعلی را وارد کنید.')
+                : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -294,7 +300,7 @@ class _SecuritySettingsScreenState
               labelText: DariStrings.t('رمز عبور جدید', 'New password'),
             ),
             validator: (value) => (value?.length ?? 0) < 8
-                ? 'رمز جدید باید حداقل هشت حرف باشد.'
+                ? DariStrings.translate('رمز جدید باید حداقل هشت حرف باشد.')
                 : null,
           ),
           const SizedBox(height: 12),
@@ -305,8 +311,9 @@ class _SecuritySettingsScreenState
             decoration: InputDecoration(
               labelText: DariStrings.translate('تکرار رمز جدید'),
             ),
-            validator: (value) =>
-                value != _next.text ? 'دو رمز جدید یکسان نیست.' : null,
+            validator: (value) => value != _next.text
+                ? DariStrings.translate('دو رمز جدید یکسان نیست.')
+                : null,
           ),
           const SizedBox(height: 20),
           GradientButton(
@@ -317,12 +324,15 @@ class _SecuritySettingsScreenState
           ),
           const SizedBox(height: 24),
           const Divider(),
-          const ListTile(
+          ListTile(
             contentPadding: EdgeInsets.zero,
             leading: Icon(Icons.fingerprint_rounded),
             title: Text('ورود بایومتریک'),
             subtitle: Text(
-              'پس از بررسی ذخیره امن کلید در Android و iOS فعال خواهد شد.',
+              DariStrings.t(
+                'پس از بررسی ذخیره امن کلید در Android و iOS فعال خواهد شد.',
+                'This will be enabled after secure key storage is reviewed on Android and iOS.',
+              ),
             ),
             trailing: Chip(label: Text('غیرفعال')),
           ),

@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'design_system.dart';
+import 'localized_text.dart';
 import 'providers.dart';
 
 String safeReturnLocation(String? value) {

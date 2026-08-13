@@ -130,7 +130,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     validator: (value) => value != null && value.contains('@')
                         ? null
-                        : 'یک ایمیل معتبر وارد کنید.',
+                        : DariStrings.translate('یک ایمیل معتبر وارد کنید.'),
                   ),
                   const SizedBox(height: 14),
                   TextFormField(
@@ -166,7 +166,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     validator: (value) => (value?.length ?? 0) >= 8
                         ? null
-                        : 'رمز عبور حداقل ۸ نویسه باشد.',
+                        : DariStrings.translate('رمز عبور حداقل ۸ نویسه باشد.'),
                   ),
                   if (state.hasError)
                     Padding(

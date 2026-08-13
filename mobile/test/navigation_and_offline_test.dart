@@ -1,4 +1,5 @@
 import 'package:darmalton_pharmacy/src/core/providers.dart';
+import 'package:darmalton_pharmacy/src/core/strings.dart';
 import 'package:darmalton_pharmacy/src/core/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -59,6 +60,48 @@ void main() {
     container.read(offlineProvider.notifier).markOnline();
     container.read(offlineProvider.notifier).markOffline();
     expect(container.read(offlineBannerVisibleProvider), isTrue);
+  });
+
+  testWidgets('offline banner and exit guidance localize in English', (
+    tester,
+  ) async {
+    DariStrings.configure('en');
+    addTearDown(() => DariStrings.configure('fa'));
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    container.read(offlineProvider.notifier).markOffline();
+    final router = GoRouter(
+      initialLocation: '/catalogue',
+      routes: [
+        GoRoute(
+          path: '/catalogue',
+          builder: (_, _) => const MainScaffold(
+            index: 2,
+            child: Scaffold(body: Text('HOME_BODY')),
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.text('Offline; live price and stock are unavailable.'),
+      findsOneWidget,
+    );
+    expect(find.text('Retry'), findsOneWidget);
+    expect(find.byTooltip('Dismiss offline message'), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+    expect(find.text('Press Back again to exit.'), findsOneWidget);
   });
 
   testWidgets('back from a non-home root returns to Home', (tester) async {

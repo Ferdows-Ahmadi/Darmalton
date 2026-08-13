@@ -315,7 +315,9 @@ class _TimelineStep extends StatelessWidget {
 }
 
 String _localizedHistoryNote(String note) {
-  if (note == 'Order placed') return 'سفارش ثبت شد';
+  if (note == 'Order placed') {
+    return DariStrings.t('سفارش ثبت شد', 'Order placed');
+  }
   return note;
 }
 
@@ -406,7 +408,9 @@ class _MoreDetails extends StatelessWidget {
           title: const Text('روش پرداخت'),
           subtitle: const Text('پرداخت هنگام تحویل'),
           trailing: Text(
-            order.paymentStatus == 'PAID' ? 'پرداخت‌شده' : 'پرداخت‌نشده',
+            DariStrings.translate(
+              order.paymentStatus == 'PAID' ? 'پرداخت‌شده' : 'پرداخت‌نشده',
+            ),
           ),
         ),
         const Divider(),

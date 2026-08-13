@@ -1,3 +1,5 @@
+import 'strings.dart';
+
 const _localizedDigits = '۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩';
 const _asciiDigits = '01234567890123456789';
 
@@ -44,6 +46,6 @@ String? validateAfghanPhone(String? value, {bool optional = false}) {
     normalizeAfghanPhone(value ?? '', allowBlank: optional);
     return null;
   } on FormatException catch (error) {
-    return error.message;
+    return DariStrings.translate(error.message);
   }
 }

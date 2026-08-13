@@ -1,11 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'app_settings.dart';
 import 'design_system.dart';
+import 'localized_text.dart';
 import 'models.dart';
 import 'providers.dart';
 import 'strings.dart';
@@ -172,8 +173,9 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                 bottom: false,
                 child: Semantics(
                   liveRegion: true,
-                  label:
-                      'آفلاین. قیمت و موجودی تا اتصال دوباره نمایش داده نمی‌شود.',
+                  label: DariStrings.translate(
+                    'آفلاین. قیمت و موجودی تا اتصال دوباره نمایش داده نمی‌شود.',
+                  ),
                   child: Container(
                     width: double.infinity,
                     color: const Color(0xFFFFF4D8),
@@ -222,7 +224,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                           child: const Text('تلاش'),
                         ),
                         IconButton(
-                          tooltip: 'بستن پیام آفلاین',
+                          tooltip: DariStrings.translate('بستن پیام آفلاین'),
                           visualDensity: VisualDensity.compact,
                           onPressed: () => ref
                               .read(offlineBannerVisibleProvider.notifier)

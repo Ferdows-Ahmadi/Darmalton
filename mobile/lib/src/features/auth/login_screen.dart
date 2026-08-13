@@ -122,7 +122,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       validator: (value) => value != null && value.contains('@')
                           ? null
-                          : 'یک ایمیل معتبر وارد کنید.',
+                          : DariStrings.translate('یک ایمیل معتبر وارد کنید.'),
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -148,7 +148,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       validator: (value) => (value?.length ?? 0) >= 8
                           ? null
-                          : 'رمز عبور حداقل ۸ نویسه باشد.',
+                          : DariStrings.translate(
+                              'رمز عبور حداقل ۸ نویسه باشد.',
+                            ),
                     ),
                     if (FeatureFlags.passwordRecovery)
                       Align(

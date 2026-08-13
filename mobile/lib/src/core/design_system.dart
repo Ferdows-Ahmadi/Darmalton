@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+
+import 'localized_text.dart';
 
 abstract final class DarmaltonColors {
   static const teal = Color(0xFF079C9A);

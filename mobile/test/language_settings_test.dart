@@ -3,6 +3,7 @@ import 'package:darmalton_pharmacy/src/core/app_settings.dart';
 import 'package:darmalton_pharmacy/src/core/local_cache.dart';
 import 'package:darmalton_pharmacy/src/core/models.dart';
 import 'package:darmalton_pharmacy/src/core/providers.dart';
+import 'package:darmalton_pharmacy/src/core/strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -94,7 +95,7 @@ void main() {
 
     await tester.tap(find.text('App language'));
     await pumpUi(tester);
-    await tester.tap(find.text('دری').first);
+    await tester.tap(find.text('Dari').first);
     await pumpUi(tester);
 
     expect(find.text('خانه'), findsWidgets);
@@ -119,6 +120,18 @@ void main() {
     await tester.pumpWidget(languageHarness(cache));
     await pumpUi(tester);
     expect(find.text('Home'), findsWidgets);
+  });
+
+  test('English catalogue covers primary Home and workflow copy', () {
+    DariStrings.configure('en');
+    addTearDown(() => DariStrings.configure('fa'));
+
+    expect(DariStrings.translate('برندهای برتر'), 'Top brands');
+    expect(DariStrings.translate('مقاله‌های سلامت'), 'Health articles');
+    expect(DariStrings.translate('دواهای پرطرفدار'), 'Popular medicines');
+    expect(DariStrings.translate('ادامه به پرداخت'), 'Continue to checkout');
+    expect(DariStrings.translate('ارسال نسخه'), 'Upload prescription');
+    expect(DariStrings.translate('آدرس‌های من'), 'My addresses');
   });
 
   testWidgets(

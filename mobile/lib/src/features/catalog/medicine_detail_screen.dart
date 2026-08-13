@@ -213,9 +213,13 @@ class _MedicineDetailState extends ConsumerState<_MedicineDetail> {
                 const SizedBox(height: 18),
                 const Divider(),
                 const _SectionHeading('روش مصرف'),
-                const Text(
-                  'روش مصرف باید مطابق نسخه یا راهنمای تأییدشده محصول باشد. '
-                  'برای معلومات شخصی با داکتر یا فارمسست مشوره کنید.',
+                Text(
+                  DariStrings.t(
+                    'روش مصرف باید مطابق نسخه یا راهنمای تأییدشده محصول باشد. '
+                        'برای معلومات شخصی با داکتر یا فارمسست مشوره کنید.',
+                    'Use only as prescribed or according to approved product guidance. '
+                        'Consult a doctor or pharmacist for personal medical advice.',
+                  ),
                 ),
                 const SizedBox(height: 14),
                 ExpansionTile(

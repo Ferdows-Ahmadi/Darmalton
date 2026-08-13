@@ -583,3 +583,26 @@
   CMS hero, Health Articles zero-state and a temporary neutral QA article/detail
   (removed afterward), and persisted Dari RTL after switching from English and
   relaunching. No Flutter, Dio, socket or fatal runtime errors appeared.
+
+## 2026-08-13 - Product hardening audit and Flutter localization
+
+- Added `docs/FULL_PRODUCT_QA.md` as the milestone-wide evidence matrix for the
+  Flutter customer app, public website, staff portal, backend contracts, and
+  deferred release checks. It separates verified behavior from remaining work
+  instead of treating route or API presence as user-flow acceptance.
+- Locked down authentication navigation with focused tests: ordinary customer
+  and staff-role sign-in and registration in the customer app open Home, while
+  a valid protected-route intent is restored after authentication and external
+  or authentication-loop return locations are rejected.
+- Extended the existing Dari-first localization architecture rather than adding
+  a competing framework. Shared authorization, navigation, offline, error,
+  button, and design-system text now use the localized text path; authentication
+  validators, connectivity errors, phone validation, medicine guidance, order
+  state details, settings, policies, and primary catalogue/workflow copy have
+  English equivalents. The catalogue contains 393 unique translation keys with
+  no duplicate map entries, and `Darmalton` is used as the English app name.
+- Flutter analyze passed. Twenty-four focused authentication, language,
+  navigation, and offline tests passed, including persisted English, LTR/RTL
+  switching, protected-route English guidance, and English offline/exit chrome.
+  Full milestone regression, browser, and physical-device verification remain
+  scheduled after the remaining product-hardening phases.

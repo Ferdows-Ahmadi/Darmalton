@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'api_endpoint_manager.dart';
+import 'strings.dart';
 
 class ApiException implements Exception {
   const ApiException(this.message, {this.fields = const {}, this.statusCode});
@@ -178,19 +179,29 @@ class ApiClient {
     if (data is Map<String, dynamic> && data['error'] is Map<String, dynamic>) {
       final details = data['error'] as Map<String, dynamic>;
       return ApiException(
-        details['message'] as String? ?? 'درخواست انجام نشد. دوباره کوشش کنید.',
+        details['message'] as String? ??
+            DariStrings.t(
+              'درخواست انجام نشد. دوباره کوشش کنید.',
+              'The request could not be completed. Try again.',
+            ),
         fields: details['fields'] as Map<String, dynamic>? ?? const {},
         statusCode: error.response?.statusCode,
       );
     }
     if (error.type == DioExceptionType.connectionError ||
         error.type == DioExceptionType.connectionTimeout) {
-      return const ApiException(
-        'ارتباط با داروخانه برقرار نشد. اینترنت خود را بررسی و دوباره کوشش کنید.',
+      return ApiException(
+        DariStrings.t(
+          'ارتباط با داروخانه برقرار نشد. اینترنت خود را بررسی و دوباره کوشش کنید.',
+          'Could not reach the pharmacy. Check your internet connection and try again.',
+        ),
       );
     }
     return ApiException(
-      'مشکلی رخ داد. دوباره کوشش کنید.',
+      DariStrings.t(
+        'مشکلی رخ داد. دوباره کوشش کنید.',
+        'Something went wrong. Try again.',
+      ),
       statusCode: error.response?.statusCode,
     );
   }

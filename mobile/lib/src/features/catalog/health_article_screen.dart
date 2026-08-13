@@ -84,7 +84,7 @@ class _ArticleFallback extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     height: 180,
     decoration: BoxDecoration(
-        color: DarmaltonColors.mint,
+      color: DarmaltonColors.mint,
       borderRadius: BorderRadius.circular(DarmaltonRadius.large),
     ),
     alignment: Alignment.center,

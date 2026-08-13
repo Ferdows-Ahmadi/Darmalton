@@ -64,42 +64,61 @@ class SettingsInfoScreen extends StatelessWidget {
   SettingsInfoKind kind,
 ) => switch (kind) {
   SettingsInfoKind.about => (
-    title: 'درباره ${DariStrings.appName}',
+    title: DariStrings.t('درباره درملتون', 'About Darmalton'),
     icon: Icons.local_pharmacy_outlined,
-    body:
-        'درملتون یک سامانه فروش آنلاین دوا و محصولات صحی با تجربه نخست به زبان دری است. '
-        'قیمت، موجودی، نسخه و وضعیت سفارش فقط از سرور معتبر داروخانه دریافت می‌شود.\n\n'
-        'نسخه برنامه: ۱.۰.۰ (Milestone 1)',
+    body: DariStrings.t(
+      'درملتون یک سامانه فروش آنلاین دوا و محصولات صحی با تجربه نخست به زبان دری است. '
+          'قیمت، موجودی، نسخه و وضعیت سفارش فقط از سرور معتبر داروخانه دریافت می‌شود.\n\n'
+          'نسخه برنامه: ۱.۰.۰ (Milestone 1)',
+      'Darmalton is an online pharmacy for medicines and health products, designed Dari-first. '
+          'Prices, stock, prescriptions, and order status come only from the trusted pharmacy server.\n\n'
+          'App version: 1.0.0 (Milestone 1)',
+    ),
   ),
   SettingsInfoKind.terms => (
-    title: 'شرایط استفاده',
+    title: DariStrings.t('شرایط استفاده', 'Terms of use'),
     icon: Icons.gavel_outlined,
-    body:
-        'از درملتون تنها برای سفارش قانونی و شخصی استفاده کنید. معلومات دوا آموزشی است و '
-        'جای تشخیص یا نسخه داکتر را نمی‌گیرد. دواهای نسخه‌ای تنها پس از تأیید فارمسست '
-        'قابل سفارش‌اند. سفارش، بازگشت و بازپرداخت تابع بررسی داروخانه است.',
+    body: DariStrings.t(
+      'از درملتون تنها برای سفارش قانونی و شخصی استفاده کنید. معلومات دوا آموزشی است و '
+          'جای تشخیص یا نسخه داکتر را نمی‌گیرد. دواهای نسخه‌ای تنها پس از تأیید فارمسست '
+          'قابل سفارش‌اند. سفارش، بازگشت و بازپرداخت تابع بررسی داروخانه است.',
+      'Use Darmalton only for lawful personal orders. Medicine information is educational '
+          'and does not replace diagnosis or a doctor\'s prescription. Prescription medicines '
+          'can be ordered only after pharmacist approval. Orders, returns, and refunds are subject to pharmacy review.',
+    ),
   ),
   SettingsInfoKind.privacy => (
-    title: 'حریم خصوصی',
+    title: DariStrings.t('حریم خصوصی', 'Privacy'),
     icon: Icons.privacy_tip_outlined,
-    body:
-        'توکن ورود در ذخیره امن دستگاه نگهداری می‌شود. مشخصات عمومی کاتالوگ ممکن است برای '
-        'استفاده آفلاین ذخیره شود، اما قیمت، موجودی، وضعیت سفارش، نسخه و پرداخت در کش عمومی '
-        'ذخیره نمی‌شود. نسخه‌های ارسالی فقط برای مالک و کارکنان مجاز قابل دسترس است.',
+    body: DariStrings.t(
+      'توکن ورود در ذخیره امن دستگاه نگهداری می‌شود. مشخصات عمومی کاتالوگ ممکن است برای '
+          'استفاده آفلاین ذخیره شود، اما قیمت، موجودی، وضعیت سفارش، نسخه و پرداخت در کش عمومی '
+          'ذخیره نمی‌شود. نسخه‌های ارسالی فقط برای مالک و کارکنان مجاز قابل دسترس است.',
+      'The sign-in token is stored in secure device storage. Public catalogue details may be '
+          'cached for offline use, but prices, stock, order status, prescriptions, and payments '
+          'are never stored in the public cache. Uploaded prescriptions are visible only to their owner and authorized staff.',
+    ),
   ),
   SettingsInfoKind.help => (
-    title: 'مرکز کمک',
+    title: DariStrings.t('مرکز کمک', 'Help center'),
     icon: Icons.support_agent_rounded,
-    body:
-        'برای مشکل ورود، سفارش یا نسخه ابتدا اتصال اینترنت را بررسی و صفحه را تازه کنید. '
-        'اگر مشکل ادامه داشت، شماره سفارش یا نسخه را یادداشت و با پشتیبانی تماس بگیرید. '
-        'هیچ‌گاه رمز عبور یا کد ورود خود را برای دیگران نفرستید.',
+    body: DariStrings.t(
+      'برای مشکل ورود، سفارش یا نسخه ابتدا اتصال اینترنت را بررسی و صفحه را تازه کنید. '
+          'اگر مشکل ادامه داشت، شماره سفارش یا نسخه را یادداشت و با پشتیبانی تماس بگیرید. '
+          'هیچ‌گاه رمز عبور یا کد ورود خود را برای دیگران نفرستید.',
+      'For sign-in, order, or prescription problems, first check your internet connection and refresh. '
+          'If the problem continues, note the order or prescription number and contact support. '
+          'Never share your password or sign-in code.',
+    ),
   ),
   SettingsInfoKind.contact => (
-    title: 'تماس با ما',
+    title: DariStrings.t('تماس با ما', 'Contact us'),
     icon: Icons.contact_support_outlined,
-    body:
-        'راه‌های زیر برای محیط نمایشی هستند. پیش از انتشار، شماره، ایمیل، ساعت کاری و آدرس '
-        'داروخانه دارای جواز باید با اطلاعات واقعی جایگزین شود.',
+    body: DariStrings.t(
+      'راه‌های زیر برای محیط نمایشی هستند. پیش از انتشار، شماره، ایمیل، ساعت کاری و آدرس '
+          'داروخانه دارای جواز باید با اطلاعات واقعی جایگزین شود.',
+      'The contacts below are for the demo environment. Before release, replace the phone, email, '
+          'working hours, and address with verified details for the licensed pharmacy.',
+    ),
   ),
 };

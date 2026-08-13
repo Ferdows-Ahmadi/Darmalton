@@ -2,6 +2,7 @@ import 'package:darmalton_pharmacy/src/core/auth_gate.dart';
 import 'package:darmalton_pharmacy/src/core/guest_session.dart';
 import 'package:darmalton_pharmacy/src/core/models.dart';
 import 'package:darmalton_pharmacy/src/core/providers.dart';
+import 'package:darmalton_pharmacy/src/core/strings.dart';
 import 'package:darmalton_pharmacy/src/features/auth/splash_screen.dart';
 import 'package:darmalton_pharmacy/src/features/auth/login_screen.dart';
 import 'package:darmalton_pharmacy/src/features/auth/register_screen.dart';
@@ -248,6 +249,37 @@ void main() {
     expect(find.text('پرداخت خصوصی'), findsNothing);
     expect(find.text('ورود'), findsOneWidget);
     expect(find.text('ایجاد حساب'), findsOneWidget);
+  });
+
+  testWidgets('protected action renders complete English account guidance', (
+    tester,
+  ) async {
+    DariStrings.configure('en');
+    addTearDown(() => DariStrings.configure('fa'));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [authProvider.overrideWith(() => FixedAuthController(null))],
+        child: const MaterialApp(
+          home: ProtectedRoute(
+            destination: '/checkout',
+            child: Scaffold(body: Text('PRIVATE_CHECKOUT')),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sign in to continue'), findsOneWidget);
+    expect(
+      find.text(
+        'Browsing is open; this section needs your personal account information.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Sign in'), findsWidgets);
+    expect(find.text('Create account'), findsOneWidget);
+    expect(find.text('Back to Home'), findsOneWidget);
+    expect(find.text('PRIVATE_CHECKOUT'), findsNothing);
   });
 
   test('first-time prompt is persisted and appears once', () async {
