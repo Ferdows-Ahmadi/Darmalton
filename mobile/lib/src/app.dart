@@ -22,6 +22,7 @@ import 'features/catalog/health_article_screen.dart';
 import 'features/checkout/checkout_screen.dart';
 import 'features/orders/order_detail_screen.dart';
 import 'features/orders/order_history_screen.dart';
+import 'features/notifications/notifications_screen.dart';
 import 'features/prescription/prescription_screen.dart';
 import 'features/profile/profile_screen.dart';
 import 'features/settings/account_settings_screen.dart';
@@ -94,6 +95,13 @@ final routerProvider = Provider<GoRouter>(
           child: PrescriptionScreen(
             requestedMedicineId: state.uri.queryParameters['medicineId'],
           ),
+        ),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (_, _) => const ProtectedRoute(
+          destination: '/notifications',
+          child: NotificationsScreen(),
         ),
       ),
       GoRoute(

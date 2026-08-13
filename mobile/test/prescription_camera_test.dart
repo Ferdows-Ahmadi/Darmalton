@@ -47,6 +47,7 @@ class FakePrescriptionRepository implements PrescriptionRepositoryBase {
       createdAt: DateTime.utc(2026),
       canCancel: true,
       canRespond: false,
+      canAddToCart: false,
       authorizedMedicines: const [],
       history: const [],
     );

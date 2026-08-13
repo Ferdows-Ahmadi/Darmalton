@@ -131,20 +131,16 @@ export default function PrescriptionsPage() {
     }
   }
 
-  async function addAuthorized(
-    prescriptionId: string,
-    medicineId: string
-  ) {
+  async function addAuthorizedBundle(prescriptionId: string) {
     setError("");
     try {
-      await apiFetch("cart/items/", {
+      const result = await apiFetch<{added_count: number; already_present_count: number}>(`prescriptions/${prescriptionId}/add-authorized-to-cart/`, {
         method: "POST",
-        body: JSON.stringify({
-          medicine_id: medicineId,
-          prescription_id: prescriptionId,
-          quantity: 1
-        })
+        body: JSON.stringify({})
       });
+      setSuccess(result.added_count > 0
+        ? `${result.added_count.toLocaleString("fa-AF")} دوای تأییدشده به سبد افزوده شد. سبد را بررسی و خودتان پرداخت را تأیید کنید.`
+        : "دواهای تأییدشده از قبل در سبد شما است.");
       router.push("/cart");
     } catch (err) {
       setError(
@@ -277,19 +273,17 @@ export default function PrescriptionsPage() {
                       {authorized.medicine_name} — تا{" "}
                       {authorized.max_quantity.toLocaleString("fa-AF")} عدد
                     </p>
-                    <button
-                      disabled={
-                        requestedMedicineId !== null &&
-                        requestedMedicineId !== authorized.medicine_id
-                      }
-                      onClick={() =>
-                        addAuthorized(item.id, authorized.medicine_id)
-                      }
-                    >
-                      افزودن به سبد
-                    </button>
                   </div>
                 ))}
+                {item.can_add_to_cart &&
+                  (requestedMedicineId === null || item.authorized_medicines.some((authorized) => authorized.medicine_id === requestedMedicineId)) && (
+                  <div className="authorized-bundle-action">
+                    <button onClick={() => addAuthorizedBundle(item.id)}>
+                      افزودن همه دواهای تأییدشده به سبد
+                    </button>
+                    <small>سفارش ساخته نمی‌شود؛ قیمت، موجودی، آدرس و پرداخت نقدی را پیش از ثبت نهایی بررسی می‌کنید.</small>
+                  </div>
+                )}
               </div>
             )}
             {item.can_cancel && (

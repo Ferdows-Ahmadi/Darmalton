@@ -8,7 +8,7 @@ from rest_framework.exceptions import ValidationError
 from catalog.models import InventoryBatch, Medicine, PharmacyBranch
 from operations.models import InventoryTransaction
 from operations.services import record_inventory_change
-from prescriptions.services import validate_prescription_authorization
+from prescriptions.services import notify_order, validate_prescription_authorization
 
 from .models import Cart, Order, OrderItem, OrderItemAllocation, OrderStatusHistory
 
@@ -189,6 +189,7 @@ def create_order(*, customer, address):
         changed_by=customer,
         note="Order placed",
     )
+    notify_order(order, placed=True)
     cart.items.all().delete()
     cart.status = Cart.Status.CONVERTED
     cart.save(update_fields=("status", "updated_at"))
@@ -212,4 +213,5 @@ def transition_order_status(*, order, new_status, actor, note=""):
         changed_by=actor,
         note=note,
     )
+    notify_order(locked)
     return locked

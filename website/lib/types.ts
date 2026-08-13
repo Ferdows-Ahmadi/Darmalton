@@ -178,8 +178,22 @@ export type Prescription = {
   updated_at: string;
   can_cancel: boolean;
   can_respond: boolean;
+  can_add_to_cart: boolean;
   authorized_medicines: AuthorizedMedicine[];
   history: PrescriptionHistory[];
+};
+
+export type AppNotification = {
+  id: string;
+  kind: string;
+  title: string;
+  message: string;
+  title_en: string;
+  message_en: string;
+  prescription_id: string | null;
+  order_id: string | null;
+  read_at: string | null;
+  created_at: string;
 };
 
 export type PageResult<T> = {

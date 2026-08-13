@@ -210,6 +210,11 @@ deleting a default promotes a safe replacement when one exists.
 | GET | `/orders/{id}/` | current customer's order |
 | GET | `/orders/{id}/status-history/` | append-only transitions |
 
+Each successful order placement and staff status transition creates an
+owner-scoped persistent in-app notification. Notification copy never claims a
+courier, live location, or delivery estimate that the order model does not
+actually provide.
+
 `Order`: `id`, `order_number`, `status`, `payment_method`, `payment_status`,
 `currency_code`, `subtotal`, `delivery_fee`, `discount_total`, `grand_total`,
 `delivery_address`, `items[]`, `status_history[]`, `placed_at`.
@@ -217,6 +222,33 @@ deleting a default promotes a safe replacement when one exists.
 Order items snapshot `medicine_id`, `medicine_name`, `strength`, `dosage_form`,
 `quantity`, `unit_price`, and `line_total`. Clients never submit any monetary,
 inventory, ownership, payment-status, or order-status field.
+
+## Prescriptions and in-app notifications
+
+| Method | Path | Notes |
+|---|---|---|
+| GET/POST | `/prescriptions/` | Owner-scoped history and validated private upload |
+| GET | `/prescriptions/{id}/` | Owner-scoped prescription detail and authorization state |
+| POST | `/prescriptions/{id}/respond/` | Submit required clarification |
+| POST | `/prescriptions/{id}/cancel/` | Cancel only from customer-cancellable states |
+| POST | `/prescriptions/{id}/add-authorized-to-cart/` | Atomically merge one unit of every approved medicine into the active cart |
+| GET | `/notifications/?unread=true` | Owner-scoped persistent event list; optional unread filter |
+| POST | `/notifications/{id}/read/` | Mark one owner-scoped notification read |
+| POST | `/notifications/read-all/` | Mark the caller's visible notifications read |
+
+The approved bundle action is idempotent: a matching prescription item already
+in the cart is left unchanged. It preserves unrelated non-prescription cart
+items and rejects a
+medicine already linked to a different prescription instead of overwriting it.
+It does not create an order, reserve stock, accept prices, select an address, or
+confirm payment. Existing server-side cart and checkout validation remains the
+authority for medicine state, stock, current price, authorization quantity,
+prescription ownership/expiry/one-order use, address ownership, and COD.
+
+`Notification`: `id`, `kind`, Dari `title`/`message`, English
+`title_en`/`message_en`, optional `prescription_id`, optional `order_id`,
+`read_at`, and `created_at`. Operating-system push delivery is not part of this
+contract.
 
 ## Pharmacy operations
 

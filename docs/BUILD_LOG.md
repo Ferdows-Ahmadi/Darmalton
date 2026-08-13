@@ -628,3 +628,23 @@
   tests/typecheck/ESLint, and focused Flutter analysis/widget tests passed.
   Production website build and attended responsive/device QA are recorded
   separately when run; no broad milestone regression was claimed here.
+
+## 2026-08-13 - Approved prescription bundles and in-app notifications
+
+- Added an owner-scoped, atomic `add-authorized-to-cart` prescription action.
+  It safely merges one unit of every authorized medicine, preserves unrelated
+  items, is idempotent on repeat, rejects cross-prescription conflicts, and
+  retains all existing expiry, quantity, stock, price, ownership, and one-order
+  checks. Approval still never creates an order or confirms checkout.
+- Extended the existing persistent notification model for clarification
+  responses plus order placement and actual order status changes. Events carry
+  Dari and English copy, optional prescription/order links, unread filtering,
+  single-read and read-all actions, and remain strictly owner-scoped.
+- Flutter now provides a settings-respecting Home unread badge, notification
+  center with resource navigation, and one-tap approved bundle action. The
+  website exposes the same notification and bundle flows. Removed the disabled
+  courier phone/chat card from order detail; no live courier claim was added.
+- Applied PostgreSQL migrations `prescriptions.0002` and `.0003`. Ruff, Django
+  checks/migration consistency, all 8 focused prescription/notification tests,
+  website tests/typecheck/ESLint, Flutter analyze, and 21 focused Flutter tests
+  passed. Attended browser and Pixel verification remain in the final QA pass.

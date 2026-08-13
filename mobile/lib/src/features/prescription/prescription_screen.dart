@@ -26,6 +26,7 @@ class PrescriptionScreen extends ConsumerStatefulWidget {
 }
 
 class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
+  String? _addingBundleId;
   final _patientController = TextEditingController();
   final _phoneController = TextEditingController();
   final _noteController = TextEditingController();
@@ -244,21 +245,25 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
     }
   }
 
-  Future<void> _addAuthorized(
-    Prescription prescription,
-    AuthorizedMedicine authorized,
-  ) async {
+  Future<void> _addAuthorizedBundle(Prescription prescription) async {
+    setState(() => _addingBundleId = prescription.id);
     try {
-      final medicine = await ref.read(
-        medicineProvider(authorized.medicineId).future,
-      );
-      await ref
+      final result = await ref
           .read(cartProvider.notifier)
-          .add(medicine, prescriptionId: prescription.id);
+          .addPrescriptionBundle(prescription.id);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${medicine.displayName} به سبد افزوده شد.'),
+          content: Text(
+            result.added > 0
+                ? DariStrings.t(
+                    '${result.added} دوای تأییدشده به سبد افزوده شد. سبد را بررسی و خودتان پرداخت را تأیید کنید.',
+                    '${result.added} approved medicine item(s) were added. Review the cart and confirm checkout yourself.',
+                  )
+                : DariStrings.translate(
+                    'دواهای تأییدشده از قبل در سبد شما است.',
+                  ),
+          ),
           action: SnackBarAction(
             label: 'سبد',
             onPressed: () => context.go('/cart'),
@@ -271,6 +276,8 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text('$error')));
       }
+    } finally {
+      if (mounted) setState(() => _addingBundleId = null);
     }
   }
 
@@ -331,8 +338,8 @@ class _PrescriptionScreenState extends ConsumerState<PrescriptionScreen> {
                                       widget.requestedMedicineId,
                                   onCancel: () => _cancel(item),
                                   onRespond: () => _respond(item),
-                                  onAdd: (authorized) =>
-                                      _addAuthorized(item, authorized),
+                                  addingBundle: _addingBundleId == item.id,
+                                  onAddBundle: () => _addAuthorizedBundle(item),
                                 ),
                               ),
                             )
@@ -529,14 +536,16 @@ class _PrescriptionCard extends StatelessWidget {
     required this.requestedMedicineId,
     required this.onCancel,
     required this.onRespond,
-    required this.onAdd,
+    required this.addingBundle,
+    required this.onAddBundle,
   });
 
   final Prescription prescription;
   final String? requestedMedicineId;
   final VoidCallback onCancel;
   final VoidCallback onRespond;
-  final ValueChanged<AuthorizedMedicine> onAdd;
+  final bool addingBundle;
+  final VoidCallback onAddBundle;
 
   @override
   Widget build(BuildContext context) {
@@ -613,17 +622,34 @@ class _PrescriptionCard extends StatelessWidget {
                   'تا ${authorized.maxQuantity} عدد'
                   '${authorized.instructions.isEmpty ? '' : ' · ${authorized.instructions}'}',
                 ),
-                trailing: IconButton.filledTonal(
-                  tooltip: 'افزودن به سبد',
-                  onPressed:
-                      requestedMedicineId == null ||
-                          requestedMedicineId == authorized.medicineId
-                      ? () => onAdd(authorized)
-                      : null,
-                  icon: const Icon(Icons.add_shopping_cart_outlined),
-                ),
               ),
             ),
+            if (prescription.canAddToCart &&
+                (requestedMedicineId == null ||
+                    prescription.authorizedMedicines.any(
+                      (item) => item.medicineId == requestedMedicineId,
+                    ))) ...[
+              const SizedBox(height: 8),
+              FilledButton.icon(
+                onPressed: addingBundle ? null : onAddBundle,
+                icon: addingBundle
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.add_shopping_cart_outlined),
+                label: Text(
+                  addingBundle
+                      ? 'در حال افزودن…'
+                      : 'افزودن همه دواهای تأییدشده به سبد',
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'سفارش ساخته نمی‌شود؛ قیمت، موجودی، آدرس و پرداخت نقدی را پیش از ثبت نهایی بررسی می‌کنید.',
+                style: TextStyle(fontSize: 12, color: DarmaltonColors.muted),
+              ),
+            ],
           ],
           if (prescription.canRespond) ...[
             const SizedBox(height: 10),

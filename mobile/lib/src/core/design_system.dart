@@ -210,17 +210,19 @@ class DarmaltonCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(DarmaltonSpace.md),
     this.onTap,
+    this.color = Colors.white,
     super.key,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onTap;
+  final Color color;
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: color,
       borderRadius: BorderRadius.circular(DarmaltonRadius.medium),
       border: Border.all(color: DarmaltonColors.line),
       boxShadow: const [

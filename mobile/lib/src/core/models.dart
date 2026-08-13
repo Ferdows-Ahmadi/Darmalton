@@ -614,6 +614,7 @@ class Prescription {
     required this.createdAt,
     required this.canCancel,
     required this.canRespond,
+    required this.canAddToCart,
     required this.authorizedMedicines,
     required this.history,
     this.expiresAt,
@@ -629,6 +630,7 @@ class Prescription {
     createdAt: DateTime.parse(json['created_at'] as String),
     canCancel: json['can_cancel'] as bool? ?? false,
     canRespond: json['can_respond'] as bool? ?? false,
+    canAddToCart: json['can_add_to_cart'] as bool? ?? false,
     expiresAt: json['expires_at'] == null
         ? null
         : DateTime.parse(json['expires_at'] as String),
@@ -654,8 +656,60 @@ class Prescription {
   final DateTime? expiresAt;
   final bool canCancel;
   final bool canRespond;
+  final bool canAddToCart;
   final List<AuthorizedMedicine> authorizedMedicines;
   final List<PrescriptionHistory> history;
+}
+
+class AppNotification {
+  const AppNotification({
+    required this.id,
+    required this.kind,
+    required this.title,
+    required this.message,
+    required this.titleEn,
+    required this.messageEn,
+    required this.createdAt,
+    required this.isRead,
+    this.prescriptionId,
+    this.orderId,
+  });
+
+  factory AppNotification.fromJson(Map<String, dynamic> json) =>
+      AppNotification(
+        id: json['id'] as String,
+        kind: json['kind'] as String,
+        title: json['title'] as String,
+        message: json['message'] as String,
+        titleEn: json['title_en'] as String? ?? '',
+        messageEn: json['message_en'] as String? ?? '',
+        prescriptionId: json['prescription_id'] as String?,
+        orderId: json['order_id'] as String?,
+        createdAt: DateTime.parse(json['created_at'] as String),
+        isRead: json['read_at'] != null,
+      );
+
+  final String id;
+  final String kind;
+  final String title;
+  final String message;
+  final String titleEn;
+  final String messageEn;
+  final String? prescriptionId;
+  final String? orderId;
+  final DateTime createdAt;
+  final bool isRead;
+
+  String get displayTitle =>
+      DariStrings.isEnglish && titleEn.isNotEmpty ? titleEn : title;
+  String get displayMessage =>
+      DariStrings.isEnglish && messageEn.isNotEmpty ? messageEn : message;
+
+  String get destination => orderId != null
+      ? '/orders/$orderId'
+      : prescriptionId != null
+      ? '/prescription'
+      : '/catalogue';
 }
 
 String prescriptionStatusLabel(String status) => switch (status) {

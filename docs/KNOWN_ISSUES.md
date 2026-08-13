@@ -93,10 +93,13 @@
 - The mobile app is Dari-first with persisted English switching and currently
   ships only the light theme. Missing localized copy safely falls back to Dari;
   operator-authored catalogue text needs populated English fields for a fully
-  English presentation. Biometric login and operating-system push notifications
-  remain disabled until their platform-specific secure-storage, consent, and
-  credential work is completed; the notification foundation is preserved for
-  Phase 8.
+  English presentation. Persistent bilingual in-app prescription and order
+  notifications are implemented. Operating-system push notifications and
+  biometrics remain disabled until their platform-specific secure-storage,
+  consent, and credential work is completed.
+- The order detail displays only server-recorded status/history. Courier phone,
+  chat, live GPS, nearby-pharmacy comparison, and delivery estimates remain
+  hidden because no trustworthy assignment/tracking provider is integrated.
 - Offline mobile support persists public catalogue metadata, thumbnails,
   favorites, searches, recently viewed items, guest-cart item IDs/quantities,
   preferences, and the signed-in user's addresses. It deliberately omits live

@@ -9,8 +9,8 @@ from PIL import Image
 from rest_framework.test import APIClient
 
 from accounts.models import User
-from commerce.models import Order
-from commerce.services import create_order
+from commerce.models import CartItem, Order
+from commerce.services import create_order, transition_order_status
 from prescriptions.models import Notification, Prescription
 from prescriptions.storage import private_prescription_storage
 
@@ -183,6 +183,7 @@ def test_only_pharmacist_can_review_and_transitions_are_validated(
 def test_approved_prescription_authorizes_one_order_only(
     authenticated_client,
     pharmacist_client,
+    pharmacist,
     user,
     branch,
     medicine,
@@ -191,6 +192,12 @@ def test_approved_prescription_authorizes_one_order_only(
     medicine.save(update_fields=("prescription_required",))
     created = submit(authenticated_client)
     prescription_id = created.data["id"]
+    before_approval = authenticated_client.post(
+        f"/api/v1/prescriptions/{prescription_id}/add-authorized-to-cart/",
+        {},
+        format="json",
+    )
+    assert before_approval.status_code == 400
     pharmacist_client.post(
         f"/api/v1/staff/prescriptions/{prescription_id}/start-review/",
         {},
@@ -229,6 +236,25 @@ def test_approved_prescription_authorizes_one_order_only(
     order = create_order(customer=user, address=address)
     assert str(order.prescription_id) == prescription_id
     assert order.prescription_status_snapshot == Prescription.Status.APPROVED
+    consumed = authenticated_client.get(f"/api/v1/prescriptions/{prescription_id}/")
+    assert consumed.status_code == 200
+    assert consumed.data["can_add_to_cart"] is False
+    placed_notification = Notification.objects.get(
+        user=user, order=order, kind=Notification.Kind.ORDER_PLACED
+    )
+    assert placed_notification.title_en == "Order placed"
+
+    transition_order_status(
+        order=order,
+        new_status=Order.Status.CONFIRMED,
+        actor=pharmacist,
+    )
+    assert Notification.objects.filter(
+        user=user,
+        order=order,
+        kind=Notification.Kind.ORDER_STATUS_CHANGED,
+        title_en="Order confirmed",
+    ).exists()
 
     second = authenticated_client.post(
         "/api/v1/cart/items/",
@@ -241,6 +267,153 @@ def test_approved_prescription_authorizes_one_order_only(
     )
     assert second.status_code == 400
     assert Order.objects.filter(prescription_id=prescription_id).count() == 1
+
+
+@pytest.mark.django_db
+def test_customer_adds_approved_bundle_to_cart_idempotently(
+    authenticated_client,
+    pharmacist_client,
+    medicine,
+):
+    medicine.prescription_required = True
+    medicine.save(update_fields=("prescription_required",))
+    created = submit(authenticated_client)
+    prescription_id = created.data["id"]
+    pharmacist_client.post(
+        f"/api/v1/staff/prescriptions/{prescription_id}/start-review/",
+        {},
+        format="json",
+    )
+    approved = pharmacist_client.post(
+        f"/api/v1/staff/prescriptions/{prescription_id}/approve/",
+        {
+            "expires_at": (timezone.now() + timedelta(days=30)).isoformat(),
+            "authorized_items": [
+                {
+                    "medicine_id": str(medicine.id),
+                    "max_quantity": 2,
+                    "instructions": "Use as directed",
+                }
+            ],
+        },
+        format="json",
+    )
+    assert approved.status_code == 200
+
+    first = authenticated_client.post(
+        f"/api/v1/prescriptions/{prescription_id}/add-authorized-to-cart/",
+        {},
+        format="json",
+    )
+    assert first.status_code == 200
+    assert first.data["added_count"] == 1
+    assert first.data["already_present_count"] == 0
+    assert first.data["cart"]["item_count"] == 1
+
+    repeated = authenticated_client.post(
+        f"/api/v1/prescriptions/{prescription_id}/add-authorized-to-cart/",
+        {},
+        format="json",
+    )
+    assert repeated.status_code == 200
+    assert repeated.data["added_count"] == 0
+    assert repeated.data["already_present_count"] == 1
+    assert CartItem.objects.filter(prescription_id=prescription_id, medicine=medicine).count() == 1
+
+
+@pytest.mark.django_db
+def test_bundle_rejects_other_customer_and_conflicting_cart_item(
+    authenticated_client,
+    other_user,
+    pharmacist_client,
+    medicine,
+):
+    medicine.prescription_required = True
+    medicine.save(update_fields=("prescription_required",))
+    first = submit(authenticated_client)
+    first_id = first.data["id"]
+    pharmacist_client.post(
+        f"/api/v1/staff/prescriptions/{first_id}/start-review/", {}, format="json"
+    )
+    pharmacist_client.post(
+        f"/api/v1/staff/prescriptions/{first_id}/approve/",
+        {
+            "expires_at": (timezone.now() + timedelta(days=30)).isoformat(),
+            "authorized_items": [{"medicine_id": str(medicine.id), "max_quantity": 1}],
+        },
+        format="json",
+    )
+    assert (
+        authenticated_client.post(
+            f"/api/v1/prescriptions/{first_id}/add-authorized-to-cart/", {}, format="json"
+        ).status_code
+        == 200
+    )
+
+    other_client = APIClient()
+    other_client.force_authenticate(other_user)
+    assert (
+        other_client.post(
+            f"/api/v1/prescriptions/{first_id}/add-authorized-to-cart/", {}, format="json"
+        ).status_code
+        == 404
+    )
+
+    second = submit(authenticated_client)
+    second_id = second.data["id"]
+    pharmacist_client.post(
+        f"/api/v1/staff/prescriptions/{second_id}/start-review/", {}, format="json"
+    )
+    pharmacist_client.post(
+        f"/api/v1/staff/prescriptions/{second_id}/approve/",
+        {
+            "expires_at": (timezone.now() + timedelta(days=30)).isoformat(),
+            "authorized_items": [{"medicine_id": str(medicine.id), "max_quantity": 1}],
+        },
+        format="json",
+    )
+    conflict = authenticated_client.post(
+        f"/api/v1/prescriptions/{second_id}/add-authorized-to-cart/",
+        {},
+        format="json",
+    )
+    assert conflict.status_code == 400
+    assert "other approved prescription" in str(conflict.data)
+
+
+@pytest.mark.django_db
+def test_notifications_are_owner_scoped_filterable_and_readable(
+    authenticated_client,
+    other_user,
+):
+    submitted = submit(authenticated_client)
+    prescription_id = submitted.data["id"]
+    other_notification = Notification.objects.create(
+        user=other_user,
+        kind=Notification.Kind.PRESCRIPTION_SUBMITTED,
+        title="Private",
+        message="Other customer",
+    )
+
+    listed = authenticated_client.get("/api/v1/notifications/?unread=true")
+    assert listed.status_code == 200
+    assert len(listed.data["results"]) == 1
+    notification = listed.data["results"][0]
+    assert notification["prescription_id"] == prescription_id
+    assert notification["order_id"] is None
+    assert str(other_notification.id) not in str(listed.data)
+
+    marked = authenticated_client.post(
+        f"/api/v1/notifications/{notification['id']}/read/", {}, format="json"
+    )
+    assert marked.status_code == 200
+    assert marked.data["read_at"] is not None
+    assert authenticated_client.get("/api/v1/notifications/?unread=true").data["count"] == 0
+
+    submit(authenticated_client)
+    read_all = authenticated_client.post("/api/v1/notifications/read-all/", {}, format="json")
+    assert read_all.status_code == 200
+    assert read_all.data["updated"] == 1
 
 
 @pytest.mark.django_db

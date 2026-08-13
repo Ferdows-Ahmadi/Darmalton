@@ -35,48 +35,145 @@ NOTIFICATION_COPY = {
         Notification.Kind.PRESCRIPTION_SUBMITTED,
         "نسخه دریافت شد",
         "نسخه شما با موفقیت دریافت شد و در صف بررسی قرار دارد.",
+        "Prescription received",
+        "Your prescription was received and is waiting for review.",
     ),
     Prescription.Status.UNDER_REVIEW: (
         Notification.Kind.REVIEW_STARTED,
         "بررسی نسخه آغاز شد",
         "فارمسست بررسی نسخه شما را آغاز کرده است.",
+        "Prescription review started",
+        "A pharmacist has started reviewing your prescription.",
     ),
     Prescription.Status.CLARIFICATION_REQUESTED: (
         Notification.Kind.CLARIFICATION_REQUESTED,
         "معلومات بیشتر لازم است",
         "فارمسست درباره نسخه شما توضیح بیشتر خواسته است.",
+        "More information is required",
+        "A pharmacist requested more information about your prescription.",
     ),
     Prescription.Status.APPROVED: (
         Notification.Kind.PRESCRIPTION_APPROVED,
         "نسخه تأیید شد",
-        "نسخه شما تأیید شد و دواهای مجاز را می‌توانید به سبد بیفزایید.",
+        "نسخه شما تأیید شد. دواهای مجاز آماده‌اند تا با یک اقدام امن به سبد افزوده شوند.",
+        "Prescription approved",
+        (
+            "Your prescription was approved. Add all authorized medicines "
+            "to your cart with one safe action."
+        ),
     ),
     Prescription.Status.REJECTED: (
         Notification.Kind.PRESCRIPTION_REJECTED,
         "نسخه رد شد",
         "نسخه شما تأیید نشد. یادداشت فارمسست را بررسی کنید.",
+        "Prescription rejected",
+        "Your prescription was not approved. Review the pharmacist's note.",
     ),
     Prescription.Status.EXPIRED: (
         Notification.Kind.PRESCRIPTION_EXPIRED,
         "اعتبار نسخه پایان یافت",
         "مهلت استفاده از نسخه تأییدشده پایان یافته است.",
+        "Prescription expired",
+        "The approved prescription has expired.",
     ),
     Prescription.Status.CANCELLED: (
         Notification.Kind.PRESCRIPTION_CANCELLED,
         "نسخه لغو شد",
         "درخواست نسخه لغو شد.",
+        "Prescription cancelled",
+        "The prescription request was cancelled.",
+    ),
+}
+
+ORDER_STATUS_COPY = {
+    "PENDING": (
+        "سفارش ثبت شد",
+        "سفارش شما ثبت شد و منتظر تأیید داروخانه است.",
+        "Order placed",
+        "Your order was placed and is waiting for pharmacy confirmation.",
+    ),
+    "CONFIRMED": (
+        "سفارش تأیید شد",
+        "داروخانه سفارش شما را تأیید کرده است.",
+        "Order confirmed",
+        "The pharmacy confirmed your order.",
+    ),
+    "PREPARING": (
+        "سفارش در حال آماده‌سازی است",
+        "داروهای سفارش شما در حال آماده‌سازی است.",
+        "Order is being prepared",
+        "The pharmacy is preparing your medicines.",
+    ),
+    "READY_FOR_DELIVERY": (
+        "سفارش آماده تحویل است",
+        "سفارش شما برای مرحله تحویل آماده شده است.",
+        "Order ready for delivery",
+        "Your order is ready for the delivery stage.",
+    ),
+    "OUT_FOR_DELIVERY": (
+        "سفارش ارسال شد",
+        "سفارش شما برای تحویل از داروخانه خارج شده است.",
+        "Order dispatched",
+        "Your order has left the pharmacy for delivery.",
+    ),
+    "DELIVERED": (
+        "سفارش تحویل شد",
+        "سفارش شما تحویل‌شده ثبت شد.",
+        "Order delivered",
+        "Your order was recorded as delivered.",
+    ),
+    "CANCELLED": (
+        "سفارش لغو شد",
+        "سفارش شما لغو شده است. جزئیات سفارش را بررسی کنید.",
+        "Order cancelled",
+        "Your order was cancelled. Review the order details.",
+    ),
+    "REJECTED": (
+        "سفارش رد شد",
+        "داروخانه نتوانست سفارش شما را تأیید کند. جزئیات را بررسی کنید.",
+        "Order rejected",
+        "The pharmacy could not confirm your order. Review the details.",
     ),
 }
 
 
 def _notify(prescription, status):
-    kind, title, message = NOTIFICATION_COPY[status]
+    kind, title, message, title_en, message_en = NOTIFICATION_COPY[status]
     Notification.objects.create(
         user=prescription.customer,
         prescription=prescription,
         kind=kind,
         title=title,
         message=message,
+        title_en=title_en,
+        message_en=message_en,
+    )
+
+
+def _notify_clarification_received(prescription):
+    Notification.objects.create(
+        user=prescription.customer,
+        prescription=prescription,
+        kind=Notification.Kind.CLARIFICATION_RECEIVED,
+        title="پاسخ شما دریافت شد",
+        message="پاسخ توضیحی شما دریافت شد و نسخه دوباره در حال بررسی است.",
+        title_en="Your response was received",
+        message_en=(
+            "Your clarification response was received and the prescription is under review again."
+        ),
+    )
+
+
+def notify_order(order, *, placed=False):
+    title, message, title_en, message_en = ORDER_STATUS_COPY[order.status]
+    Notification.objects.create(
+        user=order.customer,
+        order=order,
+        kind=(Notification.Kind.ORDER_PLACED if placed else Notification.Kind.ORDER_STATUS_CHANGED),
+        title=title,
+        message=message,
+        title_en=title_en,
+        message_en=message_en,
     )
 
 
@@ -212,8 +309,100 @@ def transition_prescription(
         customer_visible_note=customer_visible_note.strip(),
         internal_staff_note=internal_staff_note.strip(),
     )
-    _notify(locked, new_status)
+    if action == "clarification_responded":
+        _notify_clarification_received(locked)
+    else:
+        _notify(locked, new_status)
     return locked
+
+
+@transaction.atomic
+def add_authorized_medicines_to_cart(*, prescription, customer):
+    """Merge one unit of each authorized medicine into the active cart safely.
+
+    This deliberately does not create an order or reserve inventory. The normal
+    cart serializer still enforces ownership, approval, expiry, stock, medicine
+    activity, and authorization limits before any item is written.
+    """
+    from commerce.serializers import CartItemSerializer
+    from commerce.services import get_or_create_cart
+
+    locked = (
+        Prescription.objects.select_for_update()
+        .prefetch_related("authorized_medicines__medicine")
+        .get(pk=prescription.pk)
+    )
+    if locked.customer_id != customer.id:
+        raise ValidationError("This prescription does not belong to you.")
+    if locked.status != Prescription.Status.APPROVED:
+        raise ValidationError("An approved prescription is required.")
+    if not locked.expires_at or locked.expires_at <= timezone.now():
+        raise ValidationError("The selected prescription has expired.")
+
+    Order = apps.get_model("commerce", "Order")
+    if Order.objects.filter(prescription=locked).exists():
+        raise ValidationError("This prescription has already been used for an order.")
+
+    authorizations = list(locked.authorized_medicines.all())
+    if not authorizations:
+        raise ValidationError("No medicines are authorized by this prescription.")
+
+    cart = get_or_create_cart(customer)
+    other_prescription_items = list(
+        cart.items.select_for_update()
+        .filter(prescription__isnull=False)
+        .exclude(prescription=locked)
+        .select_related("medicine")
+    )
+    if other_prescription_items:
+        raise ValidationError(
+            {
+                "cart": (
+                    "Complete or remove the cart items from the other approved "
+                    "prescription before adding this bundle."
+                )
+            }
+        )
+    existing_by_medicine = {
+        item.medicine_id: item
+        for item in cart.items.select_for_update().filter(
+            medicine_id__in=[item.medicine_id for item in authorizations]
+        )
+    }
+    conflicts = [
+        authorization.medicine.brand_name
+        for authorization in authorizations
+        if (existing := existing_by_medicine.get(authorization.medicine_id))
+        and existing.prescription_id != locked.id
+    ]
+    if conflicts:
+        raise ValidationError(
+            {
+                "cart": (
+                    "Remove the existing cart item before adding its approved "
+                    f"prescription version: {', '.join(conflicts)}."
+                )
+            }
+        )
+
+    added = 0
+    already_present = 0
+    for authorization in authorizations:
+        if authorization.medicine_id in existing_by_medicine:
+            already_present += 1
+            continue
+        serializer = CartItemSerializer(
+            data={
+                "medicine_id": str(authorization.medicine_id),
+                "prescription_id": str(locked.id),
+                "quantity": 1,
+            },
+            context={"cart": cart},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(cart=cart)
+        added += 1
+    return cart, added, already_present
 
 
 def respond_to_clarification(*, prescription, customer, response):

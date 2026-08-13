@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../core/auth_gate.dart';
+import '../../core/app_settings.dart';
 import '../../core/design_system.dart';
+import '../../core/feature_flags.dart';
 import '../../core/localized_text.dart';
 import '../../core/models.dart';
 import '../../core/providers.dart';
@@ -105,6 +107,13 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     final recentlyViewed =
         ref.watch(recentlyViewedProvider).value ?? const <String>[];
     final auth = ref.watch(authProvider);
+    final settings = ref.watch(appSettingsProvider).value;
+    final notifications =
+        auth.value == null ||
+            settings?.notifications == false ||
+            !FeatureFlags.notificationCenter
+        ? const AsyncData(<AppNotification>[])
+        : ref.watch(notificationsProvider);
     final AsyncValue<List<Address>> addresses = auth.value == null
         ? const AsyncData([])
         : ref.watch(addressesProvider);
@@ -118,6 +127,21 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
         appBar: AppBar(
           title: const DarmaltonWordmark(height: 36),
           actions: [
+            if (auth.value != null &&
+                settings?.notifications != false &&
+                FeatureFlags.notificationCenter)
+              IconButton(
+                tooltip: DariStrings.translate('اعلان‌ها'),
+                onPressed: () => context.push('/notifications'),
+                icon: Badge(
+                  isLabelVisible:
+                      notifications.value?.any((item) => !item.isRead) ?? false,
+                  label: Text(
+                    '${notifications.value?.where((item) => !item.isRead).length ?? 0}',
+                  ),
+                  child: const Icon(Icons.notifications_none_rounded),
+                ),
+              ),
             IconButton(
               key: const Key('account-menu-button'),
               tooltip: DariStrings.profile,

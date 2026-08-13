@@ -131,10 +131,13 @@ class Notification(TimeStampedUUIDModel):
             "CLARIFICATION_REQUESTED",
             "Clarification requested",
         )
+        CLARIFICATION_RECEIVED = "CLARIFICATION_RECEIVED", "Clarification received"
         PRESCRIPTION_APPROVED = "PRESCRIPTION_APPROVED", "Prescription approved"
         PRESCRIPTION_REJECTED = "PRESCRIPTION_REJECTED", "Prescription rejected"
         PRESCRIPTION_EXPIRED = "PRESCRIPTION_EXPIRED", "Prescription expired"
         PRESCRIPTION_CANCELLED = "PRESCRIPTION_CANCELLED", "Prescription cancelled"
+        ORDER_PLACED = "ORDER_PLACED", "Order placed"
+        ORDER_STATUS_CHANGED = "ORDER_STATUS_CHANGED", "Order status changed"
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -144,8 +147,17 @@ class Notification(TimeStampedUUIDModel):
     kind = models.CharField(max_length=40, choices=Kind.choices)
     title = models.CharField(max_length=160)
     message = models.TextField()
+    title_en = models.CharField(max_length=160, blank=True)
+    message_en = models.TextField(blank=True)
     prescription = models.ForeignKey(
         Prescription,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+    )
+    order = models.ForeignKey(
+        "commerce.Order",
         null=True,
         blank=True,
         on_delete=models.CASCADE,

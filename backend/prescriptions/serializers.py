@@ -50,6 +50,7 @@ class PrescriptionCustomerSerializer(serializers.ModelSerializer):
     document_url = serializers.SerializerMethodField()
     can_cancel = serializers.SerializerMethodField()
     can_respond = serializers.SerializerMethodField()
+    can_add_to_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Prescription
@@ -73,6 +74,7 @@ class PrescriptionCustomerSerializer(serializers.ModelSerializer):
             "updated_at",
             "can_cancel",
             "can_respond",
+            "can_add_to_cart",
             "authorized_medicines",
             "history",
         )
@@ -91,6 +93,7 @@ class PrescriptionCustomerSerializer(serializers.ModelSerializer):
             "updated_at",
             "can_cancel",
             "can_respond",
+            "can_add_to_cart",
             "authorized_medicines",
             "history",
         )
@@ -111,6 +114,16 @@ class PrescriptionCustomerSerializer(serializers.ModelSerializer):
     @extend_schema_field(serializers.BooleanField())
     def get_can_respond(self, obj):
         return obj.status == Prescription.Status.CLARIFICATION_REQUESTED
+
+    @extend_schema_field(serializers.BooleanField())
+    def get_can_add_to_cart(self, obj):
+        return (
+            obj.status == Prescription.Status.APPROVED
+            and obj.expires_at is not None
+            and obj.expires_at > timezone.now()
+            and bool(obj.authorized_medicines.all())
+            and not hasattr(obj, "authorization_order")
+        )
 
     def validate_document(self, value):
         validate_prescription_document(value)
@@ -205,6 +218,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     prescription_id = serializers.UUIDField(
         source="prescription.id", allow_null=True, read_only=True
     )
+    order_id = serializers.UUIDField(source="order.id", allow_null=True, read_only=True)
 
     class Meta:
         model = Notification
@@ -213,7 +227,10 @@ class NotificationSerializer(serializers.ModelSerializer):
             "kind",
             "title",
             "message",
+            "title_en",
+            "message_en",
             "prescription_id",
+            "order_id",
             "read_at",
             "created_at",
         )

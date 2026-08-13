@@ -30,6 +30,7 @@ export function Header({ authenticated }: { authenticated: boolean }) {
         ["/cart", "سبد خرید"],
         ["/prescriptions", "نسخه‌ها"],
         ["/orders", "سفارش‌های من"],
+        ["/notifications", "اعلان‌ها"],
         ["/account", "حساب کاربری"]
       ];
 

@@ -145,6 +145,16 @@ abstract final class DariStrings {
     'متن بزرگ‌تر': 'Larger text',
     'کاهش حرکت': 'Reduce motion',
     'اعلان‌ها': 'Notifications',
+    'همه خوانده شد': 'Mark all read',
+    'اعلان تازه‌ای ندارید': 'You have no new notifications',
+    'تغییر وضعیت نسخه و سفارش شما در این‌جا نمایش داده می‌شود.':
+        'Prescription and order status updates appear here.',
+    'در حال افزودن…': 'Adding…',
+    'افزودن همه دواهای تأییدشده به سبد': 'Add all approved medicines to cart',
+    'سفارش ساخته نمی‌شود؛ قیمت، موجودی، آدرس و پرداخت نقدی را پیش از ثبت نهایی بررسی می‌کنید.':
+        'No order is created. Review price, stock, address, and cash payment before final confirmation.',
+    'دواهای تأییدشده از قبل در سبد شما است.':
+        'The approved medicines are already in your cart.',
     'تصاویر محصولات': 'Product images',
     'جستجوهای اخیر': 'Recent searches',
     'حافظه برنامه': 'App storage',

@@ -42,9 +42,9 @@ or disabled because the required production integration is unavailable, and
 | Orders | `/orders`, `/orders/:id` | Customer | History/detail/status/snapshots without fake courier controls | Backend tests | UI cleanup and device audit open | PARTIAL |
 | Prescription upload | `/prescription` | Customer | Camera/gallery/file, preview/remove/progress/retry and guarded upload | Prescription camera/upload tests | File flow passed; attended camera open | PARTIAL |
 | Prescription lifecycle | `/prescription` | Customer | History, clarification response, rejection/approval and obvious next action | Backend transition tests | Browser staff/customer flow passed | PARTIAL |
-| Approved Rx cart | Prescription/card/cart | Customer | Idempotently offer/add authorized medicines; customer still confirms checkout | Coverage not yet implemented | Open | OPEN |
+| Approved Rx cart | Prescription/card/cart | Customer | Idempotently add an approved bundle; customer still confirms checkout | Backend atomicity/permission tests plus Flutter model/analyze tests | Browser/device flow open | PARTIAL |
 | Health Articles | Home and `/health-articles/:slug` | All | Published bilingual content with guarded media and offline cache | `health_articles_test.dart` | Prior Pixel render passed | PASS |
-| In-app notifications | Home/header or dedicated surface | Customer | Persistent accurate prescription/order events and read state | Backend foundation only | Customer UI audit open | OPEN |
+| In-app notifications | Home/header or `/notifications` | Customer | Persistent bilingual prescription/order events, unread state and resource links | Backend ownership/read tests plus Flutter model/analyze and web checks | Browser/device flow open | PARTIAL |
 | Offline/recovery | Global banner/cached public surfaces | All | Compact actionable state; never present live-sensitive data as current | `navigation_and_offline_test.dart`, cache tests | Docker stop/restart previously passed | PARTIAL |
 | Android back | All routes/modals | All | Dismiss local UI, return safely, double-back exit at Home | Navigation regression tests | Prior partial device checks | PARTIAL |
 
@@ -60,7 +60,8 @@ or disabled because the required production integration is unavailable, and
 | `/login`, `/register` | Anonymous | Customer auth and role-aware staff handoff | `auth-navigation.test.mjs` | PASS |
 | `/account` | Customer | Account details and sign-out | Browser smoke | PARTIAL |
 | `/orders`, `/orders/[id]` | Customer | Owner-scoped history and detail | Integrated smoke | PARTIAL |
-| `/prescriptions` | Customer | Upload/history/clarification state | Backend/browser staff workflow evidence | PARTIAL |
+| `/prescriptions` | Customer | Upload/history/clarification and approved-bundle state | Backend transition/bundle tests; browser re-check open | PARTIAL |
+| `/notifications` | Customer | Persistent owner-scoped prescription/order event center | Backend tests and production build; browser re-check open | PARTIAL |
 | `/about`, `/contact`, `/privacy`, `/terms` | All | Stable public information | Production build | PARTIAL |
 | Public CMS content | Landing/shop/article/page surfaces | All | Eligible scheduled bilingual CMS content only | Not fully integrated | OPEN |
 
@@ -105,8 +106,8 @@ or disabled because the required production integration is unavailable, and
    genuinely empty.
 2. Complete device QA for the redesigned Home hierarchy, shared medicine
    cards, category discovery, and real manufacturer cards.
-3. Implement the safe approved-prescription-to-cart path and customer in-app
-   notification presentation.
+3. Complete browser and device QA for the safe approved-prescription-to-cart
+   path and customer in-app notification presentation.
 4. Remove or hide remaining unsupported courier and other placeholder actions.
 5. Complete attended Pixel camera, address CRUD/GPS, and COD checkout checks.
 6. Integrate the eligible public CMS resources into the website and run the

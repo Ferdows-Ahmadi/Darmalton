@@ -36,8 +36,6 @@ class OrderDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 14),
                 _Timeline(order: item),
                 const SizedBox(height: 14),
-                const _CourierUnavailable(),
-                const SizedBox(height: 14),
                 _MoreDetails(order: item),
               ],
             ),
@@ -319,47 +317,6 @@ String _localizedHistoryNote(String note) {
     return DariStrings.t('سفارش ثبت شد', 'Order placed');
   }
   return note;
-}
-
-class _CourierUnavailable extends StatelessWidget {
-  const _CourierUnavailable();
-
-  @override
-  Widget build(BuildContext context) => DarmaltonCard(
-    child: Row(
-      children: [
-        const CircleAvatar(
-          radius: 30,
-          backgroundColor: DarmaltonColors.mint,
-          foregroundColor: DarmaltonColors.teal,
-          child: Icon(Icons.delivery_dining_outlined, size: 32),
-        ),
-        const SizedBox(width: 12),
-        const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'پیک اختصاص نیافته',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-              Text('اطلاعات پیک و تماس در این نسخه پشتیبانی نمی‌شود.'),
-            ],
-          ),
-        ),
-        IconButton(
-          tooltip: DariStrings.comingSoon,
-          onPressed: null,
-          icon: const Icon(Icons.phone_outlined),
-        ),
-        IconButton(
-          tooltip: DariStrings.comingSoon,
-          onPressed: null,
-          icon: const Icon(Icons.chat_bubble_outline_rounded),
-        ),
-      ],
-    ),
-  );
 }
 
 class _MoreDetails extends StatelessWidget {

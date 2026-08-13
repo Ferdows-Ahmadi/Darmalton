@@ -15,7 +15,12 @@ from .serializers import (
     PrescriptionStaffSerializer,
     ReviewNoteSerializer,
 )
-from .services import cancel_prescription, respond_to_clarification, transition_prescription
+from .services import (
+    add_authorized_medicines_to_cart,
+    cancel_prescription,
+    respond_to_clarification,
+    transition_prescription,
+)
 
 
 class PrescriptionFileMixin:
@@ -49,7 +54,7 @@ class PrescriptionViewSet(
     def get_queryset(self):
         return (
             Prescription.objects.filter(customer=self.request.user)
-            .select_related("reviewer")
+            .select_related("reviewer", "authorization_order")
             .prefetch_related(
                 "history",
                 "authorized_medicines__medicine",
@@ -81,6 +86,22 @@ class PrescriptionViewSet(
             customer=request.user,
         )
         return response.Response(self.get_serializer(prescription).data)
+
+    @action(detail=True, methods=["post"], url_path="add-authorized-to-cart")
+    def add_authorized_to_cart(self, request, pk=None):
+        from commerce.serializers import CartSerializer
+
+        cart, added, already_present = add_authorized_medicines_to_cart(
+            prescription=self.get_object(),
+            customer=request.user,
+        )
+        return response.Response(
+            {
+                "cart": CartSerializer(cart, context={"request": request}).data,
+                "added_count": added,
+                "already_present_count": already_present,
+            }
+        )
 
 
 class StaffPrescriptionViewSet(
@@ -199,7 +220,21 @@ class NotificationViewSet(
     queryset = Notification.objects.none()
 
     def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user)
+        queryset = Notification.objects.filter(user=self.request.user).select_related(
+            "prescription", "order"
+        )
+        if self.request.query_params.get("unread") == "true":
+            queryset = queryset.filter(read_at__isnull=True)
+        return queryset
+
+    @action(detail=False, methods=["post"], url_path="read-all")
+    def read_all(self, request):
+        updated = (
+            self.get_queryset()
+            .filter(read_at__isnull=True)
+            .update(read_at=timezone.now(), updated_at=timezone.now())
+        )
+        return response.Response({"updated": updated})
 
     @action(detail=True, methods=["post"])
     def read(self, request, pk=None):

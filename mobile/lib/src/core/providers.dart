@@ -635,6 +635,21 @@ class CartController extends AsyncNotifier<Cart> {
     await refresh();
   }
 
+  Future<({int added, int alreadyPresent})> addPrescriptionBundle(
+    String prescriptionId,
+  ) async {
+    final response = await _api.post<Map<String, dynamic>>(
+      '/prescriptions/$prescriptionId/add-authorized-to-cart/',
+      data: const {},
+    );
+    final data = response.data!;
+    state = AsyncData(Cart.fromJson(data['cart'] as Map<String, dynamic>));
+    return (
+      added: data['added_count'] as int? ?? 0,
+      alreadyPresent: data['already_present_count'] as int? ?? 0,
+    );
+  }
+
   Future<void> updateQuantity(CartItem item, int quantity) async {
     final user = ref.read(authProvider).value;
     if (user == null) {
@@ -772,6 +787,48 @@ final prescriptionsProvider = FutureProvider<List<Prescription>>((ref) async {
     rethrow;
   }
 });
+
+final notificationsProvider = FutureProvider<List<AppNotification>>((
+  ref,
+) async {
+  final user = await ref.watch(authProvider.future);
+  if (user == null) return const [];
+  try {
+    final response = await ref
+        .read(apiClientProvider)
+        .get<Map<String, dynamic>>('/notifications/');
+    return (response.data!['results'] as List<dynamic>? ?? [])
+        .map((item) => AppNotification.fromJson(item as Map<String, dynamic>))
+        .toList();
+  } on ApiException catch (error) {
+    if (error.statusCode == 401) {
+      await ref.read(authProvider.notifier).sessionExpired();
+    }
+    rethrow;
+  }
+});
+
+class NotificationActions {
+  const NotificationActions(this.ref);
+
+  final Ref ref;
+
+  Future<void> markRead(String id) async {
+    await ref
+        .read(apiClientProvider)
+        .post('/notifications/$id/read/', data: const {});
+    ref.invalidate(notificationsProvider);
+  }
+
+  Future<void> markAllRead() async {
+    await ref
+        .read(apiClientProvider)
+        .post('/notifications/read-all/', data: const {});
+    ref.invalidate(notificationsProvider);
+  }
+}
+
+final notificationActionsProvider = Provider(NotificationActions.new);
 
 final prescriptionRepositoryProvider = Provider<PrescriptionRepositoryBase>(
   (ref) => PrescriptionRepository(ref.read(apiClientProvider)),
