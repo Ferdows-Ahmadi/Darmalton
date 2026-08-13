@@ -681,3 +681,28 @@
   cache, navigation/offline, and guest/auth tests passed, including three new
   address-selection regressions. Six targeted Django address/cart/order/ledger
   invariants passed.
+
+## 2026-08-13 - Public website CMS integration
+
+- Connected the public Next.js site to Django's anonymous visibility-filtered
+  CMS endpoints. Home supports current hero banners, global/Home announcements,
+  and hydrated featured medicines; all sections retain graceful curated or
+  empty states when operators have not published content.
+- Added Health Article list/detail routes and generic informational-page slug
+  routes. About, Contact, Privacy and Terms now prefer matching published CMS
+  slugs while retaining their reviewed static copy when no eligible record
+  exists. CMS body text is rendered as text with preserved line breaks, never
+  as injected HTML.
+- Extended the same-site public asset proxy to the guarded banner, page and
+  article image actions. Docker-internal origins and private storage paths are
+  not exposed, broken CMS images collapse safely, and responsive media reserves
+  stable dimensions.
+- All 41 website tests, strict TypeScript, ESLint, the 42-route production
+  build, and 16 targeted Django CMS tests passed. Live browser QA at desktop and
+  390px verified an eligible banner/media render, the curated/empty fallback,
+  unpublished slug 404, no broken images, no console errors and no document
+  overflow.
+- Archived three clearly identified PostgreSQL QA banners (`8LMF2`, `8LMF3`,
+  `8LMF4`) created by `admin@example.test`; they were named example/second/third
+  banner and one linked customers into the staff CMS. Audit history was
+  preserved and no real operator content was removed.

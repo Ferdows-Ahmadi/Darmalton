@@ -7,12 +7,16 @@ import { usePathname } from "next/navigation";
 import { GuestWelcomePrompt } from "@/components/GuestWelcomePrompt";
 import { Header } from "@/components/Header";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { PublicAnnouncements } from "@/components/PublicAnnouncements";
+import type { PublicAnnouncement } from "@/lib/types";
 
 export function AppChrome({
   authenticated,
+  globalAnnouncements,
   children
 }: {
   authenticated: boolean;
+  globalAnnouncements: PublicAnnouncement[];
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -25,6 +29,7 @@ export function AppChrome({
   return (
     <>
       <Header authenticated={authenticated} />
+      <PublicAnnouncements announcements={globalAnnouncements} />
       <GuestWelcomePrompt authenticated={authenticated} />
       <ScrollToTop />
       <main>{children}</main>
@@ -45,6 +50,7 @@ export function AppChrome({
           <div>
             <strong>درملتون</strong>
             <Link href="/about">درباره ما</Link>
+            <Link href="/health-articles">مقاله‌های سلامت</Link>
             <Link href="/contact">تماس</Link>
             <Link href="/#faq">پرسش‌های متداول</Link>
           </div>

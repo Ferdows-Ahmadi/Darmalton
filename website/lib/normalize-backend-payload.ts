@@ -1,7 +1,10 @@
-function proxiedAssetUrl(value: string) {
+const guardedAssetPath =
+  /^\/api\/v1\/(?:medicine-images\/[^/]+\/content|cms\/(?:banners|pages|health-articles)\/[^/]+\/image)\/?$/;
+
+export function proxiedAssetUrl(value: string) {
   try {
     const url = new URL(value);
-    if (/^\/api\/v1\/medicine-images\/[^/]+\/content\/?$/.test(url.pathname)) {
+    if (guardedAssetPath.test(url.pathname)) {
       return `/api/assets${url.pathname.replace(/\/$/, "")}`;
     }
     if (
@@ -11,7 +14,7 @@ function proxiedAssetUrl(value: string) {
       return `/api/assets${url.pathname}`;
     }
   } catch {
-    if (/^\/api\/v1\/medicine-images\/[^/]+\/content\/?$/.test(value)) {
+    if (guardedAssetPath.test(value)) {
       return `/api/assets${value.replace(/\/$/, "")}`;
     }
     if (value.startsWith("/media/") || value.startsWith("/static/")) {

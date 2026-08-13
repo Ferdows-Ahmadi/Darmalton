@@ -152,6 +152,15 @@ absolute HTTP(S) URL. Banner and page uploads accept verified JPEG, PNG, or WebP
 content up to 5 MiB, between 128 and 6000 pixels per side. CMS images use private
 storage and are returned only through the visibility-checked image actions.
 
+The public website consumes these anonymous collections server-side. Eligible
+Home content appears on `/`, Health Articles are listed at `/health-articles`
+with details at `/health-articles/{slug}`, and published informational pages are
+available at `/pages/{slug}`. The established `/about`, `/contact`, `/privacy`,
+and `/terms` routes use matching CMS slugs when published and retain curated
+fallback copy otherwise. Browser media is served through the website's
+same-origin `/api/assets/api/v1/cms/...` proxy; backend container origins and
+private storage names are never emitted as public page dependencies.
+
 ## Cart
 
 | Method | Path | Request |

@@ -25,10 +25,20 @@ export async function GET(_request: Request, context: RouteContext) {
     normalizedPath[1] === "v1" &&
     normalizedPath[2] === "medicine-images" &&
     normalizedPath[4] === "content";
+  const isCmsImage =
+    normalizedPath.length === 6 &&
+    normalizedPath[0] === "api" &&
+    normalizedPath[1] === "v1" &&
+    normalizedPath[2] === "cms" &&
+    ["banners", "pages", "health-articles"].includes(normalizedPath[3]) &&
+    normalizedPath[5] === "image";
 
   if (
     path.some((segment) => segment === "..") ||
-    (!isStoredAsset && !isMedicineContent && !isNormalizedMedicineContent)
+    (!isStoredAsset &&
+      !isMedicineContent &&
+      !isNormalizedMedicineContent &&
+      !isCmsImage)
   ) {
     return new NextResponse(null, { status: 404 });
   }

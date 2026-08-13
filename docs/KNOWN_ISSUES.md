@@ -75,14 +75,12 @@
 - Responsive staff browser QA passed at 1440, 1024, 390 and 320 pixels without
   document overflow or console errors. Very large real datasets can still make
   contained tables require horizontal scrolling by design.
-- The production CMS backend manages bilingual scheduled banners,
-  announcements, informational pages, and featured-medicine placements with
-  guarded publication and image delivery, and the Next.js staff portal has
-  complete management screens. Flutter now consumes scheduled `HOME_HERO`
-  banners with caching and autoplay. The public website still renders its
-  existing curated campaign sections; consuming public CMS data there remains a
-  separate checkpoint. No live banners are currently seeded, so operators must
-  upload and publish meeting content.
+- The production CMS backend and staff portal manage bilingual scheduled
+  banners, announcements, informational pages, Health Articles, and featured
+  medicines with guarded publication and media. Flutter and the public website
+  consume eligible content with zero-state fallbacks. No real meeting content
+  is currently published, so operators must upload, review, and publish it; the
+  three old QA banners were archived without deleting their audit trail.
 - Staff CMS labels and workflow guidance are Dari-first, but validation text
   returned verbatim by Django can still be English. Localize the stable backend
   CMS validation messages before a fully Dari operator release.

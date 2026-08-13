@@ -196,6 +196,84 @@ export type AppNotification = {
   created_at: string;
 };
 
+export type PublicBanner = {
+  id: string;
+  code: string;
+  placement: "HOME_HERO" | "HOME_SECONDARY" | "CATALOGUE";
+  title: string;
+  title_dari: string;
+  body: string;
+  body_dari: string;
+  image_url: string | null;
+  alt_text: string;
+  alt_text_dari: string;
+  action_label: string;
+  action_label_dari: string;
+  action_url: string;
+  display_order: number;
+  publish_from: string | null;
+  publish_until: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PublicAnnouncement = {
+  id: string;
+  level: "INFO" | "SUCCESS" | "WARNING" | "CRITICAL";
+  placement: "GLOBAL" | "HOME" | "CHECKOUT";
+  title: string;
+  title_dari: string;
+  body: string;
+  body_dari: string;
+  action_label: string;
+  action_label_dari: string;
+  action_url: string;
+  display_order: number;
+  publish_from: string | null;
+  publish_until: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PublicContentPage = {
+  id: string;
+  content_type: "INFORMATIONAL" | "HEALTH_ARTICLE";
+  slug: string;
+  title: string;
+  title_dari: string;
+  summary: string;
+  summary_dari: string;
+  body: string;
+  body_dari: string;
+  image_url: string | null;
+  alt_text: string;
+  alt_text_dari: string;
+  author_source: string;
+  display_order: number;
+  publish_from: string | null;
+  publish_until: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PublicFeaturedMedicine = {
+  id: string;
+  medicine_id: string;
+  medicine_name: string;
+  medicine_name_dari: string;
+  placement:
+    | "HOME_FEATURED"
+    | "HOME_RECOMMENDED"
+    | "CATALOGUE_FEATURED";
+  label: string;
+  label_dari: string;
+  display_order: number;
+  publish_from: string | null;
+  publish_until: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type PageResult<T> = {
   count: number;
   next: string | null;

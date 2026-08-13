@@ -1,8 +1,12 @@
 import { InfoPage } from "@/components/InfoPage";
+import { CmsInfoPage } from "@/components/CmsInfoPage";
+import { publicContentPage } from "@/lib/public-cms";
 
 export const metadata = { title: "حریم خصوصی" };
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const page = await publicContentPage("privacy");
+  if (page) return <CmsInfoPage page={page} eyebrow="حریم خصوصی" />;
   return (
     <InfoPage
       eyebrow="حریم خصوصی"

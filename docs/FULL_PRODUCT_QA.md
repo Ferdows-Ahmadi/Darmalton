@@ -25,7 +25,7 @@ or disabled because the required production integration is unavailable, and
 | Logout/session expiry | Profile and API refresh | Authenticated | Clear private cache/tokens; no stale protected state | API/auth tests | Prior Pixel logout/refresh passed | PASS |
 | Account/profile | `/profile`, `/settings/profile` | Authenticated | View/edit profile and phone safely | Widget/backend coverage | Prior device render; edit re-check open | PARTIAL |
 | Settings/preferences | `/settings` | Authenticated | Persist language, text size, motion, image and notification preferences | `language_settings_test.dart`, account tests | Language persistence previously passed | PASS |
-| Informational pages | `/settings/about`, `terms`, `privacy`, `help`, `contact` | All/authenticated | Useful localized copy with correct navigation | Flutter widget coverage pending | Device audit open | OPEN |
+| Informational pages | `/settings/about`, `terms`, `privacy`, `help`, `contact` | All/authenticated | Useful localized copy with correct navigation | Existing route/build coverage | Device audit open | PARTIAL |
 | Account security/deactivation | `/settings/security` | Authenticated | Change password or confirm irreversible deactivation | Backend account tests | Physical form audit open | PARTIAL |
 | Home CMS hero | Home | All | Only eligible scheduled banners; cached fallback; safe internal actions | `promotion_carousel_test.dart` | Zero-state and carousel previously checked | PASS |
 | Home search/quick actions | Home | All | Open one search surface; Rx action requires auth | Widget coverage and route audit | Device interaction open | PARTIAL |
@@ -63,7 +63,7 @@ or disabled because the required production integration is unavailable, and
 | `/prescriptions` | Customer | Upload/history/clarification and approved-bundle state | Backend transition/bundle tests; browser re-check open | PARTIAL |
 | `/notifications` | Customer | Persistent owner-scoped prescription/order event center | Backend tests and production build; browser re-check open | PARTIAL |
 | `/about`, `/contact`, `/privacy`, `/terms` | All | Stable public information | Production build | PARTIAL |
-| Public CMS content | Landing/shop/article/page surfaces | All | Eligible scheduled bilingual CMS content only | Not fully integrated | OPEN |
+| Public CMS content | Landing/article/page surfaces | All | Eligible scheduled bilingual CMS content only | 41 web tests, production build, 16 Django CMS tests and responsive browser QA | PASS |
 
 ## Staff portal
 
@@ -109,5 +109,5 @@ or disabled because the required production integration is unavailable, and
 3. Complete browser and device QA for the safe approved-prescription-to-cart
    path and customer in-app notification presentation.
 4. Complete attended Pixel camera, address CRUD/GPS, and COD checkout checks.
-5. Integrate the eligible public CMS resources into the website and run the
-   complete browser/role matrix after the redesigns stabilize.
+5. Run the complete browser/role matrix and attended device checks after the
+   redesigns stabilize.

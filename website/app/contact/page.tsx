@@ -1,8 +1,12 @@
 import { InfoPage } from "@/components/InfoPage";
+import { CmsInfoPage } from "@/components/CmsInfoPage";
+import { publicContentPage } from "@/lib/public-cms";
 
 export const metadata = { title: "تماس با درملتون" };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const page = await publicContentPage("contact");
+  if (page) return <CmsInfoPage page={page} eyebrow="تماس" />;
   return (
     <InfoPage
       eyebrow="تماس"

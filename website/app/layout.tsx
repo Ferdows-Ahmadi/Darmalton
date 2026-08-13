@@ -3,6 +3,8 @@ import { cookies } from "next/headers";
 import localFont from "next/font/local";
 
 import { AppChrome } from "@/components/AppChrome";
+import { publicCmsList } from "@/lib/public-cms";
+import type { PublicAnnouncement } from "@/lib/types";
 import "./globals.css";
 
 const vazirmatn = localFont({
@@ -35,11 +37,19 @@ export default async function RootLayout({
   const authenticated = Boolean(
     (await cookies()).get("pharmacy_refresh")?.value
   );
+  const globalAnnouncements = await publicCmsList<PublicAnnouncement>(
+    "cms/announcements/?placement=GLOBAL&ordering=display_order"
+  );
 
   return (
     <html lang="fa-AF" dir="rtl">
       <body className={vazirmatn.variable}>
-        <AppChrome authenticated={authenticated}>{children}</AppChrome>
+        <AppChrome
+          authenticated={authenticated}
+          globalAnnouncements={globalAnnouncements}
+        >
+          {children}
+        </AppChrome>
       </body>
     </html>
   );

@@ -1,6 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { CmsActionLink } from "@/components/CmsActionLink";
+import { CmsImage } from "@/components/CmsImage";
+import { HealthArticleCard } from "@/components/HealthArticleCard";
+import { MedicineCard } from "@/components/MedicineCard";
+import { PublicAnnouncements } from "@/components/PublicAnnouncements";
+import { publicHomeCms } from "@/lib/public-cms";
+
 const benefits = [
   {
     icon: "Rx",
@@ -44,25 +51,44 @@ const faqs = [
   ]
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const { hero, announcements, featuredMedicines, articles } =
+    await publicHomeCms();
+  const heroTitle = hero?.title_dari || hero?.title;
+  const heroBody = hero?.body_dari || hero?.body;
+  const heroAction = hero?.action_label_dari || hero?.action_label;
+
   return (
     <div className="landing-page">
+      <PublicAnnouncements announcements={announcements} />
       <section className="landing-hero" aria-labelledby="landing-title">
         <div className="landing-hero-copy">
           <span className="landing-kicker">داروخانه آنلاین قابل اعتماد</span>
           <h1 id="landing-title">
-            سلامتی شما،
-            <br />
-            نزدیک‌تر از همیشه
+            {heroTitle || (
+              <>
+                سلامتی شما،
+                <br />
+                نزدیک‌تر از همیشه
+              </>
+            )}
           </h1>
           <p>
-            دارو و محصولات صحی را جستجو کنید، نسخه داکتر را برای بررسی
-            فارمسیست بفرستید و سفارش خود را از یک تجربه امن و روشن پیگیری کنید.
+            {heroBody ||
+              "دارو و محصولات صحی را جستجو کنید، نسخه داکتر را برای بررسی فارمسیست بفرستید و سفارش خود را از یک تجربه امن و روشن پیگیری کنید."}
           </p>
           <div className="landing-actions">
-            <Link className="button landing-primary" href="/shop">
-              ورود به فروشگاه
-            </Link>
+            {hero?.action_url && heroAction ? (
+              <CmsActionLink
+                className="button landing-primary"
+                href={hero.action_url}
+                label={heroAction}
+              />
+            ) : (
+              <Link className="button landing-primary" href="/shop">
+                ورود به فروشگاه
+              </Link>
+            )}
             <Link className="button secondary landing-secondary" href="/prescriptions">
               ارسال نسخه
             </Link>
@@ -83,14 +109,25 @@ export default function LandingPage() {
           </dl>
         </div>
         <div className="landing-hero-media">
-          <Image
-            src="/branding/landing-hero.png"
-            alt="کیسه داروخانه، داروهای عمومی و برگ‌های سبز"
-            width={1792}
-            height={896}
-            priority
-            sizes="(max-width: 820px) 100vw, 58vw"
-          />
+          {hero?.image_url ? (
+            <div className="cms-hero-media-frame">
+              <CmsImage
+                className="cms-hero-image"
+                src={hero.image_url}
+                alt={hero.alt_text_dari || hero.alt_text || heroTitle || "بنر درملتون"}
+                priority
+              />
+            </div>
+          ) : (
+            <Image
+              src="/branding/landing-hero.png"
+              alt="کیسه داروخانه، داروهای عمومی و برگ‌های سبز"
+              width={1792}
+              height={896}
+              priority
+              sizes="(max-width: 820px) 100vw, 58vw"
+            />
+          )}
           <div className="hero-proof">
             <span aria-hidden="true">✓</span>
             <div>
@@ -100,6 +137,28 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {featuredMedicines.length > 0 && (
+        <section className="landing-section cms-featured-section" aria-labelledby="featured-title">
+          <div className="landing-section-heading">
+            <span className="landing-kicker">انتخاب درملتون</span>
+            <h2 id="featured-title">محصولات ویژه</h2>
+            <p>محصولات فعالی که تیم داروخانه برای دسترسی آسان‌تر برجسته کرده است.</p>
+          </div>
+          <div className="medicine-grid">
+            {featuredMedicines.map(({ feature, medicine }) => (
+              <div className="cms-featured-item" key={feature.id}>
+                {(feature.label_dari || feature.label) && (
+                  <span className="cms-feature-label">
+                    {feature.label_dari || feature.label}
+                  </span>
+                )}
+                <MedicineCard medicine={medicine} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="brand-proof" aria-label="مزیت‌های درملتون">
         <span>داروهای معتبر</span>
@@ -174,6 +233,26 @@ export default function LandingPage() {
           ))}
         </ol>
       </section>
+
+      {articles.length > 0 && (
+        <section className="landing-section health-articles-section" aria-labelledby="health-title">
+          <div className="landing-section-heading">
+            <span className="landing-kicker">آگاهی برای سلامت بهتر</span>
+            <h2 id="health-title">مقاله‌های سلامت</h2>
+            <p>مطالب منتشرشده توسط تیم محتوای درملتون برای استفاده مسئولانه‌تر از خدمات صحی.</p>
+          </div>
+          <div className="health-article-grid">
+            {articles.map((article) => (
+              <HealthArticleCard article={article} key={article.id} />
+            ))}
+          </div>
+          <div className="section-action-row">
+            <Link className="button secondary" href="/health-articles">
+              مشاهده همه مقاله‌ها
+            </Link>
+          </div>
+        </section>
+      )}
 
       <section className="app-download" id="download">
         <div>
