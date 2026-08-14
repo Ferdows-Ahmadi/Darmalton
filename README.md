@@ -51,15 +51,15 @@ remains a separate hidden technical fallback at backend port 8000; set
 ## Google sign-in configuration
 
 Create a Google OAuth 2.0 **Web application** client, then set
-`GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the ignored `.env`. Add
+`GOOGLE_CLIENT_ID` in the ignored `.env`. Add
 `http://localhost:3000` as an authorized JavaScript origin for local website
 testing. `GOOGLE_CLIENT_ID` is intentionally public: Next.js passes it to
 Google Identity Services and the Flutter build uses it as the backend ID-token
-audience. `GOOGLE_CLIENT_SECRET` remains in Django's server environment and is
-never compiled into either client.
+audience. The current ID-token verification flow does not exchange an
+authorization code and therefore does not require a Google client secret.
 
 For Android, also register package `com.darmalton.pharmacy` and the signing
-certificate SHA-1 in the same Google Cloud project. Then build from a shell where
+certificate SHA-1 and SHA-256 in the same Google Cloud project. Then build from a shell where
 the public client ID is set:
 
 ```powershell
@@ -142,3 +142,8 @@ for the current platform and intentionally unsupported capabilities.
 More detail: `docs/ENVIRONMENT.md`, `docs/API_CONTRACT.md`,
 `docs/MILESTONE_1_PLAN.md`, `docs/BUILD_LOG.md`, `SECURITY.md`, and
 `docs/KNOWN_ISSUES.md`.
+
+Release/deployment operators should start with
+`docs/RELEASE_CANDIDATE_STATUS.md`, `docs/FINAL_ACCEPTANCE_CHECKLIST.md` and
+`docs/PRODUCTION_DEPLOYMENT.md`; the environment, backup, Android and Hostinger
+runbooks linked there must be completed before public deployment.

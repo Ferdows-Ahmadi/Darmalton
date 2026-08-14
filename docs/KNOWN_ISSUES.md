@@ -5,8 +5,9 @@
   reversed-client-ID URL scheme registered in the Runner target.
 - No real Google OAuth credentials are committed, so the live provider popup
   cannot complete in repository CI/local verification until an operator supplies
-  `GOOGLE_CLIENT_ID`, the server-only secret, authorized website origins, and
-  Android package/SHA registration. Invalid, unavailable, linking-conflict, and
+  `GOOGLE_CLIENT_ID`, authorized website origins, and Android package/SHA
+  registration. The current ID-token verification flow does not require a
+  client secret. Invalid, unavailable, linking-conflict, and
   verified-claim paths are covered by deterministic backend/client tests. The
   customer action stays hidden when the client ID is absent.
 - Debug Android builds permit cleartext HTTP solely for private-LAN development.
@@ -34,6 +35,8 @@
 - Android debug APK builds now complete and install successfully. Flutter still
   warns that the current `file_picker` plugin applies the legacy Kotlin Gradle
   plugin; this is non-blocking with the verified toolchain.
+- The release-mode AAB compiles, but no production `key.properties` or keystore
+  is present. It is an unsigned compile-sanity artifact, not Play-upload ready.
 - 2026-08-04 follow-up: the prior locale-refresh hotfix experiment that made a
   custom localized-text widget tree depend directly on an inherited language
   widget was rejected. It triggered `_dependents.isEmpty` assertions when the
@@ -112,9 +115,12 @@
 - OpenAPI generation now has an explicit health response and distinct order
   payment-status enum name. Generated clients still require normal versioning
   and compatibility review before publication.
-- OpenAPI validation reports one non-blocking enum naming warning
-  (`Status372Enum`). Add an explicit `ENUM_NAME_OVERRIDES` entry before
-  publishing generated clients; there are no schema validation errors.
+- OpenAPI validation is warning-free. Generated clients still require normal
+  versioning and compatibility review before publication.
+- The Hostinger connector was registered but the read-only VPS MCP handshake
+  timed out during this release pass. Live VPS identity, DNS, firewall, backup,
+  metrics and exact Traefik network/resolver settings remain operator-verified
+  rather than connector-verified; no Hostinger setting was changed.
 - Historical order item and status-note snapshots preserve the text stored at
   order time. Newly seeded catalogue display names are Dari-first, but older
   snapshots can retain a Latin medicine name.

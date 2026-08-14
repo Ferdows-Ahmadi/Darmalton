@@ -7,9 +7,9 @@ operator configuration and intentionally deferred integrations.
 
 - Django remains the authority for identities, permissions, catalogue, prices,
   stock, prescriptions, orders, operations, returns, notifications and CMS.
-- PostgreSQL migrations are applied and consistent. Django checks, Ruff, 97
+- PostgreSQL migrations are applied and consistent. Django checks, Ruff, 101
   backend tests and the integrated PostgreSQL smoke flow pass.
-- The Next.js public website and role-guarded staff portal pass 41 tests,
+- The Next.js public website and role-guarded staff portal pass 43 tests,
   strict TypeScript, ESLint and the 42-route production build. Responsive
   browser QA passes at 1440, 1024 and 320 pixels without document overflow.
 - Flutter passes analysis and all 66 tests. A fresh debug APK is installed and
@@ -19,6 +19,10 @@ operator configuration and intentionally deferred integrations.
   and client permission tests cover the broader supported role matrix.
 - Uploads, private media, tokens and roles remain server-guarded; no production
   secrets or customer data are committed.
+- The isolated production profile applies all 56 migrations, runs Gunicorn as
+  UID 10001, writes both media volumes as that user, keeps 3000/8000/5432
+  unpublished, and passes website-to-backend health through the HTTPS proxy
+  contract. The backup and isolated restore scripts were exercised successfully.
 
 ## Operator actions before production
 
@@ -35,7 +39,8 @@ operator configuration and intentionally deferred integrations.
 - Run the attended release checklist for camera capture, GPS/map positioning,
   destructive address actions, approved-prescription checkout and Android
   release signing. Validate/sign iOS on macOS/Xcode.
-- Resolve the single OpenAPI enum-name warning before publishing generated SDKs.
+- Re-run the attended Pixel camera/GPS/prescription-to-COD checklist against the
+  signed candidate and record release-owner acceptance.
 
 ## Intentionally deferred or gated
 

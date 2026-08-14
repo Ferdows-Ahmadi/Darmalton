@@ -1,5 +1,44 @@
 # Build Log
 
+## 2026-08-14 - First production release-candidate preparation
+
+- Closed the final schema warning and Flutter localization interpolation gaps,
+  then reran the complete verification gate. Ruff, Django checks, migration
+  consistency and warning-free OpenAPI validation pass; all 101 backend tests
+  pass on both SQLite and PostgreSQL 17.6. Website verification passes all 43
+  tests, strict TypeScript, ESLint and the 42-route production build. Flutter
+  analysis and all 66 tests pass.
+- Browser QA covered the public home, shop, health articles, informational
+  pages and product details at 320, 1024 and 1440 pixels with no broken images
+  or document overflow. Route navigation reset `scrollY` from 1040 to 0. Fresh
+  tabs had no console errors or warnings.
+- Fixed a direct-route authorization flash on `/staff/users`: the page now
+  resolves the viewer before requesting or rendering administrator controls.
+  Live checks confirmed customer rejection, pharmacist denial without controls,
+  administrator access and preservation of the requested route at login.
+- Added a fail-closed production Django profile, Gunicorn container, private
+  PostgreSQL/media volumes, existing-Traefik labels, HTTPS-aware internal API
+  proxying, a CI release gate and documented environment placeholders. A clean
+  isolated production stack applied all 56 migrations and reached healthy
+  database/backend/website state without publishing 5432, 8000 or 3000.
+- Production testing found and fixed two deployment blockers: named media
+  volumes are initialized for UID/GID 10001 before permanently dropping
+  Gunicorn privileges, and the private `backend` service hostname is admitted
+  only through the Compose-internal Django allowlist. Both media roots passed a
+  UID 10001 write probe and the real website-to-API request returned HTTP 200.
+- The PostgreSQL backup script created and archive-validated a compressed dump;
+  the restore script restored it to an isolated database and found 56 applied
+  migrations before the test database was removed.
+- Fresh Android artifacts were produced from the final mobile source. Debug APK
+  SHA-256: `4B90A06C25DE89920528319D72ABEF2BA6ED7A29C68F95A7C8F578CE834D80C2`.
+  Unsigned release-mode AAB SHA-256:
+  `3976D87C0CE2017A1731D7EAA5E5E30F211DA342DD6E648C490FA2FF3F820558`.
+  The connected Pixel 10 still reports package `com.darmalton.pharmacy`, version
+  `1.0.0` / code `1`; production signing remains an external release gate.
+- Hostinger connector servers were registered, but the read-only VPS connector
+  timed out during handshake. The operator-reported VPS/Traefik state remains
+  explicitly unverified and no Hostinger resource was changed.
+
 ## 2026-08-13 - Full product hardening audit started
 
 - Established `docs/FULL_PRODUCT_QA.md` as the implementation-backed feature
