@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const apiBase = process.env.API_INTERNAL_URL || "http://localhost:8000/api/v1";
+const forwardedProto = process.env.API_INTERNAL_FORWARDED_PROTO || "http";
 
 export async function authRequest(request: NextRequest, endpoint: string) {
   const body = await request.text();
   const backend = await fetch(`${apiBase}/auth/${endpoint}/`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Forwarded-Proto": forwardedProto
+    },
     body,
     cache: "no-store"
   });

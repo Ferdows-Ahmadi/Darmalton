@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { normalizeBackendPayload } from "@/lib/normalize-backend-payload";
 
 const apiBase = process.env.API_INTERNAL_URL || "http://localhost:8000/api/v1";
+const forwardedProto = process.env.API_INTERNAL_FORWARDED_PROTO || "http";
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
@@ -13,7 +14,10 @@ async function forward(request: NextRequest, context: RouteContext) {
   const body =
     method === "GET" || method === "HEAD" ? undefined : await request.arrayBuffer();
   let access = request.cookies.get("pharmacy_access")?.value;
-  const headers: Record<string, string> = { Accept: "application/json" };
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "X-Forwarded-Proto": forwardedProto
+  };
   if (body?.byteLength) {
     headers["Content-Type"] =
       request.headers.get("content-type") || "application/json";
@@ -27,7 +31,10 @@ async function forward(request: NextRequest, context: RouteContext) {
     const refresh = request.cookies.get("pharmacy_refresh")!.value;
     const refreshed = await fetch(`${apiBase}/auth/refresh/`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Forwarded-Proto": forwardedProto
+      },
       body: JSON.stringify({ refresh }),
       cache: "no-store"
     });

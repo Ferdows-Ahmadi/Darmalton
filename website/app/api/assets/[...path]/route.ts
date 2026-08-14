@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 const apiBase =
   process.env.API_INTERNAL_URL || "http://localhost:8000/api/v1";
 const backendOrigin = new URL(apiBase).origin;
+const forwardedProto = process.env.API_INTERNAL_FORWARDED_PROTO || "http";
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
@@ -45,6 +46,7 @@ export async function GET(_request: Request, context: RouteContext) {
 
   const backendPath = normalizedPath.join("/");
   const backend = await fetch(`${backendOrigin}/${backendPath}`, {
+    headers: { "X-Forwarded-Proto": forwardedProto },
     cache: "force-cache"
   });
   if (!backend.ok || !backend.body) {
