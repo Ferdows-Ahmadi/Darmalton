@@ -70,7 +70,12 @@ if os.getenv("DJANGO_USE_SQLITE", "false").lower() == "true" or not os.getenv("D
         "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}
     }
 else:
-    DATABASES = {"default": dj_database_url.config(conn_max_age=60, conn_health_checks=True)}
+    DATABASES = {
+        "default": dj_database_url.config(
+            conn_max_age=int(os.getenv("DATABASE_CONN_MAX_AGE", "60")),
+            conn_health_checks=True,
+        )
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

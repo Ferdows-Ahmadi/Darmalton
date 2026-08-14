@@ -178,6 +178,7 @@ def test_account_language_preference_is_validated_and_persisted(authenticated_cl
     assert invalid.status_code == 400
 
 
+@pytest.mark.django_db(transaction=True)
 def test_staff_can_manage_and_public_can_read_medicine_images(
     api_client, medicine, settings, tmp_path
 ):
