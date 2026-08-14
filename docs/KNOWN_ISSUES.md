@@ -83,9 +83,10 @@
 - The production CMS backend and staff portal manage bilingual scheduled
   banners, announcements, informational pages, Health Articles, and featured
   medicines with guarded publication and media. Flutter and the public website
-  consume eligible content with zero-state fallbacks. No real meeting content
-  is currently published, so operators must upload, review, and publish it; the
-  three old QA banners were archived without deleting their audit trail.
+  consume eligible content with zero-state fallbacks. A real local HOME_HERO
+  upload was published only to verify the RC1 Pixel media path; production
+  operators must still upload, review, and publish approved meeting content.
+  The other archived QA banners retain their audit trail.
 - Staff CMS labels and workflow guidance are Dari-first, but validation text
   returned verbatim by Django can still be English. Localize the stable backend
   CMS validation messages before a fully Dari operator release.

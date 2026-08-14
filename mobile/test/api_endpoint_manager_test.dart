@@ -94,4 +94,31 @@ void main() {
       throwsA(isA<FormatException>()),
     );
   });
+
+  test('public API media URL is rebased to the reachable endpoint', () {
+    expect(
+      ApiEndpointManager.rebasePublicApiUrl(
+        'http://backend:8000/api/v1/cms/banners/banner-id/image/',
+        apiBaseUrl: 'http://192.168.1.44:8000/api/v1',
+      ),
+      'http://192.168.1.44:8000/api/v1/cms/banners/banner-id/image/',
+    );
+    expect(
+      ApiEndpointManager.rebasePublicApiUrl(
+        '/api/v1/cms/banners/banner-id/image/?size=large',
+        apiBaseUrl: 'https://api.darmalton.example/api/v1',
+      ),
+      'https://api.darmalton.example/api/v1/cms/banners/banner-id/image/?size=large',
+    );
+  });
+
+  test('non-API asset hosts are not rewritten', () {
+    expect(
+      ApiEndpointManager.rebasePublicApiUrl(
+        'https://cdn.example.test/banner.png',
+        apiBaseUrl: 'https://api.darmalton.example/api/v1',
+      ),
+      'https://cdn.example.test/banner.png',
+    );
+  });
 }

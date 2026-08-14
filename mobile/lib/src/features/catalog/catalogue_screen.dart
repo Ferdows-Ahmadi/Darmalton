@@ -22,6 +22,70 @@ class CatalogueScreen extends ConsumerStatefulWidget {
   ConsumerState<CatalogueScreen> createState() => _CatalogueScreenState();
 }
 
+class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const HomeAppBar({
+    required this.showNotifications,
+    required this.unreadNotifications,
+    required this.onNotifications,
+    required this.onMenu,
+    super.key,
+  });
+
+  final bool showNotifications;
+  final int unreadNotifications;
+  final VoidCallback onNotifications;
+  final VoidCallback onMenu;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) => AppBar(
+    automaticallyImplyLeading: false,
+    titleSpacing: 0,
+    title: SizedBox(
+      height: kToolbarHeight,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        alignment: Alignment.center,
+        children: [
+          const Center(
+            child: DarmaltonWordmark(key: Key('home-wordmark'), height: 36),
+          ),
+          Positioned(
+            left: 4,
+            top: 4,
+            bottom: 4,
+            child: IconButton(
+              key: const Key('account-menu-button'),
+              tooltip: DariStrings.profile,
+              onPressed: onMenu,
+              icon: const Icon(Icons.menu_rounded),
+            ),
+          ),
+          if (showNotifications)
+            Positioned(
+              right: 4,
+              top: 4,
+              bottom: 4,
+              child: IconButton(
+                key: const Key('notification-button'),
+                tooltip: DariStrings.translate('اعلان‌ها'),
+                onPressed: onNotifications,
+                icon: Badge(
+                  isLabelVisible: unreadNotifications > 0,
+                  label: Text('$unreadNotifications'),
+                  child: const Icon(Icons.notifications_none_rounded),
+                ),
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
+}
+
 class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
   bool _promptScheduled = false;
 
@@ -129,32 +193,15 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
     return MainScaffold(
       index: 2,
       child: Scaffold(
-        appBar: AppBar(
-          title: const DarmaltonWordmark(height: 36),
-          actions: [
-            if (auth.value != null &&
-                settings?.notifications != false &&
-                FeatureFlags.notificationCenter)
-              IconButton(
-                tooltip: DariStrings.translate('اعلان‌ها'),
-                onPressed: () => context.push('/notifications'),
-                icon: Badge(
-                  isLabelVisible:
-                      notifications.value?.any((item) => !item.isRead) ?? false,
-                  label: Text(
-                    '${notifications.value?.where((item) => !item.isRead).length ?? 0}',
-                  ),
-                  child: const Icon(Icons.notifications_none_rounded),
-                ),
-              ),
-            IconButton(
-              key: const Key('account-menu-button'),
-              tooltip: DariStrings.profile,
-              onPressed: () => context.push('/profile'),
-              icon: const Icon(Icons.menu_rounded),
-            ),
-            const SizedBox(width: 4),
-          ],
+        appBar: HomeAppBar(
+          showNotifications:
+              auth.value != null &&
+              settings?.notifications != false &&
+              FeatureFlags.notificationCenter,
+          unreadNotifications:
+              notifications.value?.where((item) => !item.isRead).length ?? 0,
+          onNotifications: () => context.push('/notifications'),
+          onMenu: () => context.push('/profile'),
         ),
         body: RefreshIndicator(
           onRefresh: () async {
@@ -265,7 +312,7 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 22, 16, 8),
                 sliver: SliverToBoxAdapter(
                   child: SectionTitle(
-                    title: 'محصولات کاتالوگ',
+                    title: 'محصولات دارویی',
                     action: DariStrings.seeAll,
                     onAction: () => context.push('/search'),
                   ),

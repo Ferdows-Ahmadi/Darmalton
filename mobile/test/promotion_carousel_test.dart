@@ -1,5 +1,6 @@
 import 'package:darmalton_pharmacy/src/core/models.dart';
 import 'package:darmalton_pharmacy/src/features/catalog/promotion_carousel.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -76,6 +77,29 @@ void main() {
 
     expect(find.byKey(const Key('cms-promotion-carousel')), findsOneWidget);
     expect(find.byKey(const Key('banner-dot-0')), findsNothing);
+    final image = tester.widget<Image>(find.byType(Image));
+    final provider = image.image as CachedNetworkImageProvider;
+    expect(provider.url, 'https://example.test/banner-1.png');
+    expect(provider.cacheKey, 'cms-banner-banner-1');
+
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('broken banner reaches a stable retry fallback', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(home: PromotionCarousel(banners: [banner(404)])),
+    );
+    await tester.pump(const Duration(seconds: 6));
+
+    expect(
+      find.byKey(const Key('banner-image-fallback-banner-404')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('banner-image-retry-banner-404')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('banner-image-loading')), findsNothing);
 
     await tester.pumpWidget(const SizedBox.shrink());
   });

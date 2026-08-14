@@ -109,6 +109,17 @@ class PromotionalBanner {
   final String actionUrl;
   final int displayOrder;
 
+  PromotionalBanner copyWith({String? imageUrl}) => PromotionalBanner(
+    id: id,
+    title: title,
+    titleDari: titleDari,
+    imageUrl: imageUrl ?? this.imageUrl,
+    altText: altText,
+    altTextDari: altTextDari,
+    actionUrl: actionUrl,
+    displayOrder: displayOrder,
+  );
+
   String get semanticLabel {
     if (DariStrings.isEnglish) {
       return altText.isNotEmpty ? altText : title;

@@ -175,7 +175,7 @@ abstract final class DariStrings {
     'غیرفعال‌کردن حساب': 'Deactivate account',
     'محصولی موجود نیست': 'No products are available',
     'دواهای پرطرفدار': 'Popular medicines',
-    'محصولات کاتالوگ': 'Catalogue products',
+    'محصولات دارویی': 'Medicines',
     'پیشنهادهای امروز': "Today's picks",
     'ادامه خرید': 'Continue shopping',
     'برندها': 'Brands',
@@ -194,8 +194,7 @@ abstract final class DariStrings {
     'در حال ورود...': 'Signing in...',
     'یا': 'or',
     'ادامه با گوگل': 'Continue with Google',
-    'ورود با گوگل در این نسخه تنظیم نشده است.':
-        'Google sign-in is not configured in this build.',
+    'ورود با گوگل تنظیم نشده است.': 'Google sign-in is not configured.',
     'ایجاد حساب کاربری': 'Create an account',
     'ادامه بدون ورود': 'Continue without signing in',
     'تشخیص اتصال توسعه': 'Development connection diagnostics',
@@ -376,9 +375,6 @@ abstract final class DariStrings {
     'این مطلب آموزشی است و جای مشوره داکتر یا فارمسست را نمی‌گیرد.':
         'This article is educational and does not replace advice from a doctor or pharmacist.',
     'ارسال نسخه برای بررسی': 'Submit prescription for review',
-    'اشتراک‌گذاری': 'Share',
-    'اشتراک‌گذاری در نسخه بعدی فعال می‌شود.':
-        'Sharing will be available in a future release.',
     'برای معلومات شخصی با داکتر یا فارمسست مشوره کنید.':
         'Consult a doctor or pharmacist for personal medical advice.',
     'ترکیبات این محصول در کاتالوگ نمایشی ثبت نشده است.':
@@ -400,8 +396,6 @@ abstract final class DariStrings {
     'پرداخت نقدی در زمان دریافت سفارش': 'Pay cash when the order is delivered',
     'کارت بانکی': 'Bank card',
     'کیف پول': 'Wallet',
-    'اطلاعات پیک و تماس در این نسخه پشتیبانی نمی‌شود.':
-        'Courier and contact information are not available in this release.',
     'حجم نسخه باید کمتر از ۱۰ مگابایت باشد.':
         'The prescription file must be smaller than 10 MB.',
     'فقط فایل‌های JPG، PNG یا PDF پذیرفته می‌شود.':
@@ -422,8 +416,8 @@ abstract final class DariStrings {
     'خروج از حساب': 'Sign out',
     'می‌خواهید از حساب کاربری خود خارج شوید؟':
         'Do you want to sign out of your account?',
-    'نسخه نمایشی فروشگاه آنلاین دوا با قیمت و موجودی کنترل‌شده توسط سرور.':
-        'Online pharmacy demo with server-controlled prices and stock.',
+    'فروشگاه آنلاین دوا با قیمت و موجودی کنترل‌شده توسط سرور.':
+        'Online pharmacy with server-controlled prices and stock.',
     'معلومات پروفایل ذخیره شد.': 'Profile information was saved.',
     'نام را وارد کنید.': 'Enter a first name.',
     'نام خانوادگی را وارد کنید.': 'Enter a last name.',
@@ -489,11 +483,9 @@ abstract final class DariStrings {
     'LAN ذخیره‌شده': 'Remembered LAN',
     'دستی': 'Manual',
     'تولید': 'Production',
-    'این بخش فقط در نسخهٔ دیباگ دیده می‌شود و در نسخهٔ تولید غیرفعال است.':
-        'This section is visible only in debug builds and is disabled in production.',
-    '۱.۰.۰ (Milestone 1)': '1.0.0 (Milestone 1)',
-    'شماره نمایشی': 'Demo phone number',
-    'ایمیل پشتیبانی': 'Support email',
+    'ابزار بررسی اتصال محلی و نشانی سرور توسعه.':
+        'Local connection and development endpoint diagnostics.',
+    '۱.۰.۰': '1.0.0',
     'درخواست انجام نشد. دوباره کوشش کنید.':
         'The request could not be completed. Try again.',
   };
@@ -516,7 +508,6 @@ abstract final class DariStrings {
   static String get inStock => t('موجود در انبار', 'In stock');
   static String get addToCart => t('افزودن به سبد', 'Add to cart');
   static String get afn => t('افغانی', 'AFN');
-  static String get comingSoon => t('به‌زودی', 'Coming soon');
   static String get back => t('برگشت', 'Back');
   static String get loading => t('در حال بارگذاری...', 'Loading...');
 

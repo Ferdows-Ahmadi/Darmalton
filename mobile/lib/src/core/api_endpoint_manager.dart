@@ -124,6 +124,28 @@ class ApiEndpointManager extends ChangeNotifier {
     return '$trimmed/api/v1';
   }
 
+  /// Rebuilds API-owned public media URLs against the endpoint the app can
+  /// actually reach. This keeps CMS media usable when a development device
+  /// moves between USB reverse, LAN discovery, and a remembered LAN address,
+  /// or when a reverse proxy supplies an internal host in an absolute URL.
+  static String rebasePublicApiUrl(String value, {required String apiBaseUrl}) {
+    final source = Uri.tryParse(value.trim());
+    if (source == null || source.path.isEmpty) return value;
+    if (!source.path.startsWith('/api/v1/')) return value;
+
+    final base = Uri.parse(normalizeApiBaseUrl(apiBaseUrl));
+    return base
+        .replace(
+          path: source.path,
+          query: source.hasQuery ? source.query : null,
+          fragment: source.hasFragment ? source.fragment : null,
+        )
+        .toString();
+  }
+
+  String resolvePublicApiUrl(String value) =>
+      rebasePublicApiUrl(value, apiBaseUrl: _snapshot.endpoint);
+
   Future<String> ensureResolved({bool force = false}) {
     if (!force && _snapshot.healthy) return Future.value(_snapshot.endpoint);
     if (_activeResolution != null) return _activeResolution!;

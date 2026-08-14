@@ -314,8 +314,13 @@ final promotionalBannersProvider = StreamProvider<List<PromotionalBanner>>((
   ref,
 ) async* {
   final cache = ref.read(localCacheProvider);
+  final endpointManager = ref.read(apiEndpointManagerProvider);
   final cached = normalizePromotionalBanners(
-    await cache.readPromotionalBanners(),
+    (await cache.readPromotionalBanners()).map(
+      (banner) => banner.copyWith(
+        imageUrl: endpointManager.resolvePublicApiUrl(banner.imageUrl),
+      ),
+    ),
   );
   if (cached.isNotEmpty) yield cached;
   try {
@@ -323,6 +328,7 @@ final promotionalBannersProvider = StreamProvider<List<PromotionalBanner>>((
         .read(apiClientProvider)
         .get<Map<String, dynamic>>(
           '/cms/banners/',
+          skipAuthorization: true,
           query: {
             'placement': 'HOME_HERO',
             'ordering': 'display_order',
@@ -330,9 +336,15 @@ final promotionalBannersProvider = StreamProvider<List<PromotionalBanner>>((
           },
         );
     final fresh = normalizePromotionalBanners(
-      (response.data!['results'] as List<dynamic>).map(
-        (item) => PromotionalBanner.fromJson(item as Map<String, dynamic>),
-      ),
+      (response.data!['results'] as List<dynamic>).map((item) {
+        final banner = PromotionalBanner.fromJson(item as Map<String, dynamic>);
+        return banner.copyWith(
+          imageUrl: ApiEndpointManager.rebasePublicApiUrl(
+            banner.imageUrl,
+            apiBaseUrl: response.requestOptions.baseUrl,
+          ),
+        );
+      }),
     );
     await cache.writePromotionalBanners(fresh);
     ref.read(offlineProvider.notifier).markOnline();
@@ -354,6 +366,7 @@ final healthArticlesProvider = StreamProvider<List<HealthArticle>>((
         .read(apiClientProvider)
         .get<Map<String, dynamic>>(
           '/cms/health-articles/',
+          skipAuthorization: true,
           query: {'ordering': 'display_order', 'page_size': 12},
         );
     final fresh = normalizeHealthArticles(

@@ -14,6 +14,62 @@ mark a human action PASS from API/unit-test evidence alone.
 - [x] Integrated PostgreSQL customer/order/staff smoke flow.
 - [x] Local compressed backup plus isolated restore verification (56 migrations).
 
+## RC1 Pixel installation - 2026-08-14
+
+- [x] Verified the clean source checkout at
+      `be80adae2a2cf40d3386a6daf9261f33de7b273a` before installation.
+- [x] Verified the recorded RC1 debug APK SHA-256 as
+      `4B90A06C25DE89920528319D72ABEF2BA6ED7A29C68F95A7C8F578CE834D80C2`.
+- [x] Verified package `com.darmalton.pharmacy`, version `1.0.0` and
+      versionCode `1` from the APK manifest and installed package metadata.
+- [x] Installed with non-destructive `adb install -r` on Google Pixel 10
+      (`57221FDCR00CMN`, Android 17/API 37); existing application data was not
+      cleared and the original first-install timestamp was preserved.
+- [x] Pulled the installed base APK and confirmed its SHA-256 exactly matches
+      the local RC1 artifact.
+- [x] Force-stop/cold-launch passed; Home loaded online in Dari RTL and English
+      LTR, the language choice persisted across cold launches, and the device
+      was returned to Dari for the final cold launch.
+- [x] With only the local development backend temporarily stopped, the compact
+      offline banner appeared and Retry recovered after the same container was
+      restarted. Database and media volumes were not changed.
+- [x] No fatal, unhandled or current-process error was present in the final
+      application logcat inspection. One non-fatal geolocator lifecycle message
+      (`position updates stopped`) appeared during an earlier force-stop.
+
+This was deliberately a replacement install, not a fresh-data install. The
+complete attended prescription/address/GPS/COD workflow below remains open.
+
+## RC1 promotional-media patch - 2026-08-14
+
+- [x] Traced a real `HOME_HERO` record from the CMS list and guarded image
+      endpoint through Flutter endpoint selection, metadata/file caching, image
+      decoding, fallback, and rendering.
+- [x] Confirmed the public published image is anonymously readable (`200`,
+      `image/png`, valid bytes) while archived banner images remain unavailable
+      and private prescription media authorization remains unchanged.
+- [x] Confirmed a real uploaded promotional image visibly renders online on the
+      Pixel 10 without requiring Retry.
+- [x] Confirmed the same real image remains visible from cache when the backend
+      is deliberately stopped; Home remains usable and no loading loop occurs.
+- [x] Confirmed the compact offline banner's Retry control restores live state
+      and keeps the image rendered after the backend becomes healthy.
+- [x] Confirmed the physical Home header remains menu-left, wordmark-center and
+      notification-right in Dari RTL and English LTR, with no narrow-width
+      overflow in focused widget tests.
+- [x] Confirmed `محصولات دارویی` / `Medicines` replaces the obsolete catalogue
+      title and the old title is no longer translated or rendered.
+- [x] Audited major customer screens and removed obsolete demo, milestone,
+      future-version, fake-contact, and dead-share messaging/controls.
+- [x] Passed Flutter analyze, all 71 Flutter tests, 16 targeted Django CMS tests,
+      fresh APK build/install, cold launch, physical online/offline/recovery
+      checks, and clean app-scoped logcat inspection.
+
+The patch APK SHA-256 is
+`AFE3F827D200AE78790993C0BFBCFA9593B1ACAC3F8AF77EF5C0FA823453BBF6`.
+Production deployment remains paused until this committed patch is explicitly
+approved as the new release candidate.
+
 ## Pixel attended flow — OPEN
 
 - [ ] Fresh install/cold launch and online recovery on the final candidate APK.

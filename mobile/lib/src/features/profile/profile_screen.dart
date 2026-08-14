@@ -98,7 +98,7 @@ class ProfileScreen extends ConsumerWidget {
                         applicationVersion: '1.0.0',
                         children: const [
                           Text(
-                            'نسخه نمایشی فروشگاه آنلاین دوا با قیمت و موجودی کنترل‌شده توسط سرور.',
+                            'فروشگاه آنلاین دوا با قیمت و موجودی کنترل‌شده توسط سرور.',
                           ),
                         ],
                       ),

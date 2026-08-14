@@ -95,9 +95,19 @@ class ApiClient {
     return options.extra['skipAuthorization'] != true;
   }
 
-  Future<Response<T>> get<T>(String path, {Map<String, dynamic>? query}) async {
+  Future<Response<T>> get<T>(
+    String path, {
+    Map<String, dynamic>? query,
+    bool skipAuthorization = false,
+  }) async {
     try {
-      return await _dio.get<T>(path, queryParameters: query);
+      return await _dio.get<T>(
+        path,
+        queryParameters: query,
+        options: Options(
+          extra: {if (skipAuthorization) 'skipAuthorization': true},
+        ),
+      );
     } on DioException catch (error) {
       throw _mapError(error);
     }

@@ -773,3 +773,77 @@
   Dio, fatal or unhandled logcat errors.
 - Final APK: `mobile/build/app/outputs/flutter-apk/app-debug.apk`, SHA-256
   `E81B87296B2D28CC118A96747ED6B0639B372A4E1283777D99B08570E7D48BF2`.
+
+## 2026-08-14 - Frozen RC1 Pixel replacement installation
+
+- Reconfirmed a clean checkout at frozen RC1 commit
+  `be80adae2a2cf40d3386a6daf9261f33de7b273a`. The existing debug APK did not
+  need rebuilding because its SHA-256 exactly matched the artifact recorded by
+  the frozen RC1 release documentation:
+  `4B90A06C25DE89920528319D72ABEF2BA6ED7A29C68F95A7C8F578CE834D80C2`.
+- Verified the artifact manifest and installed package as
+  `com.darmalton.pharmacy`, version `1.0.0`, versionCode `1`. The APK is signed
+  with the Android debug certificate and is not eligible for public download or
+  Play distribution.
+- Confirmed the connected device as Google Pixel 10 (`frankel`, serial
+  `57221FDCR00CMN`) on Android 17/API 37. Installed with `adb install -r`, so
+  the app's existing data and original first-install timestamp were preserved.
+- Force-stop/cold-launch passed. Home loaded in Dari RTL and English LTR, the
+  chosen language persisted across cold launches, and Dari was restored for
+  the final cold launch.
+- Temporarily stopped only the local development backend to verify the compact
+  offline banner, then restarted the same container and confirmed Retry removed
+  the banner and restored online catalogue access. PostgreSQL and media volumes
+  were untouched, and the development stack ended healthy.
+- Pulled the installed `base.apk` and confirmed it was byte-for-byte identical
+  to the local RC1 artifact by SHA-256. Final current-process logcat inspection
+  contained no errors; an earlier force-stop emitted only the non-fatal
+  geolocator lifecycle message `position updates stopped`.
+- Production Android signing remains blocked: the ignored
+  `mobile/android/key.properties` and permanent production keystore are not
+  configured. No release APK/AAB was built or published.
+
+## 2026-08-14 - RC1 mobile promotional-media patch
+
+- Kept `be80adae2a2cf40d3386a6daf9261f33de7b273a` as the frozen base and
+  preserved the preceding Pixel-installation documentation. This patch changes
+  no production infrastructure, backend contract, database schema, private
+  prescription-media authorization, or Android signing configuration.
+- Root cause: the signed-in Pixel session belonged to a staff-capable account,
+  so the customer app's authenticated public CMS list request received archived
+  banners that staff may inspect. Their guarded image endpoints correctly
+  returned `404`, while the image widget fetched anonymously. Cached banner
+  metadata could also retain a stale development origin, producing a spinner or
+  fallback online and offline even though catalogue requests succeeded.
+- The customer app now requests public banners and health articles without a
+  bearer token, rewrites API-owned media URLs to the endpoint actually selected
+  by endpoint discovery, caches banner files by stable CMS UUID, bounds image
+  loading to five seconds, and exposes a recoverable image Retry fallback.
+  Global offline Retry also invalidates the banner provider.
+- Verified real local banner `dc8ad887-3da9-4e8d-adcd-2eb43132641a`. Its
+  anonymous image endpoint returned `200`, `image/png`, `public, no-cache`, no
+  redirect, and 1,828,742 valid PNG bytes. The image SHA-256 was
+  `1CCAC603FE9C10F0434C7E01A739A738C86F1D54D50EC8CA557BFF4512B21D10`.
+  On the USB-development path, the API URL uses `127.0.0.1:8000` intentionally
+  through `adb reverse tcp:8000 tcp:8000`; the Flutter cache recorded the same
+  reachable URL and the real upload visibly rendered on the Pixel.
+- Renamed the Home section from `محصولات کاتالوگ` to `محصولات دارویی`
+  (`Medicines`). Kept the menu at the physical left edge and pinned the
+  notification control to the physical right edge around the centered wordmark
+  in both RTL and LTR, including a 320-pixel widget test.
+- Removed the dead medicine-share action and its future-version snackbar,
+  demo/milestone labels, fake support phone/email, and prototype-oriented Google
+  and diagnostics wording. A source sweep plus Pixel inspection of Home,
+  Categories, Orders, Cart, Settings, and Account/Profile found no remaining
+  customer-facing final-version, next-version, coming-soon, or demo notices.
+- Verification passed: `flutter analyze` (no issues), all 71 Flutter tests, and
+  targeted Django CMS tests (16 passed). Website tests were not run because no
+  website code or shared backend/media contract changed.
+- Built and installed the fresh debug APK with `adb install -r`, preserving app
+  data. Artifact:
+  `mobile/build/app/outputs/flutter-apk/app-debug.apk`, SHA-256
+  `AFE3F827D200AE78790993C0BFBCFA9593B1ACAC3F8AF77EF5C0FA823453BBF6`.
+- Pixel 10 acceptance passed online, cached offline, and after in-app Retry
+  recovery. English persisted across a cold launch, Dari was restored and also
+  passed a final cold launch, and app-scoped logcat contained zero fatal,
+  unhandled, Flutter, Dio, socket, HTTP-image, or image-codec error matches.

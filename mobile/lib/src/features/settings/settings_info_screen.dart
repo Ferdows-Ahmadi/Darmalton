@@ -34,26 +34,6 @@ class SettingsInfoScreen extends StatelessWidget {
               ],
             ),
           ),
-          if (kind == SettingsInfoKind.contact) ...[
-            const SizedBox(height: 12),
-            const DarmaltonCard(
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: Icon(Icons.phone_outlined),
-                    title: Text('شماره نمایشی'),
-                    subtitle: LtrText('+93 700 000 000'),
-                  ),
-                  Divider(),
-                  ListTile(
-                    leading: Icon(Icons.email_outlined),
-                    title: Text('ایمیل پشتیبانی'),
-                    subtitle: LtrText('support@darmalton.example'),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -69,10 +49,10 @@ class SettingsInfoScreen extends StatelessWidget {
     body: DariStrings.t(
       'درملتون یک سامانه فروش آنلاین دوا و محصولات صحی با تجربه نخست به زبان دری است. '
           'قیمت، موجودی، نسخه و وضعیت سفارش فقط از سرور معتبر داروخانه دریافت می‌شود.\n\n'
-          'نسخه برنامه: ۱.۰.۰ (Milestone 1)',
+          'نسخه برنامه: ۱.۰.۰',
       'Darmalton is an online pharmacy for medicines and health products, designed Dari-first. '
           'Prices, stock, prescriptions, and order status come only from the trusted pharmacy server.\n\n'
-          'App version: 1.0.0 (Milestone 1)',
+          'App version: 1.0.0',
     ),
   ),
   SettingsInfoKind.terms => (
@@ -115,10 +95,8 @@ class SettingsInfoScreen extends StatelessWidget {
     title: DariStrings.t('تماس با ما', 'Contact us'),
     icon: Icons.contact_support_outlined,
     body: DariStrings.t(
-      'راه‌های زیر برای محیط نمایشی هستند. پیش از انتشار، شماره، ایمیل، ساعت کاری و آدرس '
-          'داروخانه دارای جواز باید با اطلاعات واقعی جایگزین شود.',
-      'The contacts below are for the demo environment. Before release, replace the phone, email, '
-          'working hours, and address with verified details for the licensed pharmacy.',
+      'برای کمک درباره سفارش یا نسخه، شماره مربوط را یادداشت کنید و از راه تماس رسمی داروخانه استفاده نمایید.',
+      'For help with an order or prescription, note its reference number and use the pharmacy’s official support channel.',
     ),
   ),
 };

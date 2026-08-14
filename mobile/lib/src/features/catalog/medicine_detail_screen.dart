@@ -54,15 +54,6 @@ class _DetailAppBar extends ConsumerWidget implements PreferredSizeWidget {
       title: const DarmaltonWordmark(height: 32),
       actions: [
         IconButton(
-          tooltip: 'اشتراک‌گذاری',
-          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('اشتراک‌گذاری در نسخه بعدی فعال می‌شود.'),
-            ),
-          ),
-          icon: const Icon(Icons.share_outlined),
-        ),
-        IconButton(
           tooltip: favorite
               ? 'حذف از علاقه‌مندی‌ها'
               : 'افزودن به علاقه‌مندی‌ها',

@@ -32,9 +32,7 @@ class PlatformGoogleIdentityService implements GoogleIdentityService {
 
   Future<void> _initialize() {
     if (!isConfigured) {
-      throw const GoogleIdentityException(
-        'ورود با گوگل در این نسخه تنظیم نشده است.',
-      );
+      throw const GoogleIdentityException('ورود با گوگل تنظیم نشده است.');
     }
     return _initialization ??= _googleSignIn.initialize(
       // The backend's web OAuth client ID is the ID-token audience on Android

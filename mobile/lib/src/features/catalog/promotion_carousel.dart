@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/design_system.dart';
 import '../../core/models.dart';
+import '../../core/strings.dart';
 
 String? bannerAppLocation(String value) {
   final uri = Uri.tryParse(value.trim());
@@ -147,7 +148,7 @@ class _PromotionCarouselState extends State<PromotionCarousel> {
   }
 }
 
-class _BannerImage extends StatelessWidget {
+class _BannerImage extends StatefulWidget {
   const _BannerImage({
     required this.banner,
     required this.index,
@@ -159,37 +160,128 @@ class _BannerImage extends StatelessWidget {
   final int count;
 
   @override
+  State<_BannerImage> createState() => _BannerImageState();
+}
+
+class _BannerImageState extends State<_BannerImage> {
+  static const _loadTimeout = Duration(seconds: 5);
+
+  Timer? _loadTimer;
+  int _attempt = 0;
+  bool _timedOut = false;
+
+  String get _cacheKey => 'cms-banner-${widget.banner.id}';
+
+  @override
+  void initState() {
+    super.initState();
+    _startLoadTimer();
+  }
+
+  @override
+  void didUpdateWidget(covariant _BannerImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.banner.id != widget.banner.id ||
+        oldWidget.banner.imageUrl != widget.banner.imageUrl) {
+      _attempt = 0;
+      _startLoadTimer();
+    }
+  }
+
+  void _startLoadTimer() {
+    _loadTimer?.cancel();
+    _timedOut = false;
+    _loadTimer = Timer(_loadTimeout, () {
+      if (mounted) setState(() => _timedOut = true);
+    });
+  }
+
+  void _finishLoading() {
+    _loadTimer?.cancel();
+  }
+
+  Future<void> _retry() async {
+    await CachedNetworkImage.evictFromCache(
+      widget.banner.imageUrl,
+      cacheKey: _cacheKey,
+    );
+    if (!mounted) return;
+    setState(() => _attempt += 1);
+    _startLoadTimer();
+  }
+
+  Widget _fallback() => DecoratedBox(
+    key: Key('banner-image-fallback-${widget.banner.id}'),
+    decoration: const BoxDecoration(color: DarmaltonColors.mint),
+    child: Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.image_not_supported_outlined,
+            size: 44,
+            color: DarmaltonColors.teal,
+          ),
+          const SizedBox(height: 4),
+          TextButton.icon(
+            key: Key('banner-image-retry-${widget.banner.id}'),
+            onPressed: _retry,
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: Text(DariStrings.retry),
+          ),
+        ],
+      ),
+    ),
+  );
+
+  @override
+  void dispose() {
+    _loadTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final banner = widget.banner;
     final destination = bannerAppLocation(banner.actionUrl);
     final image = Semantics(
       image: true,
       label: banner.semanticLabel,
-      child: CachedNetworkImage(
-        imageUrl: banner.imageUrl,
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        memCacheWidth: 1280,
-        maxWidthDiskCache: 1920,
-        placeholder: (_, _) => const DecoratedBox(
-          decoration: BoxDecoration(color: DarmaltonColors.mint),
-          child: Center(child: CircularProgressIndicator()),
-        ),
-        errorWidget: (_, _, _) => const DecoratedBox(
-          decoration: BoxDecoration(color: DarmaltonColors.mint),
-          child: Center(
-            child: Icon(
-              Icons.image_not_supported_outlined,
-              size: 52,
-              color: DarmaltonColors.teal,
+      child: _timedOut
+          ? _fallback()
+          : Image(
+              key: ValueKey('banner-image-${banner.id}-$_attempt'),
+              image: CachedNetworkImageProvider(
+                banner.imageUrl,
+                cacheKey: _cacheKey,
+                maxWidth: 1920,
+              ),
+              width: double.infinity,
+              height: double.infinity,
+              fit: BoxFit.cover,
+              frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
+                if (wasSynchronouslyLoaded || frame != null) {
+                  _finishLoading();
+                  return KeyedSubtree(
+                    key: Key('banner-image-rendered-${banner.id}'),
+                    child: child,
+                  );
+                }
+                return const DecoratedBox(
+                  key: Key('banner-image-loading'),
+                  decoration: BoxDecoration(color: DarmaltonColors.mint),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              },
+              errorBuilder: (_, _, _) {
+                _finishLoading();
+                return _fallback();
+              },
             ),
-          ),
-        ),
-      ),
     );
     return Semantics(
       button: destination != null,
-      label: '${banner.semanticLabel}. ${index + 1} of $count',
+      label: '${banner.semanticLabel}. ${widget.index + 1} of ${widget.count}',
       child: Material(
         clipBehavior: Clip.antiAlias,
         borderRadius: BorderRadius.circular(DarmaltonRadius.large),

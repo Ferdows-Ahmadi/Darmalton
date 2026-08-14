@@ -217,6 +217,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                               ref.read(offlineProvider.notifier).markOnline();
                             }
                             ref.invalidate(categoriesProvider);
+                            ref.invalidate(promotionalBannersProvider);
                             ref.invalidate(
                               medicinesProvider(const CatalogueQuery()),
                             );

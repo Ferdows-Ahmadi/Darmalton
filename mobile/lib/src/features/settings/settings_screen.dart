@@ -346,7 +346,7 @@ class SettingsScreen extends ConsumerWidget {
                     color: DarmaltonColors.teal,
                   ),
                   title: Text('نسخه برنامه'),
-                  subtitle: Text('۱.۰.۰ (Milestone 1)'),
+                  subtitle: Text('۱.۰.۰'),
                 ),
               ),
             ],
@@ -452,8 +452,7 @@ class _DevelopmentDiagnosticsState extends State<DevelopmentDiagnosticsCard> {
           const _SettingsHeading(
             icon: Icons.developer_mode_rounded,
             title: 'تشخیص اتصال توسعه',
-            subtitle:
-                'این بخش فقط در نسخهٔ دیباگ دیده می‌شود و در نسخهٔ تولید غیرفعال است.',
+            subtitle: 'ابزار بررسی اتصال محلی و نشانی سرور توسعه.',
           ),
           DarmaltonCard(
             padding: EdgeInsets.zero,

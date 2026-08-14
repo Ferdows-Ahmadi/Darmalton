@@ -35,6 +35,15 @@ void main() {
       ),
       isFalse,
     );
+    expect(
+      ApiClient.shouldAttachAuthorization(
+        RequestOptions(
+          path: '/cms/banners/',
+          extra: const {'skipAuthorization': true},
+        ),
+      ),
+      isFalse,
+    );
   });
 
   testWidgets('Empty state gives actionable copy', (tester) async {

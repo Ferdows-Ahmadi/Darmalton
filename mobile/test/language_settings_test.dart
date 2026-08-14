@@ -129,6 +129,8 @@ void main() {
     expect(DariStrings.translate('برندهای برتر'), 'Top brands');
     expect(DariStrings.translate('مقاله‌های سلامت'), 'Health articles');
     expect(DariStrings.translate('دواهای پرطرفدار'), 'Popular medicines');
+    expect(DariStrings.translate('محصولات دارویی'), 'Medicines');
+    expect(DariStrings.translate('محصولات کاتالوگ'), 'محصولات کاتالوگ');
     expect(DariStrings.translate('ادامه به پرداخت'), 'Continue to checkout');
     expect(DariStrings.translate('ارسال نسخه'), 'Upload prescription');
     expect(DariStrings.translate('آدرس‌های من'), 'My addresses');
