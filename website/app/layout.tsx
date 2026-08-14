@@ -42,7 +42,7 @@ export default async function RootLayout({
   );
 
   return (
-    <html lang="fa-AF" dir="rtl">
+    <html lang="fa-AF" dir="rtl" data-scroll-behavior="smooth">
       <body className={vazirmatn.variable}>
         <AppChrome
           authenticated={authenticated}

@@ -38,7 +38,13 @@ export function StaffUserManager() {
     setBusy(true);setListError("");
     const params=new URLSearchParams({page:String(page),ordering:"-created_at"});
     if(appliedQuery)params.set("search",appliedQuery);if(role)params.set("role",role);if(active)params.set("is_active",active);
-    try{const [profile,payload]=await Promise.all([apiFetch<User>("auth/me/"),apiFetch<PageResult<StaffUser>>(`auth/staff/users/?${params}`)]);setViewer(profile);setUsers(payload.results);setCount(payload.count);}catch(caught){setListError(message(caught));}finally{setBusy(false);}
+    try{
+      const profile=await apiFetch<User>("auth/me/");
+      setViewer(profile);
+      if(!canManageUsers(profile.role)){setUsers([]);setCount(0);return;}
+      const payload=await apiFetch<PageResult<StaffUser>>(`auth/staff/users/?${params}`);
+      setUsers(payload.results);setCount(payload.count);
+    }catch(caught){setListError(message(caught));}finally{setBusy(false);}
   },[active,appliedQuery,page,role]);
   useEffect(()=>{void load();},[load]);
   const pages=Math.max(1,Math.ceil(count/20));
@@ -58,7 +64,8 @@ export function StaffUserManager() {
   }
   async function toggle(){if(!confirm)return;setSaving(true);setError("");try{await apiFetch(`auth/staff/users/${confirm.id}/`,{method:"PATCH",body:JSON.stringify({is_active:!confirm.is_active})});setNotice(confirm.is_active?"حساب غیرفعال شد.":"حساب فعال شد.");setConfirm(null);await load();}catch(caught){setError(message(caught));}finally{setSaving(false);}}
 
-  if(!busy&&viewer&&!canManageUsers(viewer.role))return <main className="staff-page"><header className="staff-page-heading"><div><span>مدیریت</span><h1>کاربران و کارکنان</h1></div></header><section className="staff-access-denied"><strong>دسترسی محدود</strong><p>تنها مدیر سیستم می‌تواند نقش‌ها و وضعیت حساب‌ها را تغییر دهد.</p></section></main>;
+  if(busy&&!viewer)return <main className="staff-page"><div className="staff-table-state" role="status"><span className="staff-loader"/>در حال بررسی دسترسی…</div></main>;
+  if(!viewer||!canManageUsers(viewer.role))return <main className="staff-page"><header className="staff-page-heading"><div><span>مدیریت</span><h1>کاربران و کارکنان</h1></div></header><section className="staff-access-denied"><strong>دسترسی محدود</strong><p>تنها مدیر سیستم می‌تواند نقش‌ها و وضعیت حساب‌ها را تغییر دهد.</p>{listError&&<button onClick={()=>void load()}>تلاش دوباره</button>}</section></main>;
 
   return <main className="staff-page staff-users-page"><header className="staff-page-heading"><div><span>مدیریت</span><h1>کاربران و کارکنان</h1><p>حساب‌ها، نقش‌ها و دسترسی عملیاتی را با حفظ سابقه مدیریت کنید.</p></div><button className="staff-primary-link" onClick={openCreate}>ایجاد حساب کارمند</button></header>
     {notice&&<div className="staff-cms-notice" role="status">{notice}<button onClick={()=>setNotice("")} aria-label="بستن پیام">×</button></div>}
