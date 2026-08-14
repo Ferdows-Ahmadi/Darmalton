@@ -77,7 +77,12 @@ class _CatalogueScreenState extends ConsumerState<CatalogueScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${medicine.displayName} به سبد خرید افزوده شد.'),
+            content: Text(
+              DariStrings.t(
+                '${medicine.displayName} به سبد خرید افزوده شد.',
+                '${medicine.displayName} was added to your cart.',
+              ),
+            ),
             action: SnackBarAction(
               label: 'مشاهده سبد',
               onPressed: () => context.go('/cart'),

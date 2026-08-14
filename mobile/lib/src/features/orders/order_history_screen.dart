@@ -202,7 +202,10 @@ class _OrderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${order.items.fold<int>(0, (sum, item) => sum + item.quantity)} محصول',
+                      DariStrings.t(
+                        '${order.items.fold<int>(0, (sum, item) => sum + item.quantity)} محصول',
+                        '${order.items.fold<int>(0, (sum, item) => sum + item.quantity)} item(s)',
+                      ),
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 5),

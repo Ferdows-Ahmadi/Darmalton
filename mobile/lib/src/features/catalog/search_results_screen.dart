@@ -55,7 +55,14 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
       await ref.read(cartProvider.notifier).add(medicine);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${medicine.displayName} به سبد افزوده شد.')),
+          SnackBar(
+            content: Text(
+              DariStrings.t(
+                '${medicine.displayName} به سبد افزوده شد.',
+                '${medicine.displayName} was added to your cart.',
+              ),
+            ),
+          ),
         );
       }
     } catch (error) {
@@ -459,7 +466,10 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                   itemBuilder: (_, index) {
                     if (index == 0) {
                       return Text(
-                        '${displayed.length} نتیجه پیدا شد',
+                        DariStrings.t(
+                          '${displayed.length} نتیجه پیدا شد',
+                          '${displayed.length} result(s) found',
+                        ),
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       );
                     }

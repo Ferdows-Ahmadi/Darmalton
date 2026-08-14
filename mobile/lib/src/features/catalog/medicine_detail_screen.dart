@@ -118,7 +118,12 @@ class _MedicineDetailState extends ConsumerState<_MedicineDetail> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${medicine.displayName} به سبد افزوده شد.'),
+            content: Text(
+              DariStrings.t(
+                '${medicine.displayName} به سبد افزوده شد.',
+                '${medicine.displayName} was added to your cart.',
+              ),
+            ),
             action: SnackBarAction(
               label: 'مشاهده سبد',
               onPressed: () => context.go('/cart'),
@@ -202,7 +207,10 @@ class _MedicineDetailState extends ConsumerState<_MedicineDetail> {
                     ),
                     if (medicine.inStock)
                       Text(
-                        '${medicine.availableQuantity} عدد موجود',
+                        DariStrings.t(
+                          '${medicine.availableQuantity} عدد موجود',
+                          '${medicine.availableQuantity} available',
+                        ),
                         style: const TextStyle(color: DarmaltonColors.success),
                       ),
                   ],

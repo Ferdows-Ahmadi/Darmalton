@@ -446,7 +446,10 @@ class _CheckoutSummary extends StatelessWidget {
     child: Column(
       children: [
         _CheckoutLine(
-          label: 'قیمت محصولات (${cart.items.length} قلم)',
+          label: DariStrings.t(
+            'قیمت محصولات (${cart.items.length} قلم)',
+            'Products (${cart.items.length} item(s))',
+          ),
           value: '${cart.subtotal} ${DariStrings.afn}',
         ),
         const _CheckoutLine(

@@ -212,7 +212,10 @@ class _SecuritySettingsScreenState
               keyboardType: TextInputType.emailAddress,
               textDirection: TextDirection.ltr,
               decoration: InputDecoration(
-                labelText: 'برای تأیید بنویسید: ${user.email}',
+                labelText: DariStrings.t(
+                  'برای تأیید بنویسید: ${user.email}',
+                  'Type ${user.email} to confirm',
+                ),
               ),
             ),
             const SizedBox(height: 10),

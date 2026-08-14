@@ -235,7 +235,12 @@ Future<void> _deleteAddress(
     context: context,
     builder: (context) => AlertDialog(
       title: const Text('حذف آدرس'),
-      content: Text('آدرس «${address.labelOrFallback}» حذف شود؟'),
+      content: Text(
+        DariStrings.t(
+          'آدرس «${address.labelOrFallback}» حذف شود؟',
+          'Delete “${address.labelOrFallback}”?',
+        ),
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),

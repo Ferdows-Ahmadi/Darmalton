@@ -70,7 +70,12 @@ class _FilledCart extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('حذف از سبد خرید؟'),
-        content: Text('${item.medicine.displayName} از سبد حذف شود؟'),
+        content: Text(
+          DariStrings.t(
+            '${item.medicine.displayName} از سبد حذف شود؟',
+            'Remove ${item.medicine.displayName} from the cart?',
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -99,7 +104,12 @@ class _FilledCart extends ConsumerWidget {
         children: [
           const Icon(Icons.shopping_bag_outlined, color: DarmaltonColors.teal),
           const SizedBox(width: 8),
-          Text('${cart.items.length} قلم محصول در سبد شما'),
+          Text(
+            DariStrings.t(
+              '${cart.items.length} قلم محصول در سبد شما',
+              '${cart.items.length} item(s) in your cart',
+            ),
+          ),
         ],
       ),
       const SizedBox(height: 16),

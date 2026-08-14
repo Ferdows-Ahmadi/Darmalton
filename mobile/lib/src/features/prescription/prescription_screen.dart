@@ -510,7 +510,10 @@ class _UploadCard extends StatelessWidget {
           LinearProgressIndicator(value: progress),
           const SizedBox(height: 5),
           Text(
-            '${((progress ?? 0) * 100).round()}٪ ارسال شد',
+            DariStrings.t(
+              '${((progress ?? 0) * 100).round()}٪ ارسال شد',
+              '${((progress ?? 0) * 100).round()}% uploaded',
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -604,7 +607,10 @@ class _PrescriptionCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(DarmaltonRadius.small),
               ),
               child: Text(
-                'توضیح خواسته‌شده: ${prescription.clarificationRequest}',
+                DariStrings.t(
+                  'توضیح خواسته‌شده: ${prescription.clarificationRequest}',
+                  'Requested clarification: ${prescription.clarificationRequest}',
+                ),
               ),
             ),
           ],
@@ -619,8 +625,7 @@ class _PrescriptionCard extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 title: Text(authorized.medicineName),
                 subtitle: Text(
-                  'تا ${authorized.maxQuantity} عدد'
-                  '${authorized.instructions.isEmpty ? '' : ' · ${authorized.instructions}'}',
+                  '${DariStrings.t('تا ${authorized.maxQuantity} عدد', 'Up to ${authorized.maxQuantity}')}${authorized.instructions.isEmpty ? '' : ' · ${authorized.instructions}'}',
                 ),
               ),
             ),

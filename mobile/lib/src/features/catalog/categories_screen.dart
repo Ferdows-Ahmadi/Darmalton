@@ -110,7 +110,14 @@ class _CategoryDiscovery extends ConsumerWidget {
       await ref.read(cartProvider.notifier).add(item);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${item.displayName} به سبد افزوده شد.')),
+          SnackBar(
+            content: Text(
+              DariStrings.t(
+                '${item.displayName} به سبد افزوده شد.',
+                '${item.displayName} was added to your cart.',
+              ),
+            ),
+          ),
         );
       }
     } catch (error) {
