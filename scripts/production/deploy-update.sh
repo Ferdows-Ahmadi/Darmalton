@@ -16,7 +16,8 @@ fi
 
 compose=(docker compose --env-file "$env_file" -f "$compose_file")
 "${compose[@]}" config --quiet
-ENV_FILE="$env_file" COMPOSE_FILE="$compose_file" "$repo_dir/scripts/production/backup-postgres.sh"
+ENV_FILE="$env_file" COMPOSE_FILE="$compose_file" \
+  bash "$repo_dir/scripts/production/backup-postgres.sh"
 "${compose[@]}" build --pull backend website
 "${compose[@]}" run --rm backend python manage.py check --deploy
 "${compose[@]}" run --rm backend python manage.py migrate --plan

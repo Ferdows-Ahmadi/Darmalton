@@ -98,6 +98,15 @@ services:
       traefik.http.routers.darmalton-web.entrypoints: websecure
       traefik.http.routers.darmalton-web.tls: "true"
       traefik.http.routers.darmalton-web.tls.certresolver: ${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      traefik.http.routers.darmalton-www.rule: "Host(`www.${DARMALTON_WEB_HOST:?DARMALTON_WEB_HOST is required}`)"
+      traefik.http.routers.darmalton-www.entrypoints: websecure
+      traefik.http.routers.darmalton-www.tls: "true"
+      traefik.http.routers.darmalton-www.tls.certresolver: ${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      traefik.http.routers.darmalton-www.middlewares: darmalton-www-redirect
+      traefik.http.routers.darmalton-www.service: darmalton-web
+      traefik.http.middlewares.darmalton-www-redirect.redirectregex.regex: "^https?://www\\.${DARMALTON_WEB_HOST:?DARMALTON_WEB_HOST is required}(.*)"
+      traefik.http.middlewares.darmalton-www-redirect.redirectregex.replacement: "https://${DARMALTON_WEB_HOST:?DARMALTON_WEB_HOST is required}$${1}"
+      traefik.http.middlewares.darmalton-www-redirect.redirectregex.permanent: "true"
       traefik.http.services.darmalton-web.loadbalancer.server.port: "3000"
       traefik.docker.network: darmalton_edge
 
