@@ -262,9 +262,13 @@ export default async function LandingPage() {
             جستجوی سریع، نسخه‌ها، سبد خرید و پیگیری سفارش را در یک تجربه
             دری‌محور و مناسب اندروید داشته باشید.
           </p>
-          <span className="download-coming" aria-label="نسخه عمومی به‌زودی">
-            نسخه عمومی به‌زودی در دسترس قرار می‌گیرد
-          </span>
+                    <a
+            className="button"
+            href="/downloads/darmalton-android-1.0.0.apk"
+            download
+          >
+            دانلود اپلیکیشن اندروید
+          </a>
         </div>
         <Image
           src="/branding/brand-bag-mark.png"

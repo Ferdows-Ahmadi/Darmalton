@@ -2,47 +2,1243 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { ApiError, apiFetch, money } from "@/lib/api";
-import { purchaseActions, purchaseStatuses, purchaseStatusLabel, receiptOutstanding } from "@/lib/staff-procurement";
+import {
+  purchaseActions,
+  purchaseStatuses,
+  purchaseStatusLabel,
+  receiptOutstanding
+} from "@/lib/staff-procurement";
 import type { Medicine, PageResult } from "@/lib/types";
 
 type FieldErrors = Record<string, string[] | string>;
-type Supplier = { id: string; code: string; company_name: string; is_active: boolean };
-type Branch = { id: string; name: string; pharmacy_name: string };
-type Location = { id: string; code: string; warehouse_code: string; branch_id: string; is_active: boolean };
-type PoItem = { id: string; medicine_id: string; medicine_name: string; quantity_ordered: number; quantity_received: number; unit_cost: string; line_total: string };
-type PurchaseOrder = { id: string; purchase_order_number: string; supplier: Supplier; branch_id: string; status: string; payment_status: string; expected_delivery_on: string; received_delivery_on: string | null; invoice_number: string; subtotal: string; discount_total: string; net_total: string; payment_due_on: string | null; payment_paid_on: string | null; notes: string; terms: string; items: PoItem[]; status_history: { id: number; from_status: string; to_status: string; changed_by_email: string; note: string; created_at: string }[]; created_at: string };
-type DraftItem = { medicine_id: string; quantity_ordered: string; unit_cost: string };
-type Receipt = { purchase_order_item_id: string; quantity: string; batch_number: string; expiry_date: string; selling_price: string; storage_location_id: string; quality_status: string; inspection_notes: string };
 
-const emptyItem = (): DraftItem => ({ medicine_id: "", quantity_ordered: "1", unit_cost: "0" });
-const errorText = (error: unknown) => error instanceof Error ? error.message : "درخواست انجام نشد.";
-const fieldError = (errors: FieldErrors, key: string) => { const value = errors[key]; return Array.isArray(value) ? value.join(" ") : value || ""; };
+type Supplier = {
+  id: string;
+  code: string;
+  company_name: string;
+  is_active: boolean;
+};
+
+type Branch = {
+  id: string;
+  name: string;
+  pharmacy_name: string;
+};
+
+type Location = {
+  id: string;
+  code: string;
+  warehouse_code: string;
+  branch_id: string;
+  is_active: boolean;
+};
+
+type PoItem = {
+  id: string;
+  medicine_id: string;
+  medicine_name: string;
+  quantity_ordered: number;
+  quantity_received: number;
+  unit_cost: string;
+  line_total: string;
+};
+
+type PurchaseOrder = {
+  id: string;
+  purchase_order_number: string;
+  supplier: Supplier;
+  branch_id: string;
+  status: string;
+  payment_status: string;
+  expected_delivery_on: string;
+  received_delivery_on: string | null;
+  invoice_number: string;
+  subtotal: string;
+  discount_total: string;
+  net_total: string;
+  payment_due_on: string | null;
+  payment_paid_on: string | null;
+  notes: string;
+  terms: string;
+  items: PoItem[];
+  status_history: {
+    id: number;
+    from_status: string;
+    to_status: string;
+    changed_by_email: string;
+    note: string;
+    created_at: string;
+  }[];
+  created_at: string;
+};
+
+type DraftItem = {
+  medicine_id: string;
+  quantity_ordered: string;
+  unit_cost: string;
+};
+
+type Receipt = {
+  purchase_order_item_id: string;
+  quantity: string;
+  batch_number: string;
+  expiry_date: string;
+  selling_price: string;
+  storage_location_id: string;
+  quality_status: string;
+  inspection_notes: string;
+};
+
+const emptyItem = (): DraftItem => ({
+  medicine_id: "",
+  quantity_ordered: "1",
+  unit_cost: "0"
+});
+
+const errorText = (error: unknown) =>
+  error instanceof Error ? error.message : "درخواست انجام نشد.";
+
+const fieldError = (errors: FieldErrors, key: string) => {
+  const value = errors[key];
+  return Array.isArray(value) ? value.join(" ") : value || "";
+};
 
 export function StaffPurchaseOrderManager() {
-  const [rows, setRows] = useState<PurchaseOrder[]>([]); const [count, setCount] = useState(0);
-  const [query, setQuery] = useState(""); const [appliedQuery, setAppliedQuery] = useState(""); const [status, setStatus] = useState("");
-  const [busy, setBusy] = useState(true); const [saving, setSaving] = useState(false); const [error, setError] = useState(""); const [notice, setNotice] = useState("");
-  const [selected, setSelected] = useState<PurchaseOrder | null>(null); const [modal, setModal] = useState<"create" | "detail" | "receive" | null>(null);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]); const [branches, setBranches] = useState<Branch[]>([]); const [locations, setLocations] = useState<Location[]>([]); const [medicines, setMedicines] = useState<Medicine[]>([]);
-  const [form, setForm] = useState({ supplier_id: "", branch_id: "", expected_delivery_on: "", discount_total: "0", invoice_number: "", payment_status: "UNPAID", payment_due_on: "", payment_paid_on: "", notes: "", terms: "" });
-  const [items, setItems] = useState<DraftItem[]>([emptyItem()]); const [receipts, setReceipts] = useState<Receipt[]>([]); const [transitionNote, setTransitionNote] = useState(""); const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [rows, setRows] = useState<PurchaseOrder[]>([]);
+  const [count, setCount] = useState(0);
 
-  const load = useCallback(async () => { setBusy(true); setError(""); const params = new URLSearchParams(); if (appliedQuery) params.set("search", appliedQuery); if (status) params.set("status", status); try { const data = await apiFetch<PageResult<PurchaseOrder>>(`operations/purchase-orders/${params.size ? `?${params}` : ""}`); setRows(data.results); setCount(data.count); } catch (caught) { setError(errorText(caught)); } finally { setBusy(false); } }, [appliedQuery, status]);
-  useEffect(() => { void load(); }, [load]);
-  useEffect(() => { Promise.all([apiFetch<PageResult<Supplier>>("operations/suppliers/?is_active=true"), apiFetch<Branch[]>("operations/branches/"), apiFetch<PageResult<Location>>("operations/storage-locations/?is_active=true"), apiFetch<PageResult<Medicine>>("staff/medicines/?status=ACTIVE&ordering=brand_name")]).then(([s,b,l,m]) => { setSuppliers(s.results); setBranches(b); setLocations(l.results); setMedicines(m.results); }).catch(() => undefined); }, []);
+  const [query, setQuery] = useState("");
+  const [appliedQuery, setAppliedQuery] = useState("");
+  const [status, setStatus] = useState("");
 
-  function close() { setModal(null); setSelected(null); setError(""); setFieldErrors({}); setTransitionNote(""); }
-  function openCreate() { setForm({ supplier_id: "", branch_id: "", expected_delivery_on: "", discount_total: "0", invoice_number: "", payment_status: "UNPAID", payment_due_on: "", payment_paid_on: "", notes: "", terms: "" }); setItems([emptyItem()]); setSelected(null); setModal("create"); setError(""); setFieldErrors({}); }
-  async function openDetail(id: string) { setSaving(true); setError(""); try { const row = await apiFetch<PurchaseOrder>(`operations/purchase-orders/${id}/`); setSelected(row); setModal("detail"); } catch (caught) { setError(errorText(caught)); } finally { setSaving(false); } }
-  function updateItem(index: number, key: keyof DraftItem, value: string) { setItems((current) => current.map((item, i) => i === index ? { ...item, [key]: value } : item)); }
+  const [busy, setBusy] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
-  async function create(event: FormEvent) { event.preventDefault(); setSaving(true); setError(""); setFieldErrors({}); try { const payload = { ...form, payment_due_on: form.payment_due_on || null, payment_paid_on: form.payment_paid_on || null, discount_total: form.discount_total || "0", items: items.map((item) => ({ ...item, quantity_ordered: Number(item.quantity_ordered) })) }; const row = await apiFetch<PurchaseOrder>("operations/purchase-orders/", { method: "POST", body: JSON.stringify(payload) }); setNotice(`سفارش خرید ${row.purchase_order_number} ایجاد شد.`); close(); await load(); } catch (caught) { if (caught instanceof ApiError) setFieldErrors(caught.fields); setError(errorText(caught)); } finally { setSaving(false); } }
-  async function transition(action: string) { if (!selected || !window.confirm(`عملیات «${action === "submit" ? "ارسال" : action === "approve" ? "تأیید" : "لغو"}» ثبت شود؟`)) return; setSaving(true); setError(""); try { const row = await apiFetch<PurchaseOrder>(`operations/purchase-orders/${selected.id}/${action}/`, { method: "POST", body: JSON.stringify({ note: transitionNote }) }); setSelected(row); setNotice("وضعیت سفارش خرید ثبت شد."); await load(); } catch (caught) { setError(errorText(caught)); } finally { setSaving(false); } }
-  function beginReceipt() { if (!selected) return; setReceipts(selected.items.filter((item) => receiptOutstanding(item.quantity_ordered, item.quantity_received) > 0).map((item) => ({ purchase_order_item_id: item.id, quantity: String(receiptOutstanding(item.quantity_ordered, item.quantity_received)), batch_number: "", expiry_date: "", selling_price: "", storage_location_id: "", quality_status: "PENDING", inspection_notes: "" }))); setModal("receive"); setError(""); }
-  function updateReceipt(index: number, key: keyof Receipt, value: string) { setReceipts((current) => current.map((item, i) => i === index ? { ...item, [key]: value } : item)); }
-  async function receive(event: FormEvent) { event.preventDefault(); if (!selected) return; setSaving(true); setError(""); setFieldErrors({}); try { const row = await apiFetch<PurchaseOrder>(`operations/purchase-orders/${selected.id}/receive/`, { method: "POST", body: JSON.stringify({ invoice_number: form.invoice_number || selected.invoice_number, items: receipts.map((item) => ({ ...item, quantity: Number(item.quantity) })) }) }); setSelected(row); setModal("detail"); setNotice("دریافت موجودی و دفتر حرکت به‌صورت اتمیک ثبت شد."); await load(); } catch (caught) { if (caught instanceof ApiError) setFieldErrors(caught.fields); setError(errorText(caught)); } finally { setSaving(false); } }
+  const [selected, setSelected] = useState<PurchaseOrder | null>(null);
+  const [modal, setModal] = useState<
+    "create" | "detail" | "receive" | null
+  >(null);
 
-  return <main className="staff-page"><header className="staff-page-heading"><div><span className="staff-eyebrow">تدارکات</span><h1>سفارش‌های خرید</h1><p>ایجاد، تأیید و دریافت موجودی با مجموع‌های سرور و دفتر حرکت حسابرسی‌شده.</p></div><button className="staff-primary-action" onClick={openCreate}>ایجاد سفارش خرید</button></header>{notice && <div className="staff-cms-notice" role="status">{notice}<button onClick={() => setNotice("")}>×</button></div>}{error && !modal && <p className="form-error">{error}</p>}<div className="staff-toolbar"><form onSubmit={(e) => { e.preventDefault(); setAppliedQuery(query.trim()); }}><input aria-label="جستجوی سفارش خرید" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="شماره خرید، فاکتور یا تأمین‌کننده…"/><button>جستجو</button></form><select aria-label="وضعیت خرید" value={status} onChange={(e) => setStatus(e.target.value)}><option value="">همه وضعیت‌ها</option>{purchaseStatuses.map((value) => <option key={value} value={value}>{purchaseStatusLabel(value)}</option>)}</select><span>{count.toLocaleString("fa-AF")} مورد</span></div><section className="staff-table-card">{busy ? <div className="staff-table-state"><span className="staff-loader"/>در حال دریافت…</div> : !rows.length ? <div className="staff-table-state">سفارش خریدی پیدا نشد.</div> : <div className="staff-table-scroll"><table><thead><tr><th>شماره</th><th>تأمین‌کننده</th><th>وضعیت</th><th>پرداخت</th><th>مجموع</th><th>تحویل</th><th>عملیات</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id}><td dir="ltr">{row.purchase_order_number}</td><td>{row.supplier.company_name}</td><td><span className={`staff-status status-${row.status}`}>{purchaseStatusLabel(row.status)}</span></td><td>{purchaseStatusLabel(row.payment_status)}</td><td>{money(row.net_total)}</td><td>{new Date(row.expected_delivery_on).toLocaleDateString("fa-AF")}</td><td><button className="staff-table-action" onClick={() => void openDetail(row.id)}>مشاهده و اقدام</button></td></tr>)}</tbody></table></div>}</section>
-  {modal && <div className="staff-modal-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget && !saving) close(); }}><section className="staff-modal staff-operation-modal" role="dialog" aria-modal="true"><header><div><span className="staff-eyebrow">تدارکات</span><h2>{modal === "create" ? "سفارش خرید تازه" : modal === "receive" ? "دریافت موجودی" : selected?.purchase_order_number}</h2></div><button onClick={close}>×</button></header>{modal === "create" ? <form className="staff-cms-form" onSubmit={create}><label><span>تأمین‌کننده *</span><select required value={form.supplier_id} onChange={(e) => setForm({ ...form, supplier_id: e.target.value })}><option value="">انتخاب کنید</option>{suppliers.map((row) => <option key={row.id} value={row.id}>{row.code} — {row.company_name}</option>)}</select></label><label><span>شعبه *</span><select required value={form.branch_id} onChange={(e) => setForm({ ...form, branch_id: e.target.value })}><option value="">انتخاب کنید</option>{branches.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label><label><span>تحویل مورد انتظار *</span><input type="date" required value={form.expected_delivery_on} onChange={(e) => setForm({ ...form, expected_delivery_on: e.target.value })}/></label><label><span>تخفیف کل</span><input type="number" min="0" step="0.01" value={form.discount_total} onChange={(e) => setForm({ ...form, discount_total: e.target.value })}/></label><label><span>شماره فاکتور</span><input value={form.invoice_number} onChange={(e) => setForm({ ...form, invoice_number: e.target.value })}/></label><label><span>تاریخ سررسید پرداخت</span><input type="date" value={form.payment_due_on} onChange={(e) => setForm({ ...form, payment_due_on: e.target.value })}/></label><div className="staff-form-wide staff-line-items"><h3>اقلام سفارش</h3>{items.map((item, index) => <div key={index}><select required value={item.medicine_id} onChange={(e) => updateItem(index,"medicine_id",e.target.value)}><option value="">دارو</option>{medicines.map((medicine) => <option key={medicine.id} value={medicine.id}>{medicine.sku} — {medicine.brand_name_dari || medicine.brand_name}</option>)}</select><input aria-label="تعداد" type="number" min="1" required value={item.quantity_ordered} onChange={(e) => updateItem(index,"quantity_ordered",e.target.value)}/><input aria-label="قیمت خرید" type="number" min="0" step="0.01" required value={item.unit_cost} onChange={(e) => updateItem(index,"unit_cost",e.target.value)}/><button type="button" className="danger" disabled={items.length === 1} onClick={() => setItems((current) => current.filter((_, i) => i !== index))}>حذف</button></div>)}<button type="button" onClick={() => setItems((current) => [...current, emptyItem()])}>افزودن قلم</button>{fieldError(fieldErrors,"items") && <small className="field-error">{fieldError(fieldErrors,"items")}</small>}</div><label className="staff-form-wide"><span>یادداشت</span><textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}/></label>{error && <p className="form-error staff-form-wide">{error}</p>}<footer className="staff-modal-actions staff-form-wide"><button type="button" onClick={close}>انصراف</button><button className="staff-primary-action" disabled={saving}>ذخیره پیش‌نویس</button></footer></form> : modal === "receive" && selected ? <form className="staff-cms-form" onSubmit={receive}><label className="staff-form-wide"><span>شماره فاکتور</span><input value={form.invoice_number || selected.invoice_number} onChange={(e) => setForm({ ...form, invoice_number: e.target.value })}/></label><div className="staff-form-wide staff-receipt-items">{receipts.map((receipt,index) => { const poItem = selected.items.find((item) => item.id === receipt.purchase_order_item_id)!; return <fieldset key={receipt.purchase_order_item_id}><legend>{poItem.medicine_name} — باقیمانده {receiptOutstanding(poItem.quantity_ordered,poItem.quantity_received).toLocaleString("fa-AF")}</legend><label><span>تعداد *</span><input type="number" min="1" max={receiptOutstanding(poItem.quantity_ordered,poItem.quantity_received)} required value={receipt.quantity} onChange={(e) => updateReceipt(index,"quantity",e.target.value)}/></label><label><span>شماره بچ *</span><input required value={receipt.batch_number} onChange={(e) => updateReceipt(index,"batch_number",e.target.value)}/></label><label><span>تاریخ انقضا *</span><input type="date" required value={receipt.expiry_date} onChange={(e) => updateReceipt(index,"expiry_date",e.target.value)}/></label><label><span>قیمت فروش *</span><input type="number" min="0" step="0.01" required value={receipt.selling_price} onChange={(e) => updateReceipt(index,"selling_price",e.target.value)}/></label><label><span>محل نگهداری *</span><select required value={receipt.storage_location_id} onChange={(e) => updateReceipt(index,"storage_location_id",e.target.value)}><option value="">انتخاب کنید</option>{locations.filter((location) => location.branch_id === selected.branch_id).map((location) => <option key={location.id} value={location.id}>{location.warehouse_code}/{location.code}</option>)}</select></label><label><span>کیفیت *</span><select value={receipt.quality_status} onChange={(e) => updateReceipt(index,"quality_status",e.target.value)}><option value="PENDING">منتظر بازرسی</option><option value="APPROVED">تأیید</option><option value="QUARANTINED">قرنطین</option><option value="REJECTED">رد</option></select></label><label className="staff-form-wide"><span>یادداشت بازرسی</span><textarea value={receipt.inspection_notes} onChange={(e) => updateReceipt(index,"inspection_notes",e.target.value)}/></label></fieldset>; })}</div>{error && <p className="form-error staff-form-wide">{error}</p>}<footer className="staff-modal-actions staff-form-wide"><button type="button" onClick={() => setModal("detail")}>برگشت</button><button className="staff-primary-action" disabled={saving}>ثبت دریافت و موجودی</button></footer></form> : selected && <div className="staff-operation-detail"><div className="staff-prescription-summary"><span className={`staff-status status-${selected.status}`}>{purchaseStatusLabel(selected.status)}</span><span>{selected.supplier.company_name}</span><strong>{money(selected.net_total)}</strong></div><dl><div><dt>مجموع اولیه</dt><dd>{money(selected.subtotal)}</dd></div><div><dt>تخفیف</dt><dd>{money(selected.discount_total)}</dd></div><div><dt>پرداخت</dt><dd>{purchaseStatusLabel(selected.payment_status)}</dd></div><div><dt>فاکتور</dt><dd>{selected.invoice_number || "—"}</dd></div></dl><div className="staff-table-scroll"><table><thead><tr><th>دارو</th><th>سفارش</th><th>دریافت</th><th>قیمت خرید</th><th>مجموع</th></tr></thead><tbody>{selected.items.map((item) => <tr key={item.id}><td>{item.medicine_name}</td><td>{item.quantity_ordered}</td><td>{item.quantity_received}</td><td>{money(item.unit_cost)}</td><td>{money(item.line_total)}</td></tr>)}</tbody></table></div><label><span>یادداشت گذار</span><textarea value={transitionNote} onChange={(e) => setTransitionNote(e.target.value)}/></label><div className="staff-row-actions">{purchaseActions(selected.status).map((action) => action === "receive" ? <button className="staff-primary-action" key={action} onClick={beginReceipt}>ثبت دریافت</button> : <button key={action} className={action === "cancel" ? "danger" : "staff-primary-action"} disabled={saving} onClick={() => void transition(action)}>{action === "submit" ? "ارسال برای تأیید" : action === "approve" ? "تأیید خرید" : "لغو"}</button>)}</div><h3>سابقه</h3><ol className="staff-history-list">{selected.status_history.map((entry) => <li key={entry.id}><strong>{purchaseStatusLabel(entry.to_status)}</strong><span>{entry.changed_by_email || "سیستم"}</span><small>{entry.note}</small></li>)}</ol></div>}</section></div>}
-  </main>;
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [medicines, setMedicines] = useState<Medicine[]>([]);
+
+  const [form, setForm] = useState({
+    supplier_id: "",
+    branch_id: "",
+    expected_delivery_on: "",
+    discount_total: "0",
+    invoice_number: "",
+    payment_status: "UNPAID",
+    payment_due_on: "",
+    payment_paid_on: "",
+    notes: "",
+    terms: ""
+  });
+
+  const [items, setItems] = useState<DraftItem[]>([emptyItem()]);
+  const [receipts, setReceipts] = useState<Receipt[]>([]);
+  const [transitionNote, setTransitionNote] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  const load = useCallback(async () => {
+    setBusy(true);
+    setError("");
+
+    const params = new URLSearchParams();
+
+    if (appliedQuery) {
+      params.set("search", appliedQuery);
+    }
+
+    if (status) {
+      params.set("status", status);
+    }
+
+    try {
+      const data = await apiFetch<PageResult<PurchaseOrder>>(
+        `operations/purchase-orders/${params.size ? `?${params}` : ""}`
+      );
+
+      setRows(data.results);
+      setCount(data.count);
+    } catch (caught) {
+      setError(errorText(caught));
+    } finally {
+      setBusy(false);
+    }
+  }, [appliedQuery, status]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  useEffect(() => {
+    async function loadAllMedicines() {
+      const allMedicines: Medicine[] = [];
+      let page = 1;
+
+      while (true) {
+        const result = await apiFetch<PageResult<Medicine>>(
+          `staff/medicines/?status=ACTIVE&ordering=brand_name&page=${page}`
+        );
+
+        allMedicines.push(...result.results);
+
+        if (!result.next) {
+          break;
+        }
+
+        page += 1;
+      }
+
+      return allMedicines;
+    }
+
+    async function loadFormOptions() {
+      try {
+        const [supplierResult, branchResult, locationResult, medicineResult] =
+          await Promise.all([
+            apiFetch<PageResult<Supplier>>(
+              "operations/suppliers/?is_active=true"
+            ),
+            apiFetch<Branch[]>("operations/branches/"),
+            apiFetch<PageResult<Location>>(
+              "operations/storage-locations/?is_active=true"
+            ),
+            loadAllMedicines()
+          ]);
+
+        setSuppliers(supplierResult.results);
+        setBranches(branchResult);
+        setLocations(locationResult.results);
+        setMedicines(medicineResult);
+      } catch (caught) {
+        console.error("Failed to load purchase-order form options:", caught);
+      }
+    }
+
+    void loadFormOptions();
+  }, []);
+
+  function close() {
+    setModal(null);
+    setSelected(null);
+    setError("");
+    setFieldErrors({});
+    setTransitionNote("");
+  }
+
+  function openCreate() {
+    setForm({
+      supplier_id: "",
+      branch_id: "",
+      expected_delivery_on: "",
+      discount_total: "0",
+      invoice_number: "",
+      payment_status: "UNPAID",
+      payment_due_on: "",
+      payment_paid_on: "",
+      notes: "",
+      terms: ""
+    });
+
+    setItems([emptyItem()]);
+    setSelected(null);
+    setModal("create");
+    setError("");
+    setFieldErrors({});
+  }
+
+  async function openDetail(id: string) {
+    setSaving(true);
+    setError("");
+
+    try {
+      const row = await apiFetch<PurchaseOrder>(
+        `operations/purchase-orders/${id}/`
+      );
+
+      setSelected(row);
+      setModal("detail");
+    } catch (caught) {
+      setError(errorText(caught));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function updateItem(
+    index: number,
+    key: keyof DraftItem,
+    value: string
+  ) {
+    setItems((current) =>
+      current.map((item, i) =>
+        i === index ? { ...item, [key]: value } : item
+      )
+    );
+  }
+
+  async function create(event: FormEvent) {
+    event.preventDefault();
+
+    setSaving(true);
+    setError("");
+    setFieldErrors({});
+
+    try {
+      const payload = {
+        ...form,
+        payment_due_on: form.payment_due_on || null,
+        payment_paid_on: form.payment_paid_on || null,
+        discount_total: form.discount_total || "0",
+        items: items.map((item) => ({
+          ...item,
+          quantity_ordered: Number(item.quantity_ordered)
+        }))
+      };
+
+      const row = await apiFetch<PurchaseOrder>(
+        "operations/purchase-orders/",
+        {
+          method: "POST",
+          body: JSON.stringify(payload)
+        }
+      );
+
+      setNotice(`سفارش خرید ${row.purchase_order_number} ایجاد شد.`);
+      close();
+      await load();
+    } catch (caught) {
+      if (caught instanceof ApiError) {
+        setFieldErrors(caught.fields);
+      }
+
+      setError(errorText(caught));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function transition(action: string) {
+    if (
+      !selected ||
+      !window.confirm(
+        `عملیات «${
+          action === "submit"
+            ? "ارسال"
+            : action === "approve"
+              ? "تأیید"
+              : "لغو"
+        }» ثبت شود؟`
+      )
+    ) {
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+
+    try {
+      const row = await apiFetch<PurchaseOrder>(
+        `operations/purchase-orders/${selected.id}/${action}/`,
+        {
+          method: "POST",
+          body: JSON.stringify({ note: transitionNote })
+        }
+      );
+
+      setSelected(row);
+      setNotice("وضعیت سفارش خرید ثبت شد.");
+      await load();
+    } catch (caught) {
+      setError(errorText(caught));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function beginReceipt() {
+    if (!selected) {
+      return;
+    }
+
+    setReceipts(
+      selected.items
+        .filter(
+          (item) =>
+            receiptOutstanding(
+              item.quantity_ordered,
+              item.quantity_received
+            ) > 0
+        )
+        .map((item) => ({
+          purchase_order_item_id: item.id,
+          quantity: String(
+            receiptOutstanding(
+              item.quantity_ordered,
+              item.quantity_received
+            )
+          ),
+          batch_number: "",
+          expiry_date: "",
+          selling_price: "",
+          storage_location_id: "",
+          quality_status: "PENDING",
+          inspection_notes: ""
+        }))
+    );
+
+    setModal("receive");
+    setError("");
+  }
+
+  function updateReceipt(
+    index: number,
+    key: keyof Receipt,
+    value: string
+  ) {
+    setReceipts((current) =>
+      current.map((item, i) =>
+        i === index ? { ...item, [key]: value } : item
+      )
+    );
+  }
+
+  async function receive(event: FormEvent) {
+    event.preventDefault();
+
+    if (!selected) {
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+    setFieldErrors({});
+
+    try {
+      const row = await apiFetch<PurchaseOrder>(
+        `operations/purchase-orders/${selected.id}/receive/`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            invoice_number:
+              form.invoice_number || selected.invoice_number,
+            items: receipts.map((item) => ({
+              ...item,
+              quantity: Number(item.quantity)
+            }))
+          })
+        }
+      );
+
+      setSelected(row);
+      setModal("detail");
+      setNotice("دریافت موجودی و دفتر حرکت به‌صورت اتمیک ثبت شد.");
+      await load();
+    } catch (caught) {
+      if (caught instanceof ApiError) {
+        setFieldErrors(caught.fields);
+      }
+
+      setError(errorText(caught));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <main className="staff-page">
+      <header className="staff-page-heading">
+        <div>
+          <span className="staff-eyebrow">تدارکات</span>
+          <h1>سفارش‌های خرید</h1>
+          <p>
+            ایجاد، تأیید و دریافت موجودی با مجموع‌های سرور و دفتر حرکت
+            حسابرسی‌شده.
+          </p>
+        </div>
+
+        <button
+          className="staff-primary-action"
+          onClick={openCreate}
+        >
+          ایجاد سفارش خرید
+        </button>
+      </header>
+
+      {notice && (
+        <div className="staff-cms-notice" role="status">
+          {notice}
+          <button onClick={() => setNotice("")}>×</button>
+        </div>
+      )}
+
+      {error && !modal && (
+        <p className="form-error">{error}</p>
+      )}
+
+      <div className="staff-toolbar">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setAppliedQuery(query.trim());
+          }}
+        >
+          <input
+            aria-label="جستجوی سفارش خرید"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="شماره خرید، فاکتور یا تأمین‌کننده…"
+          />
+          <button>جستجو</button>
+        </form>
+
+        <select
+          aria-label="وضعیت خرید"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          <option value="">همه وضعیت‌ها</option>
+
+          {purchaseStatuses.map((value) => (
+            <option key={value} value={value}>
+              {purchaseStatusLabel(value)}
+            </option>
+          ))}
+        </select>
+
+        <span>{count.toLocaleString("fa-AF")} مورد</span>
+      </div>
+
+      <section className="staff-table-card">
+        {busy ? (
+          <div className="staff-table-state">
+            <span className="staff-loader" />
+            در حال دریافت…
+          </div>
+        ) : !rows.length ? (
+          <div className="staff-table-state">
+            سفارش خریدی پیدا نشد.
+          </div>
+        ) : (
+          <div className="staff-table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>شماره</th>
+                  <th>تأمین‌کننده</th>
+                  <th>وضعیت</th>
+                  <th>پرداخت</th>
+                  <th>مجموع</th>
+                  <th>تحویل</th>
+                  <th>عملیات</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.id}>
+                    <td dir="ltr">
+                      {row.purchase_order_number}
+                    </td>
+
+                    <td>{row.supplier.company_name}</td>
+
+                    <td>
+                      <span
+                        className={`staff-status status-${row.status}`}
+                      >
+                        {purchaseStatusLabel(row.status)}
+                      </span>
+                    </td>
+
+                    <td>
+                      {purchaseStatusLabel(row.payment_status)}
+                    </td>
+
+                    <td>{money(row.net_total)}</td>
+
+                    <td>
+                      {new Date(
+                        row.expected_delivery_on
+                      ).toLocaleDateString("fa-AF")}
+                    </td>
+
+                    <td>
+                      <button
+                        className="staff-table-action"
+                        onClick={() => void openDetail(row.id)}
+                      >
+                        مشاهده و اقدام
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {modal && (
+        <div
+          className="staff-modal-backdrop"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget && !saving) {
+              close();
+            }
+          }}
+        >
+          <section
+            className="staff-modal staff-operation-modal"
+            role="dialog"
+            aria-modal="true"
+          >
+            <header>
+              <div>
+                <span className="staff-eyebrow">تدارکات</span>
+
+                <h2>
+                  {modal === "create"
+                    ? "سفارش خرید تازه"
+                    : modal === "receive"
+                      ? "دریافت موجودی"
+                      : selected?.purchase_order_number}
+                </h2>
+              </div>
+
+              <button onClick={close}>×</button>
+            </header>
+
+            {modal === "create" ? (
+              <form
+                className="staff-cms-form"
+                onSubmit={create}
+              >
+                <label>
+                  <span>تأمین‌کننده *</span>
+
+                  <select
+                    required
+                    value={form.supplier_id}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        supplier_id: e.target.value
+                      })
+                    }
+                  >
+                    <option value="">انتخاب کنید</option>
+
+                    {suppliers.map((row) => (
+                      <option key={row.id} value={row.id}>
+                        {row.code} — {row.company_name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label>
+                  <span>شعبه *</span>
+
+                  <select
+                    required
+                    value={form.branch_id}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        branch_id: e.target.value
+                      })
+                    }
+                  >
+                    <option value="">انتخاب کنید</option>
+
+                    {branches.map((row) => (
+                      <option key={row.id} value={row.id}>
+                        {row.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label>
+                  <span>تحویل مورد انتظار *</span>
+
+                  <input
+                    type="date"
+                    required
+                    value={form.expected_delivery_on}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        expected_delivery_on: e.target.value
+                      })
+                    }
+                  />
+                </label>
+
+                <label>
+                  <span>تخفیف کل</span>
+
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.discount_total}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        discount_total: e.target.value
+                      })
+                    }
+                  />
+                </label>
+
+                <label>
+                  <span>شماره فاکتور</span>
+
+                  <input
+                    value={form.invoice_number}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        invoice_number: e.target.value
+                      })
+                    }
+                  />
+                </label>
+
+                <label>
+                  <span>تاریخ سررسید پرداخت</span>
+
+                  <input
+                    type="date"
+                    value={form.payment_due_on}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        payment_due_on: e.target.value
+                      })
+                    }
+                  />
+                </label>
+
+                <div className="staff-form-wide staff-line-items">
+                  <h3>اقلام سفارش</h3>
+
+                  {items.map((item, index) => (
+                    <div key={index}>
+                      <select
+                        required
+                        value={item.medicine_id}
+                        onChange={(e) =>
+                          updateItem(
+                            index,
+                            "medicine_id",
+                            e.target.value
+                          )
+                        }
+                      >
+                        <option value="">دارو</option>
+
+                        {medicines.map((medicine) => (
+                          <option
+                            key={medicine.id}
+                            value={medicine.id}
+                          >
+                            {medicine.sku} —{" "}
+                            {medicine.brand_name_dari ||
+                              medicine.brand_name}
+                          </option>
+                        ))}
+                      </select>
+
+                      <input
+                        aria-label="تعداد"
+                        type="number"
+                        min="1"
+                        required
+                        value={item.quantity_ordered}
+                        onChange={(e) =>
+                          updateItem(
+                            index,
+                            "quantity_ordered",
+                            e.target.value
+                          )
+                        }
+                      />
+
+                      <input
+                        aria-label="قیمت خرید"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        required
+                        value={item.unit_cost}
+                        onChange={(e) =>
+                          updateItem(
+                            index,
+                            "unit_cost",
+                            e.target.value
+                          )
+                        }
+                      />
+
+                      <button
+                        type="button"
+                        className="danger"
+                        disabled={items.length === 1}
+                        onClick={() =>
+                          setItems((current) =>
+                            current.filter(
+                              (_, i) => i !== index
+                            )
+                          )
+                        }
+                      >
+                        حذف
+                      </button>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setItems((current) => [
+                        ...current,
+                        emptyItem()
+                      ])
+                    }
+                  >
+                    افزودن قلم
+                  </button>
+
+                  {fieldError(fieldErrors, "items") && (
+                    <small className="field-error">
+                      {fieldError(fieldErrors, "items")}
+                    </small>
+                  )}
+                </div>
+
+                <label className="staff-form-wide">
+                  <span>یادداشت</span>
+
+                  <textarea
+                    value={form.notes}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        notes: e.target.value
+                      })
+                    }
+                  />
+                </label>
+
+                {error && (
+                  <p className="form-error staff-form-wide">
+                    {error}
+                  </p>
+                )}
+
+                <footer className="staff-modal-actions staff-form-wide">
+                  <button type="button" onClick={close}>
+                    انصراف
+                  </button>
+
+                  <button
+                    className="staff-primary-action"
+                    disabled={saving}
+                  >
+                    ذخیره پیش‌نویس
+                  </button>
+                </footer>
+              </form>
+            ) : modal === "receive" && selected ? (
+              <form
+                className="staff-cms-form"
+                onSubmit={receive}
+              >
+                <label className="staff-form-wide">
+                  <span>شماره فاکتور</span>
+
+                  <input
+                    value={
+                      form.invoice_number ||
+                      selected.invoice_number
+                    }
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        invoice_number: e.target.value
+                      })
+                    }
+                  />
+                </label>
+
+                <div className="staff-form-wide staff-receipt-items">
+                  {receipts.map((receipt, index) => {
+                    const poItem = selected.items.find(
+                      (item) =>
+                        item.id ===
+                        receipt.purchase_order_item_id
+                    )!;
+
+                    return (
+                      <fieldset
+                        key={receipt.purchase_order_item_id}
+                      >
+                        <legend>
+                          {poItem.medicine_name} — باقیمانده{" "}
+                          {receiptOutstanding(
+                            poItem.quantity_ordered,
+                            poItem.quantity_received
+                          ).toLocaleString("fa-AF")}
+                        </legend>
+
+                        <label>
+                          <span>تعداد *</span>
+
+                          <input
+                            type="number"
+                            min="1"
+                            max={receiptOutstanding(
+                              poItem.quantity_ordered,
+                              poItem.quantity_received
+                            )}
+                            required
+                            value={receipt.quantity}
+                            onChange={(e) =>
+                              updateReceipt(
+                                index,
+                                "quantity",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </label>
+
+                        <label>
+                          <span>شماره بچ *</span>
+
+                          <input
+                            required
+                            value={receipt.batch_number}
+                            onChange={(e) =>
+                              updateReceipt(
+                                index,
+                                "batch_number",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </label>
+
+                        <label>
+                          <span>تاریخ انقضا *</span>
+
+                          <input
+                            type="date"
+                            required
+                            value={receipt.expiry_date}
+                            onChange={(e) =>
+                              updateReceipt(
+                                index,
+                                "expiry_date",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </label>
+
+                        <label>
+                          <span>قیمت فروش *</span>
+
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            required
+                            value={receipt.selling_price}
+                            onChange={(e) =>
+                              updateReceipt(
+                                index,
+                                "selling_price",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </label>
+
+                        <label>
+                          <span>محل نگهداری *</span>
+
+                          <select
+                            required
+                            value={
+                              receipt.storage_location_id
+                            }
+                            onChange={(e) =>
+                              updateReceipt(
+                                index,
+                                "storage_location_id",
+                                e.target.value
+                              )
+                            }
+                          >
+                            <option value="">
+                              انتخاب کنید
+                            </option>
+
+                            {locations
+                              .filter(
+                                (location) =>
+                                  location.branch_id ===
+                                  selected.branch_id
+                              )
+                              .map((location) => (
+                                <option
+                                  key={location.id}
+                                  value={location.id}
+                                >
+                                  {location.warehouse_code}/
+                                  {location.code}
+                                </option>
+                              ))}
+                          </select>
+                        </label>
+
+                        <label>
+                          <span>کیفیت *</span>
+
+                          <select
+                            value={receipt.quality_status}
+                            onChange={(e) =>
+                              updateReceipt(
+                                index,
+                                "quality_status",
+                                e.target.value
+                              )
+                            }
+                          >
+                            <option value="PENDING">
+                              منتظر بازرسی
+                            </option>
+                            <option value="APPROVED">
+                              تأیید
+                            </option>
+                            <option value="QUARANTINED">
+                              قرنطین
+                            </option>
+                            <option value="REJECTED">
+                              رد
+                            </option>
+                          </select>
+                        </label>
+
+                        <label className="staff-form-wide">
+                          <span>یادداشت بازرسی</span>
+
+                          <textarea
+                            value={
+                              receipt.inspection_notes
+                            }
+                            onChange={(e) =>
+                              updateReceipt(
+                                index,
+                                "inspection_notes",
+                                e.target.value
+                              )
+                            }
+                          />
+                        </label>
+                      </fieldset>
+                    );
+                  })}
+                </div>
+
+                {error && (
+                  <p className="form-error staff-form-wide">
+                    {error}
+                  </p>
+                )}
+
+                <footer className="staff-modal-actions staff-form-wide">
+                  <button
+                    type="button"
+                    onClick={() => setModal("detail")}
+                  >
+                    برگشت
+                  </button>
+
+                  <button
+                    className="staff-primary-action"
+                    disabled={saving}
+                  >
+                    ثبت دریافت و موجودی
+                  </button>
+                </footer>
+              </form>
+            ) : (
+              selected && (
+                <div className="staff-operation-detail">
+                  <div className="staff-prescription-summary">
+                    <span
+                      className={`staff-status status-${selected.status}`}
+                    >
+                      {purchaseStatusLabel(selected.status)}
+                    </span>
+
+                    <span>
+                      {selected.supplier.company_name}
+                    </span>
+
+                    <strong>
+                      {money(selected.net_total)}
+                    </strong>
+                  </div>
+
+                  <dl>
+                    <div>
+                      <dt>مجموع اولیه</dt>
+                      <dd>{money(selected.subtotal)}</dd>
+                    </div>
+
+                    <div>
+                      <dt>تخفیف</dt>
+                      <dd>
+                        {money(selected.discount_total)}
+                      </dd>
+                    </div>
+
+                    <div>
+                      <dt>پرداخت</dt>
+                      <dd>
+                        {purchaseStatusLabel(
+                          selected.payment_status
+                        )}
+                      </dd>
+                    </div>
+
+                    <div>
+                      <dt>فاکتور</dt>
+                      <dd>
+                        {selected.invoice_number || "—"}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  <div className="staff-table-scroll">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>دارو</th>
+                          <th>سفارش</th>
+                          <th>دریافت</th>
+                          <th>قیمت خرید</th>
+                          <th>مجموع</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {selected.items.map((item) => (
+                          <tr key={item.id}>
+                            <td>{item.medicine_name}</td>
+                            <td>
+                              {item.quantity_ordered}
+                            </td>
+                            <td>
+                              {item.quantity_received}
+                            </td>
+                            <td>
+                              {money(item.unit_cost)}
+                            </td>
+                            <td>
+                              {money(item.line_total)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <label>
+                    <span>یادداشت گذار</span>
+
+                    <textarea
+                      value={transitionNote}
+                      onChange={(e) =>
+                        setTransitionNote(e.target.value)
+                      }
+                    />
+                  </label>
+
+                  <div className="staff-row-actions">
+                    {purchaseActions(selected.status).map(
+                      (action) =>
+                        action === "receive" ? (
+                          <button
+                            className="staff-primary-action"
+                            key={action}
+                            onClick={beginReceipt}
+                          >
+                            ثبت دریافت
+                          </button>
+                        ) : (
+                          <button
+                            key={action}
+                            className={
+                              action === "cancel"
+                                ? "danger"
+                                : "staff-primary-action"
+                            }
+                            disabled={saving}
+                            onClick={() =>
+                              void transition(action)
+                            }
+                          >
+                            {action === "submit"
+                              ? "ارسال برای تأیید"
+                              : action === "approve"
+                                ? "تأیید خرید"
+                                : "لغو"}
+                          </button>
+                        )
+                    )}
+                  </div>
+
+                  <h3>سابقه</h3>
+
+                  <ol className="staff-history-list">
+                    {selected.status_history.map(
+                      (entry) => (
+                        <li key={entry.id}>
+                          <strong>
+                            {purchaseStatusLabel(
+                              entry.to_status
+                            )}
+                          </strong>
+
+                          <span>
+                            {entry.changed_by_email ||
+                              "سیستم"}
+                          </span>
+
+                          <small>{entry.note}</small>
+                        </li>
+                      )
+                    )}
+                  </ol>
+                </div>
+              )
+            )}
+          </section>
+        </div>
+      )}
+    </main>
+  );
 }

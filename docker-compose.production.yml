@@ -81,6 +81,8 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       DJANGO_ADMIN_ORIGIN: https://${DARMALTON_API_HOST:?DARMALTON_API_HOST is required}
       DJANGO_ADMIN_PORT: "443"
+    volumes:
+      - /home/ferdows/darmalton-releases:/app/public/downloads:ro
     depends_on:
       backend:
         condition: service_healthy
