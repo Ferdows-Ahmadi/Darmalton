@@ -1,86 +1,13 @@
 "use client";
-
-import { FormEvent, useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-
-import type { Category, Medicine, PageResult } from "@/lib/types";
+import Link from "next/link";
 import { MedicineCard } from "./MedicineCard";
-
-export function Catalogue({
-  categories,
-  medicines
-}: {
-  categories: Category[];
-  medicines: PageResult<Medicine>;
-}) {
-  const params = useSearchParams();
-  const router = useRouter();
-  const [search, setSearch] = useState(params.get("search") || "");
-  const [category, setCategory] = useState(params.get("category") || "");
-
-  useEffect(() => {
-    setCategory(params.get("category") || "");
-  }, [params]);
-
-  function apply(event: FormEvent) {
-    event.preventDefault();
-    const next = new URLSearchParams();
-    if (search.trim()) next.set("search", search.trim());
-    if (category) next.set("category", category);
-    router.push(`/shop?${next}`);
-  }
-
-  function categoryChanged(value: string) {
-    setCategory(value);
-    const next = new URLSearchParams(params);
-    if (value) next.set("category", value);
-    else next.delete("category");
-    next.delete("page");
-    router.push(`/shop?${next}`);
-  }
-
-  return (
-    <>
-      <form className="catalogue-tools" onSubmit={apply} role="search">
-        <label>
-          <span>جستجوی دوا و محصول</span>
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="نام دوا، نام علمی یا کُد محصول..."
-          />
-        </label>
-        <label>
-          <span>دسته‌بندی</span>
-          <select
-            value={category}
-            onChange={(event) => categoryChanged(event.target.value)}
-          >
-            <option value="">همه دسته‌ها</option>
-            {categories.map((item) => (
-              <option key={item.id} value={item.slug}>
-                {item.name_dari || item.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit">جستجو</button>
-      </form>
-      <p className="results-count">
-        <strong>{medicines.count.toLocaleString("fa-AF")}</strong> محصول پیدا شد
-      </p>
-      {medicines.results.length ? (
-        <div className="medicine-grid">
-          {medicines.results.map((medicine) => (
-            <MedicineCard medicine={medicine} key={medicine.id} />
-          ))}
-        </div>
-      ) : (
-        <div className="empty-state">
-          <h2>محصولی پیدا نشد</h2>
-          <p>عبارت کوتاه‌تری بنویسید یا دسته دیگری را انتخاب کنید.</p>
-        </div>
-      )}
-    </>
-  );
+import { useLocale } from "./LocaleProvider";
+import { State } from "./StoreUI";
+import type { Category, Medicine, PageResult } from "@/lib/types";
+export function Catalogue({categories,medicines}:{categories:Category[];medicines:PageResult<Medicine>}){
+ const {locale,t}=useLocale();const params=useSearchParams();const router=useRouter();const [open,setOpen]=useState(false);
+ function url(key:string,value:string){const p=new URLSearchParams(params);if(value)p.set(key,value);else p.delete(key);if(key!=="page")p.delete("page");return `/shop?${p}`;}
+ return <div className="catalogue-layout"><button className="secondary mobile-filter" aria-expanded={open} onClick={()=>setOpen(!open)}>{t("filters")}</button><form className={`filters ${open?"is-open":""}`} action="/shop"><strong>{t("filters")}</strong><label>{t("searchButton")}<input name="search" defaultValue={params.get("search")||""}/></label><label>{t("categories")}<select name="category" defaultValue={params.get("category")||""}><option value="">{t("allCategories")}</option>{categories.map(c=><option key={c.id} value={c.slug}>{locale==="en"?c.name:c.name_dari||c.name}</option>)}</select></label><label className="check-label"><input type="checkbox" name="in_stock" value="true" defaultChecked={params.get("in_stock")==="true"}/>{t("inStock")}</label><label>{t("minimum")}<input type="number" name="min_price" min="0" defaultValue={params.get("min_price")||""}/></label><label>{t("maximum")}<input type="number" name="max_price" min="0" defaultValue={params.get("max_price")||""}/></label><button>{t("searchButton")}</button><Link href="/shop">{t("clear")}</Link></form><div><div className="catalogue-top"><span>{medicines.count.toLocaleString(locale)} {t("results")}</span><label className="check-label">{t("sort")}<select value={params.get("ordering")||"name"} onChange={e=>router.push(url("ordering",e.target.value))}><option value="name">{t("name")}</option><option value="price">{t("priceLow")}</option><option value="-price">{t("priceHigh")}</option></select></label></div>{medicines.results.length?<div className="medicine-grid">{medicines.results.map(m=><MedicineCard key={m.id} medicine={m}/>)}</div>:<State title="noResults" body="trySearch"/>}<nav className="pagination">{medicines.previous&&<Link className="button secondary" href={url("page",String(Math.max(1,Number(params.get("page")||1)-1)))}>{t("previous")}</Link>}{medicines.next&&<Link className="button secondary" href={url("page",String(Number(params.get("page")||1)+1))}>{t("next")}</Link>}</nav></div></div>;
 }

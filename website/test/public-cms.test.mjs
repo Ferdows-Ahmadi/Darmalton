@@ -48,7 +48,7 @@ test("public CMS media remains behind the same-site guarded asset proxy", () => 
 test("Home uses CMS with curated zero-state fallbacks", () => {
   assert.match(home, /publicHomeCms/);
   assert.match(home, /heroTitle \|\|/);
-  assert.match(home, /landing-hero\.png/);
+  assert.match(home, /health-delivered\.webp/);
   assert.match(home, /featuredMedicines\.length > 0/);
   assert.match(home, /articles\.length > 0/);
 });

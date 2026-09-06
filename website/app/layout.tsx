@@ -2,20 +2,13 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import localFont from "next/font/local";
 
+import { serverLocale } from "@/lib/server-locale";
 import { AppChrome } from "@/components/AppChrome";
 import { publicCmsList } from "@/lib/public-cms";
 import type { PublicAnnouncement } from "@/lib/types";
 import "./globals.css";
 
-const vazirmatn = localFont({
-  src: [
-    { path: "./fonts/Vazirmatn-Regular.ttf", weight: "400", style: "normal" },
-    { path: "./fonts/Vazirmatn-Medium.ttf", weight: "500", style: "normal" },
-    { path: "./fonts/Vazirmatn-Bold.ttf", weight: "700", style: "normal" }
-  ],
-  variable: "--font-vazirmatn",
-  display: "swap"
-});
+const estedad = localFont({src:"./fonts/Estedad.ttf", variable:"--font-estedad", display:"swap"});
 
 export const metadata: Metadata = {
   applicationName: "Darmalton",
@@ -26,14 +19,15 @@ export const metadata: Metadata = {
   description:
     "جستجوی دارو و محصولات صحی، ارسال محرمانه نسخه و پیگیری سفارش در درملتون.",
   icons: {
-    icon: "/branding/brand-bag-mark.png",
-    apple: "/branding/brand-bag-mark.png"
+    icon: "/brand/android-icon.png",
+    apple: "/brand/android-icon.png"
   }
 };
 
 export default async function RootLayout({
   children
 }: Readonly<{ children: React.ReactNode }>) {
+  const locale = await serverLocale();
   const authenticated = Boolean(
     (await cookies()).get("pharmacy_refresh")?.value
   );
@@ -42,9 +36,10 @@ export default async function RootLayout({
   );
 
   return (
-    <html lang="fa-AF" dir="rtl" data-scroll-behavior="smooth">
-      <body className={vazirmatn.variable}>
+    <html lang={locale} dir={locale === "en" ? "ltr" : "rtl"} data-scroll-behavior="smooth">
+      <body className={estedad.variable}>
         <AppChrome
+          locale={locale}
           authenticated={authenticated}
           globalAnnouncements={globalAnnouncements}
         >

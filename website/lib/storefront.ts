@@ -1,0 +1,1 @@
+export function categoryImage(name:string){const n=name.toLowerCase();const file=/supplement|nutrition|vitamin/.test(n)?"WEB-026_Category_Vitamins-and-Supplements":/skin/.test(n)?"WEB-030_Category_Skin-Care":/baby/.test(n)?"WEB-028_Category_Baby-Care":/device/.test(n)?"WEB-029_Category_Medical-Devices":"WEB-025_Category_Medicines";return `/categories/${file}.webp`;}

@@ -1,48 +1,8 @@
+"use client";
 import Link from "next/link";
-
-import { money } from "@/lib/api";
+import { useLocale } from "./LocaleProvider";
+import { formatMoney, productName } from "@/lib/locale";
 import type { Medicine } from "@/lib/types";
 import { MedicineMedia } from "./MedicineMedia";
-
-export function MedicineCard({ medicine }: { medicine: Medicine }) {
-  const name = medicine.brand_name_dari || medicine.brand_name;
-  return (
-    <article className="medicine-card">
-      <Link href={`/medicines/${medicine.id}`} className="medicine-image">
-        <MedicineMedia
-          imageUrl={medicine.image_url}
-          alt={name}
-          fill
-          sizes="(max-width: 680px) 100vw, (max-width: 900px) 50vw, 33vw"
-        />
-        {medicine.prescription_required && (
-          <span className="rx-badge">نیازمند نسخه</span>
-        )}
-      </Link>
-      <div className="medicine-card-content">
-        <p className="eyebrow">
-          {medicine.category?.name_dari ||
-            medicine.category?.name ||
-            "دوا"}
-        </p>
-        <h2>
-          <Link href={`/medicines/${medicine.id}`}>{name}</Link>
-        </h2>
-        <p className="latin-name" dir="ltr">
-          {medicine.brand_name} · {medicine.strength}
-        </p>
-        <div className="card-footer">
-          <strong>{money(medicine.price)}</strong>
-          <span className={medicine.in_stock ? "stock good" : "stock"}>
-            {medicine.in_stock
-              ? `${medicine.available_quantity.toLocaleString("fa-AF")} عدد موجود`
-              : "ناموجود"}
-          </span>
-        </div>
-        <Link className="card-action" href={`/medicines/${medicine.id}`}>
-          مشاهده محصول
-        </Link>
-      </div>
-    </article>
-  );
-}
+import { AddToCart } from "./AddToCart";
+export function MedicineCard({medicine}:{medicine:Medicine}) {const {locale,t}=useLocale();const name=productName(medicine,locale);return <article className="product-card"><Link className="product-photo" href={`/medicines/${medicine.id}`}><MedicineMedia imageUrl={medicine.image_url} alt={`${name} ${medicine.strength}`} fill sizes="(max-width:767px) 160px, (max-width:1100px) 180px, 210px"/></Link><div className="product-info"><h2><Link href={`/medicines/${medicine.id}`}>{name}</Link></h2><p><bdi>{medicine.strength}</bdi> · {medicine.pack_size}</p>{medicine.prescription_required&&<span className="badge">{t("requiresRx")}</span>}<strong>{formatMoney(medicine.price,locale)}</strong><span className={`stock ${medicine.in_stock?"good":""}`}>{t(medicine.in_stock?"inStock":"outOfStock")}</span><div className="product-buy"><AddToCart medicine={medicine} disabled={!medicine.in_stock} prescriptionRequired={medicine.prescription_required}/></div></div></article>;}

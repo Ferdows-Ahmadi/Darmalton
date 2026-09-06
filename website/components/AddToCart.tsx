@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "./LocaleProvider";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -16,13 +17,14 @@ export function AddToCart({
   disabled: boolean;
   prescriptionRequired?: boolean;
 }) {
+  const {t}=useLocale();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const router = useRouter();
 
   async function add() {
     if (prescriptionRequired) {
-      router.push(`/prescriptions?medicineId=${encodeURIComponent(medicine.id)}`);
+      router.push(`/prescriptions/upload?medicineId=${encodeURIComponent(medicine.id)}`);
       return;
     }
     setBusy(true);
@@ -41,7 +43,7 @@ export function AddToCart({
         setMessage(
           error instanceof Error
             ? error.message
-            : "این محصول به سبد افزوده نشد."
+            : t("connection")
         );
       }
     } finally {
@@ -57,12 +59,12 @@ export function AddToCart({
         disabled={disabled || busy}
       >
         {busy
-          ? "در حال افزودن..."
+          ? t("adding")
           : disabled
-            ? "ناموجود"
+            ? t("outOfStock")
             : prescriptionRequired
-              ? "ارسال نسخه برای بررسی"
-              : "افزودن به سبد"}
+              ? t("rx")
+              : t("add")}
       </button>
       {message && (
         <p className="form-error" role="alert">

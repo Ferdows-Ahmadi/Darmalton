@@ -1,314 +1,198 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { CmsActionLink } from "@/components/CmsActionLink";
-import { CmsImage } from "@/components/CmsImage";
-import { HealthArticleCard } from "@/components/HealthArticleCard";
 import { MedicineCard } from "@/components/MedicineCard";
 import { PublicAnnouncements } from "@/components/PublicAnnouncements";
+import { State } from "@/components/StoreUI";
+import { textFor } from "@/lib/locale";
 import { publicHomeCms } from "@/lib/public-cms";
+import { publicApi } from "@/lib/server-api";
+import { serverLocale } from "@/lib/server-locale";
+import { categoryImage } from "@/lib/storefront";
+import type { Category, Medicine, PageResult } from "@/lib/types";
 
-const benefits = [
-  {
-    icon: "Rx",
-    title: "بررسی نسخه توسط فارمسیست",
-    text: "نسخه شما به‌صورت محرمانه بررسی می‌شود و نتیجه آن را در حساب خود می‌بینید."
-  },
-  {
-    icon: "۲۴",
-    title: "تحویل سریع در کابل",
-    text: "سفارش‌های تأییدشده با بسته‌بندی مناسب و وضعیت قابل پیگیری ارسال می‌شوند."
-  },
-  {
-    icon: "✓",
-    title: "داروهای معتبر",
-    text: "موجودی، شماره بچ و تاریخ انقضا در سیستم داروخانه مدیریت و بررسی می‌شود."
-  }
-];
-
-const steps = [
-  ["۱", "محصول یا نسخه را بفرستید"],
-  ["۲", "تأیید فارمسیست را دریافت کنید"],
-  ["۳", "سفارش را ثبت و پیگیری کنید"]
-];
-
-const faqs = [
-  [
-    "آیا بدون حساب می‌توانم محصولات را ببینم؟",
-    "بله. جستجو و مشاهده محصولات برای همه باز است؛ برای خرید، فرستادن نسخه و پیگیری سفارش وارد حساب شوید."
-  ],
-  [
-    "نسخه من چه کسانی می‌بینند؟",
-    "فقط خود شما و فارمسیست یا مدیر مجاز داروخانه. فایل نسخه عمومی نیست و از مسیر محافظت‌شده ارائه می‌شود."
-  ],
-  [
-    "قیمت و موجودی چه زمانی نهایی می‌شود؟",
-    "قیمت، موجودی و مجموع سفارش هنگام ثبت نهایی توسط سرور داروخانه دوباره محاسبه می‌شود."
-  ],
-  [
-    "اگر اینترنت قطع شود چه می‌شود؟",
-    "اطلاعات عمومی ذخیره‌شده قابل مشاهده می‌ماند؛ اما قیمت، موجودی و وضعیت سفارش همیشه پس از اتصال تازه می‌شوند."
-  ]
-];
-
-export default async function LandingPage() {
-  const { hero, announcements, featuredMedicines, articles } =
-    await publicHomeCms();
-  const heroTitle = hero?.title_dari || hero?.title;
-  const heroBody = hero?.body_dari || hero?.body;
-  const heroAction = hero?.action_label_dari || hero?.action_label;
+export default async function Home() {
+  const locale = await serverLocale();
+  const t = (key: Parameters<typeof textFor>[1]) => textFor(locale, key);
+  const [{ hero, announcements, featuredMedicines, articles }, categories, catalogue] =
+    await Promise.all([
+      publicHomeCms(),
+      publicApi<Category[]>("categories/").catch(() => []),
+      publicApi<PageResult<Medicine>>("medicines/?ordering=name").catch(() => null)
+    ]);
+  const products =
+    featuredMedicines.length > 0
+      ? featuredMedicines.map(({ medicine }) => medicine)
+      : catalogue?.results.slice(0, 6) || [];
+  const heroTitle =
+    locale === "en" ? hero?.title : hero?.title_dari || hero?.title;
 
   return (
-    <div className="landing-page">
+    <>
       <PublicAnnouncements announcements={announcements} />
-      <section className="landing-hero" aria-labelledby="landing-title">
-        <div className="landing-hero-copy">
-          <span className="landing-kicker">داروخانه آنلاین قابل اعتماد</span>
-          <h1 id="landing-title">
-            {heroTitle || (
-              <>
-                سلامتی شما،
-                <br />
-                نزدیک‌تر از همیشه
-              </>
-            )}
-          </h1>
-          <p>
-            {heroBody ||
-              "دارو و محصولات صحی را جستجو کنید، نسخه داکتر را برای بررسی فارمسیست بفرستید و سفارش خود را از یک تجربه امن و روشن پیگیری کنید."}
-          </p>
-          <div className="landing-actions">
-            {hero?.action_url && heroAction ? (
-              <CmsActionLink
-                className="button landing-primary"
-                href={hero.action_url}
-                label={heroAction}
-              />
-            ) : (
-              <Link className="button landing-primary" href="/shop">
-                ورود به فروشگاه
-              </Link>
-            )}
-            <Link className="button secondary landing-secondary" href="/prescriptions">
-              ارسال نسخه
-            </Link>
-          </div>
-          <dl className="landing-metrics">
-            <div>
-              <dt>پشتیبانی</dt>
-              <dd>۷ روز هفته</dd>
-            </div>
-            <div>
-              <dt>پرداخت</dt>
-              <dd>هنگام تحویل</dd>
-            </div>
-            <div>
-              <dt>حریم خصوصی</dt>
-              <dd>نسخه محافظت‌شده</dd>
-            </div>
-          </dl>
+      <section className="hero">
+        <div className="hero-photo">
+          <Image
+            src={hero?.image_url || "/campaigns/health-delivered.webp"}
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 767px) 65vw, 60vw"
+          />
         </div>
-        <div className="landing-hero-media">
-          {hero?.image_url ? (
-            <div className="cms-hero-media-frame">
-              <CmsImage
-                className="cms-hero-image"
-                src={hero.image_url}
-                alt={hero.alt_text_dari || hero.alt_text || heroTitle || "بنر درملتون"}
-                priority
-              />
+        <div className="wrap">
+          <div className="hero-copy">
+            <p className="eyebrow">{t("heroKicker")}</p>
+            <h1>{heroTitle || t("heroTitle")}</h1>
+            <p>{t("heroBody")}</p>
+            <div className="actions">
+              <Link className="button" href="/shop">
+                {t("shop")}
+              </Link>
+              <Link className="button secondary" href="/prescriptions/upload">
+                {t("rx")}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div className="wrap">
+        <section className="rx-strip">
+          <Image
+            src="/icons/ICON-005_Prescription-Upload.webp"
+            alt=""
+            width={46}
+            height={46}
+          />
+          <div>
+            <h2>{t("haveRx")}</h2>
+            <p>{t("rxBody")}</p>
+          </div>
+          <Link href="/prescriptions/upload" className="button">
+            {t("rx")}
+          </Link>
+        </section>
+
+        {categories.length > 0 && (
+          <section className="section">
+            <div className="section-heading">
+              <h2>{t("categories")}</h2>
+              <Link href="/categories">
+                {t("viewAll")} <span aria-hidden="true">›</span>
+              </Link>
+            </div>
+            <div className="category-rail">
+              {categories.slice(0, 6).map((category) => (
+                <Link
+                  className="category-tile"
+                  key={category.id}
+                  href={`/categories/${category.slug}`}
+                >
+                  <Image
+                    src={category.image_url || categoryImage(category.name)}
+                    alt=""
+                    width={220}
+                    height={150}
+                    sizes="(max-width: 767px) 76px, 200px"
+                  />
+                  <strong>
+                    {locale === "en"
+                      ? category.name
+                      : category.name_dari || category.name}
+                  </strong>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="section">
+          <div className="section-heading">
+            <h2>{t("products")}</h2>
+            <Link href="/shop">{t("viewAll")}</Link>
+          </div>
+          {products.length ? (
+            <div className="product-rail">
+              {products.map((medicine) => (
+                <MedicineCard key={medicine.id} medicine={medicine} />
+              ))}
             </div>
           ) : (
-            <Image
-              src="/branding/landing-hero.png"
-              alt="کیسه داروخانه، داروهای عمومی و برگ‌های سبز"
-              width={1792}
-              height={896}
-              priority
-              sizes="(max-width: 820px) 100vw, 58vw"
-            />
+            <State kind="error" title="unavailable" body="connection" />
           )}
-          <div className="hero-proof">
-            <span aria-hidden="true">✓</span>
-            <div>
-              <strong>بررسی حرفه‌ای</strong>
-              <small>توسط فارمسیست مجاز</small>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {featuredMedicines.length > 0 && (
-        <section className="landing-section cms-featured-section" aria-labelledby="featured-title">
-          <div className="landing-section-heading">
-            <span className="landing-kicker">انتخاب درملتون</span>
-            <h2 id="featured-title">محصولات ویژه</h2>
-            <p>محصولات فعالی که تیم داروخانه برای دسترسی آسان‌تر برجسته کرده است.</p>
-          </div>
-          <div className="medicine-grid">
-            {featuredMedicines.map(({ feature, medicine }) => (
-              <div className="cms-featured-item" key={feature.id}>
-                {(feature.label_dari || feature.label) && (
-                  <span className="cms-feature-label">
-                    {feature.label_dari || feature.label}
-                  </span>
-                )}
-                <MedicineCard medicine={medicine} />
+        <section className="campaign-grid section">
+          {[
+            ["wellness", "WEB-021_Daily-Wellness_Campaign-Banner"],
+            ["family", "WEB-024_Home-and-Family_Campaign-Banner"]
+          ].map(([key, image]) => (
+            <div className="campaign" key={key}>
+              <Image
+                src={`/campaigns/${image}.webp`}
+                alt=""
+                fill
+                sizes="(max-width: 767px) 100vw, 50vw"
+              />
+              <div>
+                <h2>{t(key as "wellness" | "family")}</h2>
+                <p>{t("browse")}</p>
+                <Link className="button" href="/shop">
+                  {t("shop")}
+                </Link>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </section>
-      )}
 
-      <section className="brand-proof" aria-label="مزیت‌های درملتون">
-        <span>داروهای معتبر</span>
-        <span>نسخه محرمانه</span>
-        <span>قیمت شفاف</span>
-        <span>پیگیری سفارش</span>
-        <span>پشتیبانی واقعی</span>
-      </section>
+        {(catalogue?.results.length || 0) > 6 && (
+          <section className="section">
+            <div className="section-heading">
+              <h2>{t("related")}</h2>
+              <Link href="/shop">{t("viewAll")}</Link>
+            </div>
+            <div className="product-rail">
+              {catalogue!.results.slice(6, 12).map((medicine) => (
+                <MedicineCard key={medicine.id} medicine={medicine} />
+              ))}
+            </div>
+          </section>
+        )}
 
-      <section className="landing-section" id="why">
-        <div className="landing-section-heading">
-          <span className="landing-kicker">چرا درملتون؟</span>
-          <h2>یک مسیر ساده‌تر برای دریافت خدمات داروخانه</h2>
-          <p>
-            هر بخش از تجربه، از جستجوی محصول تا بررسی نسخه و ثبت سفارش، با
-            مسئولیت‌پذیری و شفافیت طراحی شده است.
-          </p>
-        </div>
-        <div className="benefit-grid">
-          {benefits.map((benefit) => (
-            <article className="benefit-card" key={benefit.title}>
-              <span className="benefit-icon" aria-hidden="true">
-                {benefit.icon}
-              </span>
-              <h3>{benefit.title}</h3>
-              <p>{benefit.text}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+        {articles.length > 0 && (
+          <section className="section">
+            <div className="section-heading">
+              <h2>{t("health")}</h2>
+              <Link href="/health">{t("viewAll")}</Link>
+            </div>
+            <div className="content-grid">
+              {articles.map((article) => (
+                <Link
+                  href={`/health/${article.slug}`}
+                  key={article.id}
+                  className="panel"
+                >
+                  <h3>
+                    {locale === "en"
+                      ? article.title
+                      : article.title_dari || article.title}
+                  </h3>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
-      <section className="prescription-feature" id="features">
-        <div className="prescription-visual" aria-hidden="true">
-          <div className="document-sheet">
-            <span>Rx</span>
-            <i />
-            <i />
-            <i />
+        <section className="rx-strip">
+          <div>
+            <h2>{t("story")}</h2>
+            <p>{t("storyBody")}</p>
           </div>
-          <div className="document-check">✓</div>
-        </div>
-        <div>
-          <span className="landing-kicker">نسخه آنلاین</span>
-          <h2>نسخه داکتر را بدون رفت‌وآمد اضافی بفرستید</h2>
-          <p>
-            عکس یا فایل واضح نسخه را بارگذاری کنید. فارمسیست آن را بررسی
-            می‌کند، در صورت نیاز توضیح می‌خواهد و داروهای تأییدشده را برای خرید
-            آماده می‌سازد.
-          </p>
-          <ul className="check-list">
-            <li>فایل خصوصی و قابل مشاهده فقط برای افراد مجاز</li>
-            <li>اعلان روشن در هر مرحله بررسی</li>
-            <li>محدودیت مقدار و اعتبار نسخه در سمت سرور</li>
-          </ul>
-          <Link className="button" href="/prescriptions">
-            ارسال نسخه برای بررسی
+          <Link className="button secondary" href="/about">
+            {t("about")}
           </Link>
-        </div>
-      </section>
-
-      <section className="landing-section how-section" id="delivery">
-        <div className="landing-section-heading">
-          <span className="landing-kicker">چگونه کار می‌کند؟</span>
-          <h2>از نیاز تا تحویل، در سه گام روشن</h2>
-        </div>
-        <ol className="step-grid">
-          {steps.map(([number, title]) => (
-            <li key={number}>
-              <span>{number}</span>
-              <strong>{title}</strong>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {articles.length > 0 && (
-        <section className="landing-section health-articles-section" aria-labelledby="health-title">
-          <div className="landing-section-heading">
-            <span className="landing-kicker">آگاهی برای سلامت بهتر</span>
-            <h2 id="health-title">مقاله‌های سلامت</h2>
-            <p>مطالب منتشرشده توسط تیم محتوای درملتون برای استفاده مسئولانه‌تر از خدمات صحی.</p>
-          </div>
-          <div className="health-article-grid">
-            {articles.map((article) => (
-              <HealthArticleCard article={article} key={article.id} />
-            ))}
-          </div>
-          <div className="section-action-row">
-            <Link className="button secondary" href="/health-articles">
-              مشاهده همه مقاله‌ها
-            </Link>
-          </div>
         </section>
-      )}
-
-      <section className="app-download" id="download">
-        <div>
-          <span className="landing-kicker light">اپلیکیشن اندروید درملتون</span>
-          <h2>داروخانه همیشه همراه شما</h2>
-          <p>
-            جستجوی سریع، نسخه‌ها، سبد خرید و پیگیری سفارش را در یک تجربه
-            دری‌محور و مناسب اندروید داشته باشید.
-          </p>
-                    <a
-            className="button"
-            href="/downloads/darmalton-android-1.0.0.apk"
-            download
-          >
-            دانلود اپلیکیشن اندروید
-          </a>
-        </div>
-        <Image
-          src="/branding/brand-bag-mark.png"
-          alt="نشان اپلیکیشن درملتون"
-          width={840}
-          height={840}
-          sizes="220px"
-        />
-      </section>
-
-      <section className="landing-section" id="faq">
-        <div className="landing-section-heading">
-          <span className="landing-kicker">پرسش‌های متداول</span>
-          <h2>پاسخ‌های کوتاه و روشن</h2>
-        </div>
-        <div className="faq-list">
-          {faqs.map(([question, answer]) => (
-            <details key={question}>
-              <summary>{question}</summary>
-              <p>{answer}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-
-      <section className="landing-contact" id="contact">
-        <div>
-          <span className="landing-kicker">همراه شما هستیم</span>
-          <h2>برای راهنمایی یا همکاری با ما تماس بگیرید</h2>
-        </div>
-        <div className="contact-actions">
-          <a href="tel:+93700123456" dir="ltr">
-            +93 700 123 456
-          </a>
-          <a href="mailto:help@darmalton.af">help@darmalton.af</a>
-          <Link className="button" href="/contact">
-            راه‌های تماس
-          </Link>
-        </div>
-      </section>
-    </div>
+      </div>
+    </>
   );
 }
