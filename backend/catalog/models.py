@@ -171,6 +171,11 @@ class Medicine(TimeStampedUUIDModel):
     description = models.TextField(blank=True)
     description_dari = models.TextField(blank=True)
     storage_instructions = models.TextField(blank=True)
+    country_of_manufacture = models.CharField(max_length=120, blank=True)
+    source_inventory = models.JSONField(default=dict, blank=True)
+    list_price = models.DecimalField(
+        max_digits=14, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0)]
+    )
     prescription_required = models.BooleanField(default=False)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.ACTIVE)
 
@@ -284,6 +289,12 @@ class InventoryBatch(TimeStampedUUIDModel):
     batch_number = models.CharField(max_length=100)
     expiry_date = models.DateField()
     available_quantity = models.PositiveIntegerField(default=0)
+    source_import_key = models.CharField(max_length=180, unique=True, null=True, blank=True)
+    source_inventory = models.JSONField(default=dict, blank=True)
+    source_location = models.CharField(max_length=180, null=True, blank=True)
+    source_shelf = models.CharField(max_length=100, null=True, blank=True)
+    source_supplier = models.CharField(max_length=200, null=True, blank=True)
+    received_date = models.DateField(null=True, blank=True)
     purchase_price = models.DecimalField(
         max_digits=14, decimal_places=2, validators=[MinValueValidator(0)]
     )

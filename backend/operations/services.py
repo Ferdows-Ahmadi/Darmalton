@@ -150,6 +150,10 @@ def record_inventory_change(
         raise ValidationError({"quantity": "Quantity must be greater than zero."})
 
     previous = locked.available_quantity
+    if previous is None:
+        raise ValidationError(
+            {"quantity": "Reconcile the unknown opening stock before recording movements."}
+        )
     if direction == InventoryTransaction.Direction.ADDITION:
         resulting = previous + quantity
     elif direction == InventoryTransaction.Direction.DEDUCTION:

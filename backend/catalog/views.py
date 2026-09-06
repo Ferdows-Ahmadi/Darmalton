@@ -5,6 +5,7 @@ from uuid import UUID
 
 from django.conf import settings
 from django.db.models import Exists, OuterRef, Q, Subquery
+from django.db.models.functions import Coalesce
 from django.http import FileResponse, HttpResponse, HttpResponseNotModified
 from django.utils import timezone
 from rest_framework import filters, permissions, viewsets
@@ -222,6 +223,7 @@ class MedicineViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
         eligible_batches = InventoryBatch.objects.filter(
+            Q(selling_price__isnull=False) | Q(medicine__list_price__isnull=False),
             medicine=OuterRef("pk"),
             is_active=True,
             quality_status=InventoryBatch.QualityStatus.APPROVED,
@@ -234,7 +236,7 @@ class MedicineViewSet(viewsets.ReadOnlyModelViewSet):
         )[:1]
         queryset = queryset.annotate(
             catalogue_in_stock=Exists(eligible_batches),
-            catalogue_price=Subquery(current_price),
+            catalogue_price=Coalesce(Subquery(current_price), "list_price"),
         )
 
         in_stock = self.request.query_params.get("in_stock", "").strip()

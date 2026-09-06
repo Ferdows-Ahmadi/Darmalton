@@ -114,7 +114,7 @@ STORAGES = {
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = Path(os.getenv("DJANGO_MEDIA_ROOT", str(BASE_DIR / "media")))
 PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"
 PRESCRIPTION_MAX_UPLOAD_BYTES = int(
     os.getenv("PRESCRIPTION_MAX_UPLOAD_BYTES", str(10 * 1024 * 1024))
@@ -213,3 +213,6 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": LOG_LEVEL},
 }
+
+# Explicit opt-in for local synthetic inventory fixtures; never enabled in production.
+DEVELOPMENT_SAMPLE_DATA = os.getenv("DEVELOPMENT_SAMPLE_DATA", "false").lower() == "true"

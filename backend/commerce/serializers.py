@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -17,6 +17,7 @@ from .services import create_order
 def medicine_stock(medicine, branch):
     return (
         InventoryBatch.objects.filter(
+            Q(selling_price__isnull=False) | Q(medicine__list_price__isnull=False),
             medicine=medicine,
             branch=branch,
             is_active=True,
@@ -30,6 +31,7 @@ def medicine_stock(medicine, branch):
 def medicine_price(medicine, branch):
     batch = (
         InventoryBatch.objects.filter(
+            Q(selling_price__isnull=False) | Q(medicine__list_price__isnull=False),
             medicine=medicine,
             branch=branch,
             is_active=True,
@@ -40,7 +42,9 @@ def medicine_price(medicine, branch):
         .order_by("expiry_date")
         .first()
     )
-    return batch.selling_price if batch else None
+    if not batch:
+        return None
+    return batch.selling_price if batch.selling_price is not None else medicine.list_price
 
 
 class AddressSerializer(serializers.ModelSerializer):

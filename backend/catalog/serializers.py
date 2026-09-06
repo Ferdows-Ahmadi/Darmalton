@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import serializers
@@ -232,6 +233,7 @@ class MedicineSerializer(serializers.ModelSerializer):
         if cache is None:
             cache = list(
                 obj.batches.filter(
+                    Q(selling_price__isnull=False) | Q(medicine__list_price__isnull=False),
                     is_active=True,
                     quality_status=InventoryBatch.QualityStatus.APPROVED,
                     expiry_date__gt=timezone.localdate(),
@@ -244,7 +246,9 @@ class MedicineSerializer(serializers.ModelSerializer):
 
     def get_price(self, obj) -> str | None:
         batches = self.eligible_batches(obj)
-        return f"{batches[0].selling_price:.2f}" if batches else None
+        value = batches[0].selling_price if batches else None
+        value = value if value is not None else obj.list_price
+        return f"{value:.2f}" if value is not None else None
 
     def get_available_quantity(self, obj) -> int:
         return sum(batch.available_quantity for batch in self.eligible_batches(obj))

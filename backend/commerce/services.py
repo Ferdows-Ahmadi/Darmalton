@@ -123,6 +123,10 @@ def create_order(*, customer, address):
             raise ValidationError(f"Insufficient stock for {medicine.brand_name}.")
 
         unit_price = batches[0].selling_price
+        if unit_price is None:
+            unit_price = medicine.list_price
+        if unit_price is None:
+            raise ValidationError(f"Price is not available for {medicine.brand_name}.")
         line_total = unit_price * cart_item.quantity
         subtotal += line_total
         remaining = cart_item.quantity
