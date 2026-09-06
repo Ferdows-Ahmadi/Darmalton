@@ -1,13 +1,17 @@
+"use client";
+
 import Link from "next/link";
+import { useLocale } from "@/components/LocaleProvider";
 
 export default function NotFound() {
+  const { t } = useLocale();
   return (
     <section className="page-section narrow">
       <div className="empty-state">
-        <h1>صفحه پیدا نشد</h1>
-        <p>محصول یا صفحه درخواستی وجود ندارد.</p>
+        <h1>{t("notFound")}</h1>
+        <p>{t("trySearch")}</p>
         <Link className="button" href="/">
-          بازگشت به فروشگاه
+          {t("backHome")}
         </Link>
       </div>
     </section>

@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useLocale } from "./LocaleProvider";
 
 export function InfoPage({
   eyebrow,
@@ -11,6 +14,7 @@ export function InfoPage({
   intro: string;
   children: React.ReactNode;
 }) {
+  const { t } = useLocale();
   return (
     <section className="info-page">
       <div className="info-page-heading">
@@ -20,7 +24,7 @@ export function InfoPage({
       </div>
       <article className="info-document">{children}</article>
       <Link className="button secondary" href="/">
-        بازگشت به خانه
+        {t("backHome")}
       </Link>
     </section>
   );

@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 
 import { ApiError, apiFetch } from "@/lib/api";
 import { loginPath } from "@/lib/auth-navigation";
+import { AccountShell } from "@/components/AccountShell";
+import { useLocale } from "@/components/LocaleProvider";
 import type { Address, Order, PageResult, User } from "@/lib/types";
 
 export default function AccountPage() {
@@ -13,6 +15,7 @@ export default function AccountPage() {
   const [addressCount, setAddressCount] = useState(0);
   const [orderCount, setOrderCount] = useState(0);
   const router = useRouter();
+  const { locale, t } = useLocale();
 
   useEffect(() => {
     Promise.all([
@@ -33,15 +36,15 @@ export default function AccountPage() {
   }, [router]);
 
   const name = user
-    ? [user.first_name, user.last_name].filter(Boolean).join(" ") || "مشتری"
+    ? [user.first_name, user.last_name].filter(Boolean).join(" ") || t("account")
     : "";
 
   return (
     <section className="page-section narrow">
-      <p className="eyebrow">پروفایل مشتری</p>
-      <h1>حساب کاربری</h1>
-      {!user ? (
-        <div className="loading">در حال بارگذاری پروفایل...</div>
+      <p className="eyebrow">{t("secure")}</p>
+      <h1>{t("account")}</h1>
+      <AccountShell>{!user ? (
+        <div className="loading">{t("loading")}</div>
       ) : (
         <>
           <div className="panel profile-card">
@@ -51,35 +54,35 @@ export default function AccountPage() {
             <div>
               <h2>{name}</h2>
               <p dir="ltr">{user.email}</p>
-              <p dir="ltr">{user.phone || "شماره تماس ثبت نشده"}</p>
+              <p dir="ltr">{user.phone || t("unspecified")}</p>
             </div>
           </div>
           <div className="account-stats">
-            <Link href="/orders">
-              <strong>{orderCount.toLocaleString("fa-AF")}</strong>
-              <span>سفارش من</span>
+            <Link href="/account/orders">
+              <strong>{orderCount.toLocaleString(locale)}</strong>
+              <span>{t("orders")}</span>
             </Link>
-            <div>
-              <strong>{addressCount.toLocaleString("fa-AF")}</strong>
-              <span>آدرس ذخیره‌شده</span>
-            </div>
+            <Link href="/account/addresses">
+              <strong>{addressCount.toLocaleString(locale)}</strong>
+              <span>{t("addresses")}</span>
+            </Link>
           </div>
           <div className="profile-menu">
-            <Link href="/orders">
-              <span>سفارش‌های من</span>
+            <Link href="/account/orders">
+              <span>{t("orders")}</span>
               <b aria-hidden="true">‹</b>
             </Link>
             <Link href="/cart">
-              <span>سبد خرید</span>
+              <span>{t("cart")}</span>
               <b aria-hidden="true">‹</b>
             </Link>
-            <Link href="/prescriptions">
-              <span>نسخه‌های من</span>
+            <Link href="/account/prescriptions">
+              <span>{t("rxList")}</span>
               <b aria-hidden="true">‹</b>
             </Link>
           </div>
         </>
-      )}
+      )}</AccountShell>
     </section>
   );
 }

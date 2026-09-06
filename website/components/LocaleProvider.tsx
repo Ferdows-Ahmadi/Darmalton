@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Locale, textFor, TextKey } from "@/lib/locale";
 const Context = createContext<{locale: Locale; setLocale: (locale: Locale) => void}>({locale:"fa-AF",setLocale:()=>{}});
@@ -9,4 +9,4 @@ export function LocaleProvider({locale: initial, children}:{locale:Locale;childr
   function setLocale(next:Locale) { set(next); document.cookie=`darmalton_locale=${next}; Path=/; Max-Age=31536000; SameSite=Lax`; router.refresh(); }
   return <Context.Provider value={{locale,setLocale}}>{children}</Context.Provider>;
 }
-export function useLocale(){const context=useContext(Context);return {...context,t:(key:TextKey)=>textFor(context.locale,key)};}
+export function useLocale(){const context=useContext(Context);const t=useCallback((key:TextKey)=>textFor(context.locale,key),[context.locale]);return {...context,t};}

@@ -1,33 +1,21 @@
-import { InfoPage } from "@/components/InfoPage";
 import { CmsInfoPage } from "@/components/CmsInfoPage";
+import { StaticInfoPage } from "@/components/StaticInfoPage";
 import { publicContentPage } from "@/lib/public-cms";
+import { serverLocale } from "@/lib/server-locale";
+import { staticPages } from "@/lib/static-pages";
 
 export const metadata = { title: "شرایط استفاده" };
 
 export default async function TermsPage() {
+  const locale = await serverLocale();
   const page = await publicContentPage("terms");
-  if (page) return <CmsInfoPage page={page} eyebrow="شرایط استفاده" />;
-  return (
-    <InfoPage
-      eyebrow="شرایط استفاده"
-      title="استفاده مسئولانه از درملتون"
-      intro="با استفاده از خدمات، می‌پذیرید معلومات درست ارائه کنید و راهنمایی دارویی را جایگزین تشخیص داکتر ندانید."
-    >
-      <h2>قیمت و موجودی</h2>
-      <p>
-        اطلاعات نمایش‌داده‌شده تا زمان ثبت نهایی سفارش قطعی نیست. سرور داروخانه
-        قیمت، موجودی، مالکیت و شرایط نسخه را دوباره بررسی می‌کند.
-      </p>
-      <h2>داروهای نسخه‌ای</h2>
-      <p>
-        ارسال نسخه به معنی تأیید خودکار نیست. فارمسیست می‌تواند توضیح بخواهد،
-        مقدار را محدود کند یا نسخه را رد کند.
-      </p>
-      <h2>استفاده درست</h2>
-      <p>
-        تلاش برای دسترسی به حساب دیگران، دست‌کاری وضعیت سفارش یا استفاده
-        غیرقانونی از خدمات مجاز نیست.
-      </p>
-    </InfoPage>
-  );
+  if (page)
+    return (
+      <CmsInfoPage
+        page={page}
+        eyebrow={staticPages.terms.eyebrow[locale]}
+        locale={locale}
+      />
+    );
+  return <StaticInfoPage {...staticPages.terms} />;
 }

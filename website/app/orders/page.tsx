@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { OrderCard } from "@/components/OrderCard";
+import { AccountShell } from "@/components/AccountShell";
+import { useLocale } from "@/components/LocaleProvider";
 import { ApiError, apiFetch } from "@/lib/api";
 import { loginPath } from "@/lib/auth-navigation";
 import type { Order, PageResult } from "@/lib/types";
@@ -13,32 +15,34 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { t } = useLocale();
 
   useEffect(() => {
     apiFetch<PageResult<Order>>("orders/")
       .then((data) => setOrders(data.results))
       .catch((err) => {
         if (err instanceof ApiError && err.status === 401) {
-          router.push(loginPath("/orders"));
+          router.push(loginPath("/account/orders"));
         }
-        else setError(err instanceof Error ? err.message : "سفارش‌ها بار نشد.");
+        else setError(err instanceof Error ? err.message : t("connection"));
       });
-  }, [router]);
+  }, [router, t]);
 
   return (
     <section className="page-section narrow">
-      <p className="eyebrow">حساب کاربری</p>
-      <h1>سفارش‌های من</h1>
+      <p className="eyebrow">{t("account")}</p>
+      <h1>{t("orders")}</h1>
+      <AccountShell>
       {error && <p className="form-error">{error}</p>}
       {!orders && !error && (
-        <div className="loading">در حال بارگذاری سفارش‌ها...</div>
+        <div className="loading">{t("loading")}</div>
       )}
       {orders && !orders.length && (
         <div className="empty-state">
-          <h2>هنوز سفارشی ندارید</h2>
-          <p>سفارش‌های ثبت‌شده شما در این بخش نمایش داده می‌شود.</p>
-          <Link className="button" href="/">
-            مشاهده محصولات
+          <h2>{t("noOrders")}</h2>
+          <p>{t("orderHistory")}</p>
+          <Link className="button" href="/shop">
+            {t("continueShopping")}
           </Link>
         </div>
       )}
@@ -47,6 +51,7 @@ export default function OrdersPage() {
           <OrderCard order={order} key={order.id} />
         ))}
       </div>
+      </AccountShell>
     </section>
   );
 }

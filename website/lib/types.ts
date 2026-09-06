@@ -5,6 +5,7 @@ export type User = {
   first_name: string;
   last_name: string;
   role: string;
+  preferred_language?: string;
 };
 
 export type Category = {
@@ -100,6 +101,9 @@ export type Address = {
   district: string;
   street_address: string;
   landmark: string;
+  delivery_instructions?: string;
+  latitude?: string | null;
+  longitude?: string | null;
   is_default: boolean;
 };
 

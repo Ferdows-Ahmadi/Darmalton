@@ -6,21 +6,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { ApiError, apiFetch } from "@/lib/api";
 import { loginPath } from "@/lib/auth-navigation";
+import { AccountShell } from "@/components/AccountShell";
+import { useLocale } from "@/components/LocaleProvider";
+import { prescriptionStatus } from "@/lib/status";
 import type { PageResult, Prescription } from "@/lib/types";
-
-const statusLabels: Record<string, string> = {
-  SUBMITTED: "ارسال‌شده",
-  UNDER_REVIEW: "در حال بررسی",
-  CLARIFICATION_REQUESTED: "نیازمند توضیح",
-  APPROVED: "تأییدشده",
-  REJECTED: "ردشده",
-  EXPIRED: "منقضی‌شده",
-  CANCELLED: "لغوشده"
-};
 
 function uploadWithProgress(
   formData: FormData,
-  onProgress: (value: number) => void
+  onProgress: (value: number) => void,
+  failureMessage: string
 ) {
   return new Promise<Prescription>((resolve, reject) => {
     const request = new XMLHttpRequest();
@@ -38,11 +32,11 @@ function uploadWithProgress(
       }
       const message =
         request.response?.error?.message ||
-        "نسخه ارسال نشد. فایل و اتصال خود را بررسی کنید.";
+        failureMessage;
       reject(new Error(message));
     };
     request.onerror = () =>
-      reject(new Error("ارتباط با سرور برقرار نشد. دوباره کوشش کنید."));
+      reject(new Error(failureMessage));
     request.send(formData);
   });
 }
@@ -60,6 +54,12 @@ export default function PrescriptionsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [responses, setResponses] = useState<Record<string, string>>({});
+  const { locale, t } = useLocale();
+  const copy = locale === "en"
+    ? { kicker: "Private pharmacist review", new: "Submit a new prescription", none: "No file selected", preview: "Prescription preview", select: "Choose a prescription photo or document first.", uploadFailure: "The prescription could not be submitted. Check the file and connection.", history: "Prescription history", historyBody: "Review status will appear here after submission.", customer: "Customer prescription", requested: "Clarification requested", upTo: "up to", units: "units", added: "approved medicines were added to your cart. Review your cart and confirm checkout yourself.", already: "The approved medicines are already in your cart.", addFailure: "The medicines could not be added to the cart.", addNote: "No order is created yet. Review price, availability, address and cash payment before final confirmation.", cancelling: "Cancel request", uploading: "Uploading…", uploaded: "uploaded", submitFailure: "The request could not be completed." }
+    : locale === "fa-AF"
+      ? { kicker: "بررسی امن توسط فارمسست", new: "ارسال نسخه جدید", none: "هیچ فایلی انتخاب نشده است", preview: "پیش‌نمایش نسخه", select: "نخست عکس یا فایل نسخه را انتخاب کنید.", uploadFailure: "نسخه ارسال نشد. فایل و اتصال خود را بررسی کنید.", history: "تاریخچه نسخه‌ها", historyBody: "پس از ارسال، وضعیت بررسی در همین‌جا نشان داده می‌شود.", customer: "نسخه مشتری", requested: "توضیح خواسته‌شده", upTo: "تا", units: "عدد", added: "دوای تأییدشده به سبد افزوده شد. سبد را بررسی و خودتان پرداخت را تأیید کنید.", already: "دواهای تأییدشده از قبل در سبد شما است.", addFailure: "دوا به سبد افزوده نشد.", addNote: "سفارش ساخته نمی‌شود؛ قیمت، موجودی، آدرس و پرداخت نقدی را پیش از ثبت نهایی بررسی می‌کنید.", cancelling: "لغو درخواست", uploading: "در حال ارسال…", uploaded: "ارسال شد", submitFailure: "درخواست انجام نشد." }
+      : { kicker: "د درملپوه خوندي کتنه", new: "نوې نسخه لېږل", none: "فایل نه دی ټاکل شوی", preview: "د نسخې مخکتنه", select: "لومړی د نسخې انځور یا فایل وټاکئ.", uploadFailure: "نسخه ونه لېږل شوه. فایل او اړیکه وګورئ.", history: "د نسخو تاریخچه", historyBody: "له لېږلو وروسته د کتنې حالت دلته ښکاري.", customer: "د پېرودونکي نسخه", requested: "وضاحت غوښتل شوی", upTo: "تر", units: "دانې", added: "تایید شوي درمل ټوکرۍ ته زیات شول. خپله ټوکرۍ وګورئ او فرمایش تایید کړئ.", already: "تایید شوي درمل لا له مخکې په ټوکرۍ کې دي.", addFailure: "درمل ټوکرۍ ته زیات نه شول.", addNote: "تر اوسه فرمایش نه جوړېږي. بیه، موجودي، پته او نغدي تادیه له وروستي تایید مخکې وګورئ.", cancelling: "غوښتنه لغوه کول", uploading: "لېږل کېږي…", uploaded: "ولېږل شوه", submitFailure: "غوښتنه ترسره نه شوه." };
 
   const load = useCallback(async () => {
     try {
@@ -67,12 +67,12 @@ export default function PrescriptionsPage() {
       setItems(data.results);
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
-        router.push(loginPath("/prescriptions"));
+        router.push(loginPath("/account/prescriptions"));
         return;
       }
-      setError(err instanceof Error ? err.message : "نسخه‌ها بار نشد.");
+      setError(err instanceof Error ? err.message : t("connection"));
     }
-  }, [router]);
+  }, [router, t]);
 
   useEffect(() => {
     load();
@@ -91,7 +91,7 @@ export default function PrescriptionsPage() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedFile) {
-      setError("نخست عکس یا فایل نسخه را انتخاب کنید.");
+      setError(copy.select);
       return;
     }
     setBusy(true);
@@ -101,14 +101,13 @@ export default function PrescriptionsPage() {
     try {
       const data = new FormData(event.currentTarget);
       data.set("document", selectedFile);
-      await uploadWithProgress(data, setProgress);
-      setSuccess("نسخه با موفقیت ارسال شد و در صف بررسی قرار گرفت.");
+      const created = await uploadWithProgress(data, setProgress, copy.uploadFailure);
       setSelectedFile(null);
       setProgress(null);
       formRef.current?.reset();
-      await load();
+      router.push(`/prescriptions/success/${created.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "نسخه ارسال نشد.");
+      setError(err instanceof Error ? err.message : copy.uploadFailure);
     } finally {
       setBusy(false);
     }
@@ -127,7 +126,7 @@ export default function PrescriptionsPage() {
       setResponses((current) => ({ ...current, [id]: "" }));
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "درخواست انجام نشد.");
+      setError(err instanceof Error ? err.message : copy.submitFailure);
     }
   }
 
@@ -139,35 +138,33 @@ export default function PrescriptionsPage() {
         body: JSON.stringify({})
       });
       setSuccess(result.added_count > 0
-        ? `${result.added_count.toLocaleString("fa-AF")} دوای تأییدشده به سبد افزوده شد. سبد را بررسی و خودتان پرداخت را تأیید کنید.`
-        : "دواهای تأییدشده از قبل در سبد شما است.");
+        ? `${result.added_count.toLocaleString(locale)} ${copy.added}`
+        : copy.already);
       router.push("/cart");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "دوا به سبد افزوده نشد."
+        err instanceof Error ? err.message : copy.addFailure
       );
     }
   }
 
   return (
     <section className="page-section prescription-page">
+      <AccountShell>
       <div className="prescription-heading">
         <div>
-          <p className="eyebrow">بررسی امن توسط فارمسست</p>
-          <h1>نسخه‌های من</h1>
-          <p className="muted">
-            نسخه به‌صورت خصوصی نگهداری می‌شود و فقط شما و تیم مجاز داروخانه
-            به آن دسترسی دارید.
-          </p>
+          <p className="eyebrow">{copy.kicker}</p>
+          <h1>{t("rxList")}</h1>
+          <p className="muted">{t("rxPrivate")}</p>
         </div>
         <span aria-hidden="true">Rx</span>
       </div>
 
       <form ref={formRef} className="panel prescription-form" onSubmit={submit}>
-        <h2>ارسال نسخه جدید</h2>
-        <p className="muted">JPG، PNG یا PDF تا ۱۰ مگابایت</p>
+        <h2>{copy.new}</h2>
+        <p className="muted">{t("uploadHint")}</p>
         <label className="file-drop">
-          <span>انتخاب عکس یا فایل نسخه</span>
+          <span>{t("chooseFile")}</span>
           <input
             type="file"
             name="document"
@@ -177,45 +174,45 @@ export default function PrescriptionsPage() {
             }
             required
           />
-          <small>{selectedFile?.name || "هیچ فایلی انتخاب نشده است"}</small>
+          <small>{selectedFile?.name || copy.none}</small>
         </label>
         {preview && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img className="prescription-preview" src={preview} alt="پیش‌نمایش نسخه" />
+          <img className="prescription-preview" src={preview} alt={copy.preview} />
         )}
         <div className="form-grid">
           <label>
-            <span>نام مریض (اختیاری)</span>
+            <span>{t("patient")} ({t("optional")})</span>
             <input name="patient_name" maxLength={180} />
           </label>
           <label>
-            <span>شماره تماس</span>
+            <span>{t("phone")}</span>
             <input name="contact_phone" dir="ltr" maxLength={32} />
           </label>
           <label className="full">
-            <span>یادداشت (اختیاری)</span>
+            <span>{t("notes")} ({t("optional")})</span>
             <input name="customer_note" maxLength={1000} />
           </label>
         </div>
         {progress !== null && (
           <div className="upload-progress" aria-live="polite">
             <span style={{ width: `${progress}%` }} />
-            <small>{progress.toLocaleString("fa-AF")}٪ ارسال شد</small>
+            <small>{progress.toLocaleString(locale)}% {copy.uploaded}</small>
           </div>
         )}
         {error && <p className="form-error" role="alert">{error}</p>}
         {success && <p className="success-banner">{success}</p>}
         <button className="wide" disabled={busy}>
-          {busy ? "در حال ارسال..." : "ارسال برای بررسی"}
+          {busy ? copy.uploading : t("submitRx")}
         </button>
       </form>
 
-      <h2 className="subheading">تاریخچه نسخه‌ها</h2>
-      {!items && !error && <div className="loading">در حال بارگذاری...</div>}
+      <h2 className="subheading">{copy.history}</h2>
+      {!items && !error && <div className="loading">{t("loading")}</div>}
       {items?.length === 0 && (
         <div className="empty-state">
-          <h2>هنوز نسخه‌ای ندارید</h2>
-          <p>پس از ارسال، وضعیت بررسی در همین‌جا نشان داده می‌شود.</p>
+          <h2>{t("noRx")}</h2>
+          <p>{copy.historyBody}</p>
         </div>
       )}
       <div className="prescription-list">
@@ -224,31 +221,31 @@ export default function PrescriptionsPage() {
             <div className="prescription-card-title">
               <div>
                 <span className={`status status-${item.status.toLowerCase()}`}>
-                  {statusLabels[item.status] || item.status}
+                  {prescriptionStatus(item.status, locale)}
                 </span>
-                <h3>{item.patient_name || "نسخه مشتری"}</h3>
+                <h3>{item.patient_name || copy.customer}</h3>
                 <small>
-                  {new Date(item.created_at).toLocaleString("fa-AF")}
+                  {new Date(item.created_at).toLocaleString(locale)}
                 </small>
               </div>
               <Link
                 className="secondary button"
                 href={`/api/backend/prescriptions/${item.id}/file/?download=1`}
               >
-                مشاهده فایل
+                {t("file")}
               </Link>
             </div>
             {item.customer_visible_note && <p>{item.customer_visible_note}</p>}
             {item.clarification_request && (
               <div className="clarification-box">
-                <strong>توضیح خواسته‌شده</strong>
+                <strong>{copy.requested}</strong>
                 <p>{item.clarification_request}</p>
               </div>
             )}
             {item.can_respond && (
               <div className="clarification-response">
                 <label>
-                  <span>پاسخ شما</span>
+                  <span>{t("response")}</span>
                   <input
                     value={responses[item.id] || ""}
                     onChange={(event) =>
@@ -260,18 +257,18 @@ export default function PrescriptionsPage() {
                   />
                 </label>
                 <button onClick={() => act(item.id, "respond")}>
-                  ارسال پاسخ
+                  {t("send")}
                 </button>
               </div>
             )}
             {item.authorized_medicines.length > 0 && (
               <div className="authorized-list">
-                <strong>دواهای تأییدشده</strong>
+                <strong>{t("authorized")}</strong>
                 {item.authorized_medicines.map((authorized) => (
                   <div className="authorized-row" key={authorized.id}>
                     <p>
-                      {authorized.medicine_name} — تا{" "}
-                      {authorized.max_quantity.toLocaleString("fa-AF")} عدد
+                      {authorized.medicine_name} — {copy.upTo}{" "}
+                      {authorized.max_quantity.toLocaleString(locale)} {copy.units}
                     </p>
                   </div>
                 ))}
@@ -279,9 +276,9 @@ export default function PrescriptionsPage() {
                   (requestedMedicineId === null || item.authorized_medicines.some((authorized) => authorized.medicine_id === requestedMedicineId)) && (
                   <div className="authorized-bundle-action">
                     <button onClick={() => addAuthorizedBundle(item.id)}>
-                      افزودن همه دواهای تأییدشده به سبد
+                      {t("addBundle")}
                     </button>
-                    <small>سفارش ساخته نمی‌شود؛ قیمت، موجودی، آدرس و پرداخت نقدی را پیش از ثبت نهایی بررسی می‌کنید.</small>
+                    <small>{copy.addNote}</small>
                   </div>
                 )}
               </div>
@@ -291,12 +288,13 @@ export default function PrescriptionsPage() {
                 className="danger-link"
                 onClick={() => act(item.id, "cancel")}
               >
-                لغو درخواست
+                {copy.cancelling}
               </button>
             )}
           </article>
         ))}
       </div>
+      </AccountShell>
     </section>
   );
 }

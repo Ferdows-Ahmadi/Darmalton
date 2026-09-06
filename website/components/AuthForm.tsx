@@ -12,6 +12,7 @@ import {
 } from "@/lib/auth-navigation";
 import { synchronizeGuestCart } from "@/lib/guest-cart";
 import type { User } from "@/lib/types";
+import { useLocale } from "./LocaleProvider";
 
 type AuthErrorPayload = {
   user?: User;
@@ -45,8 +46,14 @@ export function AuthForm({
   audience?: "customer" | "staff";
 }) {
   const router = useRouter();
+  const { locale, t } = useLocale();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const customerCopy = locale === "en"
+    ? { secure: "Secure customer access", create: "Create your account", welcome: "Welcome back", registerBody: "Enter your details to order and follow updates.", loginBody: "Sign in to view your cart and orders.", returnNote: "After signing in, you will return to the previous page and your cart will be kept.", first: "First name", last: "Last name", phone: "Phone number (optional)", wait: "Please wait…", createButton: "Create account", loginButton: "Sign in", or: "or", registered: "Already registered?", new: "New to Darmalton?", continue: "Continue without signing in", invalid: "Check the information and try again.", connection: "Could not connect to the server. Check your connection.", sync: "You signed in, but the guest cart could not be synced. Check the connection and try again." }
+    : locale === "fa-AF"
+      ? { secure: "دسترسی امن مشتری", create: "ایجاد حساب کاربری", welcome: "خوش آمدید", registerBody: "برای سفارش و پیگیری، معلومات خود را وارد کنید.", loginBody: "برای دیدن سبد و سفارش‌های خود وارد شوید.", returnNote: "پس از ورود به همان بخش قبلی برمی‌گردید و سبد شما حفظ می‌شود.", first: "نام", last: "نام خانوادگی", phone: "شماره تماس (اختیاری)", wait: "لطفاً منتظر بمانید…", createButton: "ایجاد حساب", loginButton: "ورود", or: "یا", registered: "قبلاً ثبت‌نام کرده‌اید؟", new: "حساب کاربری ندارید؟", continue: "ادامه بدون ورود", invalid: "معلومات واردشده را بررسی و دوباره کوشش کنید.", connection: "ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.", sync: "ورود انجام شد، اما سبد مهمان همگام نشد. اتصال را بررسی و دوباره کوشش کنید." }
+      : { secure: "د پېرودونکي خوندي لاسرسی", create: "حساب جوړ کړئ", welcome: "ښه راغلاست", registerBody: "د فرمایش او تعقیب لپاره خپل معلومات ولیکئ.", loginBody: "خپلې ټوکرۍ او فرمایشونو لیدلو لپاره ننوځئ.", returnNote: "له ننوتلو وروسته بېرته همدې برخې ته راګرځئ او ټوکرۍ مو ساتل کېږي.", first: "نوم", last: "تخلص", phone: "د اړیکې شمېره (اختیاري)", wait: "لږ انتظار وکړئ…", createButton: "حساب جوړول", loginButton: "ننوتل", or: "یا", registered: "مخکې مو حساب جوړ کړی؟", new: "په درملتون کې نوي یاست؟", continue: "له ننوتلو پرته دوام", invalid: "معلومات وګورئ او بیا هڅه وکړئ.", connection: "له سرور سره اړیکه ونه شوه. خپله اړیکه وګورئ.", sync: "تاسو ننوتل، خو د مېلمه ټوکرۍ همغږې نه شوه. اړیکه وګورئ او بیا هڅه وکړئ." };
 
   const finishAuthentication = useCallback(async (profile?: User) => {
     if (audience === "staff" && !isStaffRole(profile?.role)) {
@@ -60,9 +67,7 @@ export function AuthForm({
       try {
         await synchronizeGuestCart();
       } catch {
-        setError(
-          "ورود انجام شد، اما سبد مهمان همگام نشد. اتصال را بررسی و دوباره کوشش کنید."
-        );
+        setError(customerCopy.sync);
         return;
       }
     }
@@ -70,7 +75,7 @@ export function AuthForm({
     if (!destination) return;
     router.push(destination);
     router.refresh();
-  }, [audience, returnTo, router]);
+  }, [audience, customerCopy.sync, returnTo, router]);
 
   const submitGoogle = useCallback(
     async (credential: string) => {
@@ -96,12 +101,12 @@ export function AuthForm({
             "ورود با گوگل انجام نشد. دوباره کوشش کنید."
         );
       } catch {
-        setError("ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.");
+        setError(customerCopy.connection);
       } finally {
         setBusy(false);
       }
     },
-    [finishAuthentication]
+    [customerCopy.connection, finishAuthentication]
   );
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -124,11 +129,11 @@ export function AuthForm({
       } else {
         setError(
           payload.error?.message ||
-            "معلومات واردشده را بررسی و دوباره کوشش کنید."
+            customerCopy.invalid
         );
       }
     } catch {
-      setError("ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.");
+      setError(customerCopy.connection);
     } finally {
       setBusy(false);
     }
@@ -139,48 +144,48 @@ export function AuthForm({
     <form className="auth-card" onSubmit={submit}>
       <Image
         className="auth-brand"
-        src="/branding/darmalton-wordmark.png"
+        src="/brand/darmalton-logo.png"
         alt="درملتون"
         width={2000}
         height={808}
         priority
       />
       <p className="eyebrow">
-        {audience === "staff" ? "دسترسی امن کارمندان" : "دسترسی امن مشتری"}
+        {audience === "staff" ? "دسترسی امن کارمندان" : customerCopy.secure}
       </p>
       <h1>
         {audience === "staff"
           ? "ورود به پنل کارمندان"
           : register
-            ? "ایجاد حساب کاربری"
-            : "خوش آمدید"}
+            ? customerCopy.create
+            : customerCopy.welcome}
       </h1>
       <p className="muted">
         {audience === "staff"
           ? "با حساب کارمند، داروساز یا مدیر وارد شوید."
           : register
-          ? "برای سفارش و پیگیری، معلومات خود را وارد کنید."
-          : "برای دیدن سبد و سفارش‌های خود وارد شوید."}
+          ? customerCopy.registerBody
+          : customerCopy.loginBody}
       </p>
       {returnTo && (
         <p className="auth-return-note">
-          پس از ورود به همان بخش قبلی برمی‌گردید و سبد شما حفظ می‌شود.
+          {audience === "staff" ? "پس از ورود به همان بخش قبلی برمی‌گردید." : customerCopy.returnNote}
         </p>
       )}
       {register && (
         <div className="two-columns">
           <label>
-            <span>نام</span>
+            <span>{customerCopy.first}</span>
             <input name="first_name" required autoComplete="given-name" />
           </label>
           <label>
-            <span>نام خانوادگی</span>
+            <span>{customerCopy.last}</span>
             <input name="last_name" required autoComplete="family-name" />
           </label>
         </div>
       )}
       <label>
-        <span>ایمیل</span>
+        <span>{t("email")}</span>
         <input
           dir="ltr"
           type="email"
@@ -191,12 +196,12 @@ export function AuthForm({
       </label>
       {register && (
         <label>
-          <span>شماره تماس (اختیاری)</span>
+          <span>{customerCopy.phone}</span>
           <input dir="ltr" name="phone" autoComplete="tel" />
         </label>
       )}
       <label>
-        <span>رمز عبور</span>
+        <span>{t("password")}</span>
         <input
           dir="ltr"
           type="password"
@@ -212,14 +217,14 @@ export function AuthForm({
         </p>
       )}
       <button className="primary wide" disabled={busy}>
-        {busy ? "لطفاً منتظر بمانید..." : register ? "ایجاد حساب" : "ورود"}
+        {busy ? customerCopy.wait : register ? customerCopy.createButton : customerCopy.loginButton}
       </button>
       {audience === "customer" && (
         <>
           {googleClientId && (
             <>
               <div className="auth-divider" aria-hidden="true">
-                <span>یا</span>
+                <span>{customerCopy.or}</span>
               </div>
               <GoogleSignInButton
                 clientId={googleClientId}
@@ -231,7 +236,7 @@ export function AuthForm({
             </>
           )}
           <p className="auth-switch">
-            {register ? "قبلاً ثبت‌نام کرده‌اید؟" : "حساب کاربری ندارید؟"}{" "}
+            {register ? customerCopy.registered : customerCopy.new}{" "}
             <Link
               href={`${register ? "/login" : "/register"}${
                 returnTo
@@ -239,13 +244,14 @@ export function AuthForm({
                   : ""
               }`}
             >
-              {register ? "ورود" : "ایجاد حساب"}
+              {register ? customerCopy.loginButton : customerCopy.createButton}
             </Link>
           </p>
         </>
       )}
       <p className="auth-switch">
-        <Link href="/">ادامه بدون ورود</Link>
+        {!register && audience === "customer" && <Link href="/forgot-password">{t("forgot")}</Link>}{" "}
+        <Link href="/">{audience === "staff" ? "ادامه بدون ورود" : customerCopy.continue}</Link>
       </p>
     </form>
   );

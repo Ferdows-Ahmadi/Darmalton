@@ -1,29 +1,34 @@
 import { CmsImage } from "./CmsImage";
 import { InfoPage } from "./InfoPage";
+import type { Locale } from "@/lib/locale";
 import type { PublicContentPage } from "@/lib/types";
 
 export function CmsInfoPage({
   page,
-  eyebrow
+  eyebrow,
+  locale = "fa-AF"
 }: {
   page: PublicContentPage;
   eyebrow: string;
+  locale?: Locale;
 }) {
+  const localized = (english: string, dari: string) =>
+    locale === "fa-AF" ? dari || english : english || dari;
   return (
     <InfoPage
       eyebrow={eyebrow}
-      title={page.title_dari || page.title}
-      intro={page.summary_dari || page.summary || page.body_dari || page.body}
+      title={localized(page.title, page.title_dari)}
+      intro={localized(page.summary, page.summary_dari) || localized(page.body, page.body_dari)}
     >
       {page.image_url && (
         <div className="cms-info-image">
           <CmsImage
             src={page.image_url}
-            alt={page.alt_text_dari || page.alt_text || page.title_dari}
+            alt={localized(page.alt_text, page.alt_text_dari) || localized(page.title, page.title_dari)}
           />
         </div>
       )}
-      <div className="cms-rich-text">{page.body_dari || page.body}</div>
+      <div className="cms-rich-text">{localized(page.body, page.body_dari)}</div>
     </InfoPage>
   );
 }

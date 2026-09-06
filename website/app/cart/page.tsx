@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-import { ApiError, apiFetch, money } from "@/lib/api";
+import { ApiError, apiFetch } from "@/lib/api";
 import { loginPath } from "@/lib/auth-navigation";
 import {
   guestCart,
@@ -11,12 +11,20 @@ import {
   updateGuestCartItem
 } from "@/lib/guest-cart";
 import { MedicineMedia } from "@/components/MedicineMedia";
+import { useLocale } from "@/components/LocaleProvider";
+import { formatMoney, productName } from "@/lib/locale";
 import type { Cart } from "@/lib/types";
 
 export default function CartPage() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [error, setError] = useState("");
   const [guest, setGuest] = useState(false);
+  const { locale, t } = useLocale();
+  const copy = locale === "en"
+    ? { kicker: "Your selections", count: "items in your cart", server: "Prices and availability come from the pharmacy server.", load: "The cart could not be loaded.", update: "The cart could not be updated.", remove: "The item could not be removed.", choose: "Choose an available product.", decrease: "Decrease quantity", increase: "Increase quantity" }
+    : locale === "fa-AF"
+      ? { kicker: "انتخاب‌های شما", count: "قلم محصول در سبد شما", server: "قیمت و موجودی سبد از سرور داروخانه خوانده می‌شود.", load: "سبد خرید بار نشد.", update: "سبد خرید به‌روز نشد.", remove: "محصول حذف نشد.", choose: "یک محصول موجود را انتخاب کنید.", decrease: "کاهش تعداد", increase: "افزایش تعداد" }
+      : { kicker: "ستاسو ټاکنې", count: "توکي ستاسو په ټوکرۍ کې", server: "بیه او موجودي د درملتون له سرور څخه راځي.", load: "ټوکرۍ پورته نه شوه.", update: "ټوکرۍ تازه نه شوه.", remove: "توکی لرې نه شو.", choose: "یو موجود توکی وټاکئ.", decrease: "شمېر کمول", increase: "شمېر زیاتول" };
 
   const load = useCallback(async function load() {
     try {
@@ -29,10 +37,10 @@ export default function CartPage() {
         setCart(guestCart());
         setError("");
       } else {
-        setError(err instanceof Error ? err.message : "سبد خرید بار نشد.");
+        setError(err instanceof Error ? err.message : copy.load);
       }
     }
-  }, []);
+  }, [copy.load]);
 
   useEffect(() => {
     void load();
@@ -52,7 +60,7 @@ export default function CartPage() {
       });
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "سبد خرید به‌روز نشد.");
+      setError(err instanceof Error ? err.message : copy.update);
     }
   }
 
@@ -66,23 +74,22 @@ export default function CartPage() {
       await apiFetch(`cart/items/${id}/`, { method: "DELETE" });
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "محصول حذف نشد.");
+      setError(err instanceof Error ? err.message : copy.remove);
     }
   }
 
   return (
-    <section className="page-section narrow">
-      <p className="eyebrow">انتخاب‌های شما</p>
-      <h1>سبد خرید</h1>
+    <section className="page-section">
+      <p className="eyebrow">{copy.kicker}</p>
+      <h1>{t("cart")}</h1>
       <p className="muted">
         {cart
-          ? `${cart.item_count.toLocaleString("fa-AF")} قلم محصول در سبد شما`
-          : "قیمت و موجودی سبد از سرور داروخانه خوانده می‌شود."}
+          ? `${cart.item_count.toLocaleString(locale)} ${copy.count}`
+          : copy.server}
       </p>
       {guest && (
         <p className="guest-cart-note">
-          این سبد روی همین دستگاه نگهداری می‌شود. هنگام ادامه به پرداخت، برای
-          حفظ و همگام‌سازی آن وارد حساب شوید.
+          {t("guestCart")}
         </p>
       )}
       {error && (
@@ -90,22 +97,21 @@ export default function CartPage() {
           {error}
         </p>
       )}
-      {!cart && !error && <div className="loading">در حال بارگذاری سبد...</div>}
+      {!cart && !error && <div className="loading">{t("loading")}</div>}
       {cart && !cart.items.length && (
         <div className="empty-state">
-          <h2>سبد خرید شما خالی است</h2>
-          <p>یک محصول موجود را انتخاب کنید.</p>
-          <Link className="button" href="/">
-            مشاهده محصولات
+          <h2>{t("emptyCart")}</h2>
+          <p>{copy.choose}</p>
+          <Link className="button" href="/shop">
+            {t("continueShopping")}
           </Link>
         </div>
       )}
       {cart && cart.items.length > 0 && (
-        <>
+        <div className="commerce-layout">
           <div className="cart-list">
             {cart.items.map((item) => {
-              const name =
-                item.medicine.brand_name_dari || item.medicine.brand_name;
+              const name = productName(item.medicine, locale);
               return (
                 <article key={item.id} className="cart-row">
                   <MedicineMedia
@@ -123,48 +129,48 @@ export default function CartPage() {
                   </div>
                   <div
                     className="quantity"
-                    aria-label={`تعداد ${name}`}
+                    aria-label={`${t("quantity")}: ${name}`}
                     dir="ltr"
                   >
                     <button
                       onClick={() => update(item.id, item.quantity - 1)}
                       disabled={item.quantity <= 1}
-                      aria-label="کاهش تعداد"
+                      aria-label={copy.decrease}
                     >
                       −
                     </button>
-                    <span>{item.quantity.toLocaleString("fa-AF")}</span>
+                    <span>{item.quantity.toLocaleString(locale)}</span>
                     <button
                       onClick={() => update(item.id, item.quantity + 1)}
                       disabled={item.quantity >= item.available_quantity}
-                      aria-label="افزایش تعداد"
+                      aria-label={copy.increase}
                     >
                       +
                     </button>
                   </div>
-                  <strong>{money(item.line_total)}</strong>
+                  <strong>{formatMoney(item.line_total, locale)}</strong>
                   <button
                     className="danger-link"
                     onClick={() => remove(item.id)}
                   >
-                    حذف
+                    {t("remove")}
                   </button>
                 </article>
               );
             })}
           </div>
-          <div className="cart-summary">
-            <span>مجموع فعلی</span>
-            <strong>{money(cart.subtotal)}</strong>
-            <small>مجموع نهایی و موجودی هنگام ثبت سفارش دوباره تأیید می‌شود.</small>
+          <aside className="summary">
+            <h2>{t("summary")}</h2>
+            <div className="summary-row"><span>{t("subtotal")}</span><strong>{formatMoney(cart.subtotal, locale)}</strong></div>
+            <small>{t("finalPrice")}</small>
             <Link
-              className="button primary"
+              className="button wide"
               href={guest ? loginPath("/checkout") : "/checkout"}
             >
-              ادامه به پرداخت
+              {t("checkout")}
             </Link>
-          </div>
-        </>
+          </aside>
+        </div>
       )}
     </section>
   );

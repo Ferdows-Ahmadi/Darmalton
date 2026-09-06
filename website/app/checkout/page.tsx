@@ -3,8 +3,9 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { apiFetch, money } from "@/lib/api";
-import { loginPath } from "@/lib/auth-navigation";
+import { apiFetch } from "@/lib/api";
+import { useLocale } from "@/components/LocaleProvider";
+import { formatMoney } from "@/lib/locale";
 import type { Address, Cart, Order, PageResult } from "@/lib/types";
 
 const emptyAddress = {
@@ -28,6 +29,12 @@ export default function CheckoutPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { locale, t } = useLocale();
+  const copy = locale === "en"
+    ? { home: "Home", intro: "Choose a delivery address. Cash on delivery is the only payment method currently available.", saveError: "The address could not be saved.", confirm: "Place a cash-on-delivery order for", orderError: "The order could not be placed.", other: "Add another address", new: "New delivery address", optional: "optional", cod: "Cash on delivery", placing: "Placing order…" }
+    : locale === "fa-AF"
+      ? { home: "خانه", intro: "آدرس تحویل را انتخاب کنید. در این مرحله فقط پرداخت نقدی هنگام تحویل پشتیبانی می‌شود.", saveError: "آدرس ذخیره نشد.", confirm: "سفارش پرداخت هنگام تحویل ثبت شود؟ مبلغ", orderError: "سفارش ثبت نشد.", other: "افزودن آدرس دیگر", new: "آدرس تحویل جدید", optional: "اختیاری", cod: "نقدی هنگام تحویل", placing: "در حال ثبت سفارش…" }
+      : { home: "کور", intro: "د سپارلو پته وټاکئ. اوس یوازې د سپارلو پر مهال نغدې پیسې منل کېږي.", saveError: "پته ونه ساتل شوه.", confirm: "د سپارلو پر مهال د نغدو پیسو فرمایش ثبت شي؟ بیه", orderError: "فرمایش ثبت نه شو.", other: "بله پته زیاتول", new: "د سپارلو نوې پته", optional: "اختیاري", cod: "د سپارلو پر مهال نغدې پیسې", placing: "فرمایش ثبتېږي…" };
 
   const load = useCallback(async function load() {
     try {
@@ -42,7 +49,7 @@ export default function CheckoutPage() {
       );
       setShowForm(!list.length);
     } catch {
-      router.push(loginPath("/checkout"));
+      router.push("/checkout/login");
     }
   }, [router]);
 
@@ -64,7 +71,7 @@ export default function CheckoutPage() {
       await load();
       setSelected(address.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "آدرس ذخیره نشد.");
+      setError(err instanceof Error ? err.message : copy.saveError);
     } finally {
       setBusy(false);
     }
@@ -74,7 +81,7 @@ export default function CheckoutPage() {
     if (!selected || !cart?.items.length) return;
     if (
       !window.confirm(
-        `سفارش پرداخت هنگام تحویل به مبلغ ${money(cart.subtotal)} ثبت شود؟`
+        `${copy.confirm} ${formatMoney(cart.subtotal, locale)}`
       )
     ) {
       return;
@@ -86,21 +93,18 @@ export default function CheckoutPage() {
         method: "POST",
         body: JSON.stringify({ address_id: selected })
       });
-      router.push(`/orders/${order.id}?placed=1`);
+      router.push(`/account/orders/${order.id}?placed=1`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "سفارش ثبت نشد.");
+      setError(err instanceof Error ? err.message : copy.orderError);
       setBusy(false);
     }
   }
 
   return (
     <section className="page-section narrow">
-      <p className="eyebrow">پرداخت هنگام تحویل</p>
-      <h1>ثبت سفارش</h1>
-      <p className="muted">
-        آدرس تحویل را انتخاب کنید. در این مرحله فقط پرداخت نقدی هنگام تحویل
-        پشتیبانی می‌شود.
-      </p>
+      <p className="eyebrow">{copy.cod}</p>
+      <h1>{t("checkout")}</h1>
+      <p className="muted">{copy.intro}</p>
       {error && (
         <p className="form-error" role="alert">
           {error}
@@ -108,7 +112,7 @@ export default function CheckoutPage() {
       )}
       {!showForm && (
         <>
-          <h2 className="subheading">آدرس تحویل</h2>
+          <h2 className="subheading">{t("address")}</h2>
           <div className="address-grid">
             {addresses.map((address) => (
               <label
@@ -124,7 +128,7 @@ export default function CheckoutPage() {
                   checked={selected === address.id}
                   onChange={() => setSelected(address.id)}
                 />
-                <strong>{address.label || "آدرس تحویل"}</strong>
+                <strong>{address.label || t("address")}</strong>
                 <span>
                   {address.recipient_name} ·{" "}
                   <bdi dir="ltr">{address.recipient_phone}</bdi>
@@ -138,22 +142,22 @@ export default function CheckoutPage() {
               className="secondary"
               onClick={() => setShowForm(true)}
             >
-              افزودن آدرس دیگر
+              {copy.other}
             </button>
           </div>
         </>
       )}
       {showForm && (
         <form className="panel form-grid" onSubmit={createAddress}>
-          <h2>آدرس تحویل جدید</h2>
+          <h2>{copy.new}</h2>
           {Object.entries({
-            recipient_name: "نام تحویل‌گیرنده",
-            recipient_phone: "شماره تماس",
-            province: "ولایت",
-            city: "شهر",
-            district: "ناحیه (اختیاری)",
-            street_address: "آدرس دقیق",
-            landmark: "نشانی نزدیک (اختیاری)"
+            recipient_name: t("recipient_name"),
+            recipient_phone: t("recipient_phone"),
+            province: t("province"),
+            city: t("city"),
+            district: `${t("district")} (${copy.optional})`,
+            street_address: t("street_address"),
+            landmark: `${t("landmark")} (${copy.optional})`
           }).map(([name, label]) => (
             <label
               key={name}
@@ -165,26 +169,26 @@ export default function CheckoutPage() {
               <input
                 name={name}
                 dir={name === "recipient_phone" ? "ltr" : undefined}
-                required={!label.includes("اختیاری")}
+                required={!name.match(/district|landmark/)}
               />
             </label>
           ))}
           <button className="primary" disabled={busy}>
-            ذخیره آدرس
+            {t("save")}
           </button>
         </form>
       )}
       {!showForm && (
         <>
           <div className="panel checkout-summary">
-            <h2>خلاصه سفارش</h2>
+            <h2>{t("summary")}</h2>
             <div>
-              <span>قیمت محصولات</span>
-              <strong>{money(cart?.subtotal ?? null)}</strong>
+              <span>{t("subtotal")}</span>
+              <strong>{formatMoney(cart?.subtotal ?? null, locale)}</strong>
             </div>
             <div>
-              <span>روش پرداخت</span>
-              <strong>نقدی هنگام تحویل</strong>
+              <span>{t("payment")}</span>
+              <strong>{copy.cod}</strong>
             </div>
           </div>
           <button
@@ -192,7 +196,7 @@ export default function CheckoutPage() {
             disabled={!selected || !cart?.items.length || busy}
             onClick={placeOrder}
           >
-            {busy ? "در حال ثبت سفارش..." : "ثبت سفارش"}
+            {busy ? copy.placing : t("placeOrder")}
           </button>
         </>
       )}
