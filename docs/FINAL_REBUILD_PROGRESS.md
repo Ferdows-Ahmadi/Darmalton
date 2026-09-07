@@ -22,6 +22,55 @@ The existing checkout has fewer customer routes and no shared three-language web
 
 Existing Docker containers include a separate Darmalton-Team checkout on ports 3000/8000. Rebuild QA must use its own PostgreSQL container and ports.
 
-## Acceptance
+## Acceptance — 2026-09-07
 
-Pending implementation and final verification. No push or deployment is authorized.
+### Completed checkpoints
+
+- `36310c8` prepared and verified the supplied V1 visual assets without repeating
+  the already-completed source analysis or image mapping.
+- `5d47b95` added the guarded, idempotent development workbook importer. The
+  verified sample result is 61 medicines, 50 source batch rows, 11 documented
+  deterministic synthetic batches and 59 mapped product images. The supplied
+  medicine identity and medical/product fields remain unchanged.
+- `f09ca2b` established the final customer shell, live catalogue and responsive
+  home/shop/product composition.
+- `a7016c0` completed the customer route surface and English, Dari and Pashto
+  localization, including RTL behavior, account/auth/cart/checkout/order/
+  prescription states, public information routes and responsive aliases.
+- `93ad29e` completed the interrupted acceptance checkpoint: deterministic
+  browser-independent localized numerals, synchronized locale switching, safe
+  missing-image fallback responses, mapped local sample-media wiring and focused
+  regression tests.
+
+### Verification
+
+- Backend on the final implementation: Ruff passed; Django system check passed;
+  migration consistency reported no changes; all 107 tests passed on the
+  documented SQLite workstation fallback.
+- Website on the final implementation: strict TypeScript and ESLint passed; all
+  45 tests passed; the isolated production build compiled and generated 61
+  pages successfully.
+- Flutter: `flutter analyze` reported no issues and all 71 tests passed.
+- Live route smoke returned HTTP 200 for 37 public/customer routes, with the
+  real dynamic medicine route also checked. Dynamic category and manufacturer
+  routes were separately verified with source-backed values.
+- Browser QA covered the rebuilt customer route set at desktop and 390-pixel
+  mobile widths. The final fresh-browser pass verified English LTR, Dari RTL and
+  Pashto RTL switching, preserved search state, deterministic localized prices
+  and counts, no document overflow, a persisted guest cart, real mapped product
+  images, the missing-source image fallback and zero console warnings/errors.
+- The dedicated local PostgreSQL rebuild database passed the 106-test suite and
+  guarded sample import earlier in this rebuild. Before the final-head rerun,
+  Docker Desktop stopped responding: its API did not answer within 30 seconds
+  and PostgreSQL connections to the still-bound rebuild port stalled. Docker was
+  not restarted because unrelated user containers are in scope on that engine.
+  The exact-final-head PostgreSQL/Compose/integrated-smoke rerun therefore remains
+  an environmental acceptance blocker. No schema change was introduced after
+  the successful PostgreSQL run; the subsequent backend change is covered by a
+  focused missing-file fallback test in the 107-test fallback suite.
+
+### Handoff state
+
+The rebuild remains on `customer-storefront-v1-final-rebuild`. Local review runs
+at `http://127.0.0.1:3002` against the isolated sample-data backend on port 8002.
+No push, deployment, production service, VPS or DNS action was performed.

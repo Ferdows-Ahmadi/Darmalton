@@ -847,3 +847,30 @@
   recovery. English persisted across a cold launch, Dari was restored and also
   passed a final cold launch, and app-scoped logcat contained zero fatal,
   unhandled, Flutter, Dio, socket, HTTP-image, or image-codec error matches.
+
+## 2026-09-07 - Final storefront rebuild
+
+- Rebuilt the customer storefront directly on the preserved
+  `customer-storefront-v1-final-rebuild` branch, using the supplied V1 route,
+  state, responsive and localization references. English uses LTR; Dari and
+  Pashto use RTL with shared responsive customer chrome and live API-backed
+  catalogue, cart, checkout, account, order and prescription flows.
+- Imported the 61-row development workbook through the guarded local-only
+  importer. Source identity/medical fields were preserved; missing operational
+  values use the deterministic rules documented in `SAMPLE_INVENTORY.md`.
+  Verification produced 50 source batches, 11 synthetic batches and 59 mapped
+  product images, with the two source-missing images kept on the safe fallback.
+- Completed the interrupted browser checkpoint by removing cross-runtime locale
+  numeral drift, synchronizing locale transitions and returning the standard
+  SVG when a database image record points to a missing file.
+- Final independent gates passed: Ruff, Django checks and migration consistency,
+  107 backend fallback tests, TypeScript, ESLint, 45 website tests, a 61-page
+  Next.js production build, Flutter analysis, 71 Flutter tests, 37 live customer
+  route responses plus dynamic category/manufacturer routes, and responsive
+  browser QA with no overflow or console issues.
+- PostgreSQL had already passed 106 tests and the sample-import acceptance in
+  the dedicated local rebuild database. Docker Desktop became unresponsive
+  before the exact-final-head rerun; neither Docker nor unrelated containers
+  were restarted. PostgreSQL/Compose/integrated-smoke reruns remain explicitly
+  blocked on that local engine recovering. No production or deployment action
+  was taken.
