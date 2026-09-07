@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { AddToCart } from "@/components/AddToCart";
 import { MedicineMedia } from "@/components/MedicineMedia";
-import { formatMoney, productName, textFor } from "@/lib/locale";
+import { formatMoney, formatNumber, productName, textFor } from "@/lib/locale";
 import { publicApi } from "@/lib/server-api";
 import { serverLocale } from "@/lib/server-locale";
 import type { Medicine } from "@/lib/types";
@@ -84,7 +84,7 @@ export default async function MedicinePage({
             <span>{copy.current}</span>
             <strong>{formatMoney(medicine.price, locale)}</strong>
             <small>
-              {medicine.available_quantity.toLocaleString(locale)} {copy.available}
+              {formatNumber(medicine.available_quantity, locale)} {copy.available}
             </small>
           </div>
           <AddToCart

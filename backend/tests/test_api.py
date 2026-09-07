@@ -273,6 +273,20 @@ def test_medicine_image_upload_validation_and_permissions(
     assert too_small.data["error"]["fields"]["image"]
 
 
+def test_missing_medicine_image_file_returns_safe_fallback(
+    api_client, medicine, settings, tmp_path
+):
+    settings.MEDIA_ROOT = tmp_path
+    image = MedicineImage.objects.create(medicine=medicine, image="products/missing.webp")
+
+    response = api_client.get(f"/api/v1/medicine-images/{image.id}/content/")
+
+    assert response.status_code == 200
+    assert response["Content-Type"] == "image/svg+xml"
+    assert response["X-Content-Type-Options"] == "nosniff"
+    response.close()
+
+
 def test_missing_medicine_image_report_excludes_uploaded_images(medicine, settings, tmp_path):
     settings.MEDIA_ROOT = tmp_path
     before = StringIO()

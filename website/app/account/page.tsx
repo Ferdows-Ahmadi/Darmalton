@@ -8,6 +8,7 @@ import { ApiError, apiFetch } from "@/lib/api";
 import { loginPath } from "@/lib/auth-navigation";
 import { AccountShell } from "@/components/AccountShell";
 import { useLocale } from "@/components/LocaleProvider";
+import { formatNumber } from "@/lib/locale";
 import type { Address, Order, PageResult, User } from "@/lib/types";
 
 export default function AccountPage() {
@@ -59,11 +60,11 @@ export default function AccountPage() {
           </div>
           <div className="account-stats">
             <Link href="/account/orders">
-              <strong>{orderCount.toLocaleString(locale)}</strong>
+              <strong>{formatNumber(orderCount, locale)}</strong>
               <span>{t("orders")}</span>
             </Link>
             <Link href="/account/addresses">
-              <strong>{addressCount.toLocaleString(locale)}</strong>
+              <strong>{formatNumber(addressCount, locale)}</strong>
               <span>{t("addresses")}</span>
             </Link>
           </div>

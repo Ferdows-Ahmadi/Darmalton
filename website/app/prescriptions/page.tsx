@@ -9,6 +9,7 @@ import { loginPath } from "@/lib/auth-navigation";
 import { AccountShell } from "@/components/AccountShell";
 import { useLocale } from "@/components/LocaleProvider";
 import { prescriptionStatus } from "@/lib/status";
+import { formatNumber } from "@/lib/locale";
 import type { PageResult, Prescription } from "@/lib/types";
 
 function uploadWithProgress(
@@ -138,7 +139,7 @@ export default function PrescriptionsPage() {
         body: JSON.stringify({})
       });
       setSuccess(result.added_count > 0
-        ? `${result.added_count.toLocaleString(locale)} ${copy.added}`
+        ? `${formatNumber(result.added_count, locale)} ${copy.added}`
         : copy.already);
       router.push("/cart");
     } catch (err) {
@@ -197,7 +198,7 @@ export default function PrescriptionsPage() {
         {progress !== null && (
           <div className="upload-progress" aria-live="polite">
             <span style={{ width: `${progress}%` }} />
-            <small>{progress.toLocaleString(locale)}% {copy.uploaded}</small>
+            <small>{formatNumber(progress, locale)}% {copy.uploaded}</small>
           </div>
         )}
         {error && <p className="form-error" role="alert">{error}</p>}
@@ -268,7 +269,7 @@ export default function PrescriptionsPage() {
                   <div className="authorized-row" key={authorized.id}>
                     <p>
                       {authorized.medicine_name} — {copy.upTo}{" "}
-                      {authorized.max_quantity.toLocaleString(locale)} {copy.units}
+                      {formatNumber(authorized.max_quantity, locale)} {copy.units}
                     </p>
                   </div>
                 ))}

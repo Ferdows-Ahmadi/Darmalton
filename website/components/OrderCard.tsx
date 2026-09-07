@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useLocale } from "./LocaleProvider";
-import { formatMoney } from "@/lib/locale";
+import { formatMoney, formatNumber } from "@/lib/locale";
 import { orderStatus } from "@/lib/status";
 import type { Order } from "@/lib/types";
 
@@ -24,7 +24,7 @@ export function OrderCard({ order }: { order: Order }) {
       </div>
       <div>
         <strong>{formatMoney(order.grand_total, locale)}</strong>
-        <span>{order.items.length.toLocaleString(locale)} {t("results")}</span>
+        <span>{formatNumber(order.items.length, locale)} {t("results")}</span>
       </div>
     </Link>
   );

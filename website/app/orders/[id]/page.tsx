@@ -7,7 +7,7 @@ import { ApiError, apiFetch } from "@/lib/api";
 import { loginPath } from "@/lib/auth-navigation";
 import { AccountShell } from "@/components/AccountShell";
 import { useLocale } from "@/components/LocaleProvider";
-import { formatMoney } from "@/lib/locale";
+import { formatMoney, formatNumber } from "@/lib/locale";
 import { orderStatus } from "@/lib/status";
 import type { Order } from "@/lib/types";
 
@@ -104,7 +104,7 @@ export default function OrderPage() {
         {order.items.map((item) => (
           <div className="summary-row" key={item.id}>
             <span>
-              {item.quantity.toLocaleString(locale)} × {item.medicine_name}{" "}
+              {formatNumber(item.quantity, locale)} × {item.medicine_name}{" "}
               <bdi dir="ltr">{item.strength}</bdi>
             </span>
             <strong>{formatMoney(item.line_total, locale)}</strong>

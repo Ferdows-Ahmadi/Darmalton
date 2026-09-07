@@ -88,5 +88,16 @@ const words = {
 } as const;
 export type TextKey = keyof typeof words;
 export function textFor(locale: Locale, key: TextKey): string { return words[key][locale === "en" ? 0 : locale === "fa-AF" ? 1 : 2]; }
-export function formatMoney(value: string | null, locale: Locale) { return value === null ? textFor(locale,"noPrice") : `${Number(value).toLocaleString(locale)} ${textFor(locale,"afn")}`; }
+const easternArabicDigits = "۰۱۲۳۴۵۶۷۸۹";
+export function formatNumber(value: number | string, locale: Locale) {
+  const numeric = Number(value);
+  const raw = Number.isFinite(numeric) ? String(numeric) : String(value);
+  const [integer, fraction] = raw.split(".");
+  const sign = integer.startsWith("-") ? "-" : "";
+  const digits = sign ? integer.slice(1) : integer;
+  const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const ascii = `${sign}${grouped}${fraction === undefined ? "" : `.${fraction}`}`;
+  return locale === "en" ? ascii : ascii.replace(/\d/g, digit => easternArabicDigits[Number(digit)]);
+}
+export function formatMoney(value: string | null, locale: Locale) { return value === null ? textFor(locale,"noPrice") : `${formatNumber(value,locale)} ${textFor(locale,"afn")}`; }
 export function productName(m: {brand_name: string; brand_name_dari: string}, locale: Locale) { return locale === "en" ? m.brand_name : m.brand_name_dari || m.brand_name; }

@@ -388,12 +388,15 @@ class MedicineImageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=("get",), url_path="content")
     def content(self, request, pk=None):
         instance = self.get_object()
-        if not instance.image:
+        if not instance.image or not instance.image.storage.exists(instance.image.name):
             fallback = settings.BASE_DIR / "static" / "medicine-fallback.svg"
-            return FileResponse(
+            response = FileResponse(
                 fallback.open("rb"),
                 content_type="image/svg+xml",
             )
+            response["Cache-Control"] = "public, max-age=300"
+            response["X-Content-Type-Options"] = "nosniff"
+            return response
 
         storage = instance.image.storage
         size = storage.size(instance.image.name)

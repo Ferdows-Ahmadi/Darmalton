@@ -12,7 +12,7 @@ import {
 } from "@/lib/guest-cart";
 import { MedicineMedia } from "@/components/MedicineMedia";
 import { useLocale } from "@/components/LocaleProvider";
-import { formatMoney, productName } from "@/lib/locale";
+import { formatMoney, formatNumber, productName } from "@/lib/locale";
 import type { Cart } from "@/lib/types";
 
 export default function CartPage() {
@@ -84,7 +84,7 @@ export default function CartPage() {
       <h1>{t("cart")}</h1>
       <p className="muted">
         {cart
-          ? `${cart.item_count.toLocaleString(locale)} ${copy.count}`
+          ? `${formatNumber(cart.item_count, locale)} ${copy.count}`
           : copy.server}
       </p>
       {guest && (
@@ -139,7 +139,7 @@ export default function CartPage() {
                     >
                       −
                     </button>
-                    <span>{item.quantity.toLocaleString(locale)}</span>
+                    <span>{formatNumber(item.quantity, locale)}</span>
                     <button
                       onClick={() => update(item.id, item.quantity + 1)}
                       disabled={item.quantity >= item.available_quantity}

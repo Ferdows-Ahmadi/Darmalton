@@ -4,6 +4,8 @@ The user clarified on 2026-09-06 that the workbook is development/demo data. Thi
 
 The importer requires `DEVELOPMENT_SAMPLE_DATA=true`, non-production settings and a local database host. Rebuild validation uses only `darmalton_final_rebuild` on localhost port 55432. It does not load production environment files.
 
+For this rebuild, the mapped sample product files live under `website/public/products`. Run the local backend that reads the imported image records with `DJANGO_MEDIA_ROOT` set to the absolute `website/public` directory. This is local sample-data wiring only; production media configuration remains unchanged.
+
 Deterministic defaults, where `n` is the SKU number:
 
 - Missing quantity: `20 + (n % 6) * 10` units.

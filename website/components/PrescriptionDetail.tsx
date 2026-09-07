@@ -10,6 +10,7 @@ import { State } from "./StoreUI";
 import { ApiError, apiFetch } from "@/lib/api";
 import { loginPath } from "@/lib/auth-navigation";
 import { prescriptionStatus } from "@/lib/status";
+import { formatNumber } from "@/lib/locale";
 import type { Prescription } from "@/lib/types";
 
 export function PrescriptionDetail({ id }: { id: string }) {
@@ -108,7 +109,7 @@ export function PrescriptionDetail({ id }: { id: string }) {
                 {item.authorized_medicines.map((medicine) => (
                   <div className="summary-row" key={medicine.id}>
                     <span>{medicine.medicine_name}</span>
-                    <strong>{medicine.max_quantity.toLocaleString(locale)}</strong>
+                    <strong>{formatNumber(medicine.max_quantity, locale)}</strong>
                   </div>
                 ))}
                 {item.can_add_to_cart && (
