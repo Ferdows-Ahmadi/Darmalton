@@ -868,9 +868,18 @@
   Next.js production build, Flutter analysis, 71 Flutter tests, 37 live customer
   route responses plus dynamic category/manufacturer routes, and responsive
   browser QA with no overflow or console issues.
-- PostgreSQL had already passed 106 tests and the sample-import acceptance in
-  the dedicated local rebuild database. Docker Desktop became unresponsive
-  before the exact-final-head rerun; neither Docker nor unrelated containers
-  were restarted. PostgreSQL/Compose/integrated-smoke reruns remain explicitly
-  blocked on that local engine recovering. No production or deployment action
-  was taken.
+- Completed the remaining PostgreSQL gate against exact implementation HEAD
+  `c94b3000f3c6d87b6638db1354f4e0d39959f0f4`. Because Docker Desktop remained
+  unresponsive, PostgreSQL 17.11 ran as an ephemeral loopback-only workspace
+  cluster on port 55433; Docker was not restarted and no existing container was
+  changed. Django checks, migration consistency/application and all 107 backend
+  tests passed.
+- The guarded dry run rolled back all 61 medicine rows. The first import created
+  61 medicines, 50 source batches plus 11 synthetic batches and 59 image records;
+  the idempotency rerun created zero batches and skipped all 61 existing batches.
+  Database/API assertions confirmed 54 active and 7 inactive medicines, the
+  exact 61-SKU set with no duplicates, positive approved sample stock for every
+  SKU, 59 existing mapped files, exact MED-0011/MED-0012 fallbacks, public prices
+  for all 54 public medicines and no public purchase/cost/provenance fields.
+- All rebuild repository acceptance gates are complete. No production or
+  deployment action was taken.

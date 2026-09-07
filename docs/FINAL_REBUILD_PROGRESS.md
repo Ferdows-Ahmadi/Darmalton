@@ -45,8 +45,8 @@ Existing Docker containers include a separate Darmalton-Team checkout on ports 3
 ### Verification
 
 - Backend on the final implementation: Ruff passed; Django system check passed;
-  migration consistency reported no changes; all 107 tests passed on the
-  documented SQLite workstation fallback.
+  migration consistency reported no changes; all 107 tests passed on both the
+  documented SQLite workstation fallback and PostgreSQL 17.11.
 - Website on the final implementation: strict TypeScript and ESLint passed; all
   45 tests passed; the isolated production build compiled and generated 61
   pages successfully.
@@ -59,18 +59,32 @@ Existing Docker containers include a separate Darmalton-Team checkout on ports 3
   Pashto RTL switching, preserved search state, deterministic localized prices
   and counts, no document overflow, a persisted guest cart, real mapped product
   images, the missing-source image fallback and zero console warnings/errors.
-- The dedicated local PostgreSQL rebuild database passed the 106-test suite and
-  guarded sample import earlier in this rebuild. Before the final-head rerun,
-  Docker Desktop stopped responding: its API did not answer within 30 seconds
-  and PostgreSQL connections to the still-bound rebuild port stalled. Docker was
-  not restarted because unrelated user containers are in scope on that engine.
-  The exact-final-head PostgreSQL/Compose/integrated-smoke rerun therefore remains
-  an environmental acceptance blocker. No schema change was introduced after
-  the successful PostgreSQL run; the subsequent backend change is covered by a
-  focused missing-file fallback test in the 107-test fallback suite.
+- The exact-final-head PostgreSQL gate completed against
+  `c94b3000f3c6d87b6638db1354f4e0d39959f0f4` using PostgreSQL 17.11 in an
+  ephemeral loopback-only workspace cluster on port 55433. The portable archive
+  SHA-256 was `4B8DB0930C38F6EF845DB919551DEDDA3B6B845AEB0927B3D79A6E8E9E4537CF`.
+  Docker Desktop remained unresponsive and was not restarted; no existing
+  container was inspected, stopped or changed.
+- On that PostgreSQL database, Django reported no system issues or migration
+  drift, all migrations applied cleanly and all 107 backend tests passed in
+  53.06 seconds.
+- The guarded workbook dry run read all 61 medicines and rolled back. The first
+  committed import created 61 medicines and 61 batches (50 source rows plus 11
+  deterministic synthetic batches), mapped 59 images and retained MED-0011 and
+  MED-0012 as the only missing-image SKUs. The immediate rerun created no
+  medicines or batches, updated 61 medicine records and skipped all 61 existing
+  batches, confirming that reruns do not replenish consumed stock.
+- Direct PostgreSQL/API assertions confirmed the exact MED-0001 through
+  MED-0061 SKU set, no duplicate SKU groups, 54 active and 7 inactive medicines,
+  61 active/approved/positive-stock/future-expiry sample batches, 59 mapped image
+  files, safe SVG responses for missing files, and public selling prices/in-stock
+  state for all 54 public medicines. Public payloads exposed no purchase price,
+  cost price or private source-provenance fields.
 
 ### Handoff state
 
-The rebuild remains on `customer-storefront-v1-final-rebuild`. Local review runs
-at `http://127.0.0.1:3002` against the isolated sample-data backend on port 8002.
-No push, deployment, production service, VPS or DNS action was performed.
+The rebuild remains on `customer-storefront-v1-final-rebuild`. All repository
+acceptance gates for the rebuild are complete and the source is ready for the
+separate deployment process. Local review runs at `http://127.0.0.1:3002`
+against the isolated sample-data backend on port 8002. No push, deployment,
+production service, VPS or DNS action was performed.
