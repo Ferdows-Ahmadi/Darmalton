@@ -11,14 +11,18 @@ import {
   updateGuestCartItem
 } from "@/lib/guest-cart";
 import { MedicineMedia } from "@/components/MedicineMedia";
+import { MedicineCard } from "@/components/MedicineCard";
+import { Toast } from "@/components/Toast";
 import { useLocale } from "@/components/LocaleProvider";
 import { formatMoney, formatNumber, productName } from "@/lib/locale";
-import type { Cart } from "@/lib/types";
+import { groupMedicineFamilies } from "@/lib/storefront";
+import type { Cart, Medicine, PageResult } from "@/lib/types";
 
 export default function CartPage() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [error, setError] = useState("");
   const [guest, setGuest] = useState(false);
+  const [recommendations, setRecommendations] = useState<Medicine[]>([]);
   const { locale, t } = useLocale();
   const copy = locale === "en"
     ? { kicker: "Your selections", count: "items in your cart", server: "Prices and availability come from the pharmacy server.", load: "The cart could not be loaded.", update: "The cart could not be updated.", remove: "The item could not be removed.", choose: "Choose an available product.", decrease: "Decrease quantity", increase: "Increase quantity" }
@@ -45,6 +49,13 @@ export default function CartPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (cart?.items.length !== 0 || recommendations.length) return;
+    apiFetch<PageResult<Medicine>>("medicines/?ordering=name")
+      .then((result) => setRecommendations(result.results))
+      .catch(() => undefined);
+  }, [cart, recommendations.length]);
 
   async function update(id: string, quantity: number) {
     if (quantity < 1) return;
@@ -92,20 +103,23 @@ export default function CartPage() {
           {t("guestCart")}
         </p>
       )}
-      {error && (
-        <p className="form-error" role="alert">
-          {error}
-        </p>
-      )}
+      {error && <Toast kind="error" message={error} />}
       {!cart && !error && <div className="loading">{t("loading")}</div>}
       {cart && !cart.items.length && (
-        <div className="empty-state">
-          <h2>{t("emptyCart")}</h2>
-          <p>{copy.choose}</p>
-          <Link className="button" href="/shop">
-            {t("continueShopping")}
-          </Link>
-        </div>
+        <>
+          <div className="empty-state cart-empty-state">
+            <span className="empty-cart-illustration" aria-hidden="true"><span>＋</span></span>
+            <div><p className="eyebrow">Darmalton</p><h2>{t("emptyCart")}</h2><p>{copy.choose}</p>
+              <Link className="button" href="/shop">{t("continueShopping")}</Link>
+            </div>
+          </div>
+          {recommendations.length > 0 && <section className="section empty-cart-recommendations">
+            <div className="section-heading"><h2>{t("popularMedicines")}</h2><Link href="/shop">{t("viewAll")}</Link></div>
+            <div className="product-rail">
+              {groupMedicineFamilies(recommendations).slice(0, 6).map((family) => <MedicineCard key={family.code} medicine={family.medicine} variants={family.variants} />)}
+            </div>
+          </section>}
+        </>
       )}
       {cart && cart.items.length > 0 && (
         <div className="commerce-layout">

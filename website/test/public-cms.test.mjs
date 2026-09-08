@@ -9,6 +9,10 @@ const publicCms = readFileSync(
   "utf8"
 );
 const home = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
+const heroCarousel = readFileSync(
+  new URL("../components/HeroCarousel.tsx", import.meta.url),
+  "utf8"
+);
 const articleIndex = readFileSync(
   new URL("../app/health-articles/page.tsx", import.meta.url),
   "utf8"
@@ -47,9 +51,10 @@ test("public CMS media remains behind the same-site guarded asset proxy", () => 
 
 test("Home uses CMS with curated zero-state fallbacks", () => {
   assert.match(home, /publicHomeCms/);
-  assert.match(home, /heroTitle \|\|/);
-  assert.match(home, /health-delivered\.webp/);
-  assert.match(home, /featuredMedicines\.length > 0/);
+  assert.match(home, /<HeroCarousel slides=\{heroes\}/);
+  assert.match(heroCarousel, /health-delivered\.webp/);
+  assert.match(heroCarousel, /t\("heroTitle"\)/);
+  assert.match(home, /cmsFamilies\.length/);
   assert.match(home, /articles\.length > 0/);
 });
 

@@ -8,6 +8,7 @@ import { ApiError, apiFetch } from "@/lib/api";
 import { loginPath } from "@/lib/auth-navigation";
 import { AccountShell } from "@/components/AccountShell";
 import { useLocale } from "@/components/LocaleProvider";
+import { Toast } from "@/components/Toast";
 import { prescriptionStatus } from "@/lib/status";
 import { formatNumber } from "@/lib/locale";
 import type { PageResult, Prescription } from "@/lib/types";
@@ -47,20 +48,22 @@ export default function PrescriptionsPage() {
   const searchParams = useSearchParams();
   const requestedMedicineId = searchParams.get("medicineId");
   const formRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<Prescription[] | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   const [progress, setProgress] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [responses, setResponses] = useState<Record<string, string>>({});
   const { locale, t } = useLocale();
   const copy = locale === "en"
-    ? { kicker: "Private pharmacist review", new: "Submit a new prescription", none: "No file selected", preview: "Prescription preview", select: "Choose a prescription photo or document first.", uploadFailure: "The prescription could not be submitted. Check the file and connection.", history: "Prescription history", historyBody: "Review status will appear here after submission.", customer: "Customer prescription", requested: "Clarification requested", upTo: "up to", units: "units", added: "approved medicines were added to your cart. Review your cart and confirm checkout yourself.", already: "The approved medicines are already in your cart.", addFailure: "The medicines could not be added to the cart.", addNote: "No order is created yet. Review price, availability, address and cash payment before final confirmation.", cancelling: "Cancel request", uploading: "Uploading…", uploaded: "uploaded", submitFailure: "The request could not be completed." }
+    ? { kicker: "Private pharmacist review", new: "Submit a new prescription", none: "Drop a file here or choose from your device", preview: "Prescription preview", select: "Choose a prescription photo or document first.", replace: "Replace file", removeFile: "Remove file", camera: "Camera, gallery or document", uploadFailure: "The prescription could not be submitted. Check the file and connection.", history: "Prescription history", historyBody: "Review status will appear here after submission.", customer: "Customer prescription", requested: "Clarification requested", upTo: "up to", units: "units", added: "approved medicines were added to your cart. Review your cart and confirm checkout yourself.", already: "The approved medicines are already in your cart.", addFailure: "The medicines could not be added to the cart.", addNote: "No order is created yet. Review price, availability, address and cash payment before final confirmation.", cancelling: "Cancel request", uploading: "Uploading…", uploaded: "uploaded", submitFailure: "The request could not be completed." }
     : locale === "fa-AF"
-      ? { kicker: "بررسی امن توسط فارمسست", new: "ارسال نسخه جدید", none: "هیچ فایلی انتخاب نشده است", preview: "پیش‌نمایش نسخه", select: "نخست عکس یا فایل نسخه را انتخاب کنید.", uploadFailure: "نسخه ارسال نشد. فایل و اتصال خود را بررسی کنید.", history: "تاریخچه نسخه‌ها", historyBody: "پس از ارسال، وضعیت بررسی در همین‌جا نشان داده می‌شود.", customer: "نسخه مشتری", requested: "توضیح خواسته‌شده", upTo: "تا", units: "عدد", added: "دوای تأییدشده به سبد افزوده شد. سبد را بررسی و خودتان پرداخت را تأیید کنید.", already: "دواهای تأییدشده از قبل در سبد شما است.", addFailure: "دوا به سبد افزوده نشد.", addNote: "سفارش ساخته نمی‌شود؛ قیمت، موجودی، آدرس و پرداخت نقدی را پیش از ثبت نهایی بررسی می‌کنید.", cancelling: "لغو درخواست", uploading: "در حال ارسال…", uploaded: "ارسال شد", submitFailure: "درخواست انجام نشد." }
-      : { kicker: "د درملپوه خوندي کتنه", new: "نوې نسخه لېږل", none: "فایل نه دی ټاکل شوی", preview: "د نسخې مخکتنه", select: "لومړی د نسخې انځور یا فایل وټاکئ.", uploadFailure: "نسخه ونه لېږل شوه. فایل او اړیکه وګورئ.", history: "د نسخو تاریخچه", historyBody: "له لېږلو وروسته د کتنې حالت دلته ښکاري.", customer: "د پېرودونکي نسخه", requested: "وضاحت غوښتل شوی", upTo: "تر", units: "دانې", added: "تایید شوي درمل ټوکرۍ ته زیات شول. خپله ټوکرۍ وګورئ او فرمایش تایید کړئ.", already: "تایید شوي درمل لا له مخکې په ټوکرۍ کې دي.", addFailure: "درمل ټوکرۍ ته زیات نه شول.", addNote: "تر اوسه فرمایش نه جوړېږي. بیه، موجودي، پته او نغدي تادیه له وروستي تایید مخکې وګورئ.", cancelling: "غوښتنه لغوه کول", uploading: "لېږل کېږي…", uploaded: "ولېږل شوه", submitFailure: "غوښتنه ترسره نه شوه." };
+      ? { kicker: "بررسی امن توسط فارمسست", new: "ارسال نسخه جدید", none: "فایل را اینجا بکشید یا از دستگاه انتخاب کنید", preview: "پیش‌نمایش نسخه", select: "نخست عکس یا فایل نسخه را انتخاب کنید.", replace: "تغییر فایل", removeFile: "حذف فایل", camera: "دوربین، گالری یا فایل", uploadFailure: "نسخه ارسال نشد. فایل و اتصال خود را بررسی کنید.", history: "تاریخچه نسخه‌ها", historyBody: "پس از ارسال، وضعیت بررسی در همین‌جا نشان داده می‌شود.", customer: "نسخه مشتری", requested: "توضیح خواسته‌شده", upTo: "تا", units: "عدد", added: "دوای تأییدشده به سبد افزوده شد. سبد را بررسی و خودتان پرداخت را تأیید کنید.", already: "دواهای تأییدشده از قبل در سبد شما است.", addFailure: "دوا به سبد افزوده نشد.", addNote: "سفارش ساخته نمی‌شود؛ قیمت، موجودی، آدرس و پرداخت نقدی را پیش از ثبت نهایی بررسی می‌کنید.", cancelling: "لغو درخواست", uploading: "در حال ارسال…", uploaded: "ارسال شد", submitFailure: "درخواست انجام نشد." }
+      : { kicker: "د درملپوه خوندي کتنه", new: "نوې نسخه لېږل", none: "فایل دلته راکش کړئ یا یې له وسیلې وټاکئ", preview: "د نسخې مخکتنه", select: "لومړی د نسخې انځور یا فایل وټاکئ.", replace: "فایل بدلول", removeFile: "فایل لرې کول", camera: "کمره، انځورونه یا سند", uploadFailure: "نسخه ونه لېږل شوه. فایل او اړیکه وګورئ.", history: "د نسخو تاریخچه", historyBody: "له لېږلو وروسته د کتنې حالت دلته ښکاري.", customer: "د پېرودونکي نسخه", requested: "وضاحت غوښتل شوی", upTo: "تر", units: "دانې", added: "تایید شوي درمل ټوکرۍ ته زیات شول. خپله ټوکرۍ وګورئ او فرمایش تایید کړئ.", already: "تایید شوي درمل لا له مخکې په ټوکرۍ کې دي.", addFailure: "درمل ټوکرۍ ته زیات نه شول.", addNote: "تر اوسه فرمایش نه جوړېږي. بیه، موجودي، پته او نغدي تادیه له وروستي تایید مخکې وګورئ.", cancelling: "غوښتنه لغوه کول", uploading: "لېږل کېږي…", uploaded: "ولېږل شوه", submitFailure: "غوښتنه ترسره نه شوه." };
 
   const load = useCallback(async () => {
     try {
@@ -88,6 +91,17 @@ export default function PrescriptionsPage() {
     setPreview(url);
     return () => URL.revokeObjectURL(url);
   }, [selectedFile]);
+
+  function chooseFile(file: File | null) {
+    if (!file) return;
+    const accepted = ["image/jpeg", "image/png", "application/pdf"];
+    if (!accepted.includes(file.type) || file.size > 10 * 1024 * 1024) {
+      setError(t("uploadHint"));
+      return;
+    }
+    setSelectedFile(file);
+    setError("");
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -164,23 +178,40 @@ export default function PrescriptionsPage() {
       <form ref={formRef} className="panel prescription-form" onSubmit={submit}>
         <h2>{copy.new}</h2>
         <p className="muted">{t("uploadHint")}</p>
-        <label className="file-drop">
-          <span>{t("chooseFile")}</span>
+        <label
+          className={`file-drop${dragging ? " is-dragging" : ""}${selectedFile ? " has-file" : ""}`}
+          onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(event) => {
+            event.preventDefault();
+            setDragging(false);
+            chooseFile(event.dataTransfer.files?.[0] || null);
+          }}
+        >
+          <span className="file-drop-icon" aria-hidden="true">＋</span>
+          <strong>{selectedFile ? selectedFile.name : copy.none}</strong>
+          <span className="file-drop-action">{selectedFile ? copy.replace : t("chooseFile")}</span>
+          <small>{copy.camera}</small>
+          <small>{t("uploadHint")}</small>
           <input
+            ref={inputRef}
+            className="sr-only"
             type="file"
             name="document"
             accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
-            onChange={(event) =>
-              setSelectedFile(event.target.files?.[0] || null)
-            }
-            required
+            onChange={(event) => chooseFile(event.target.files?.[0] || null)}
           />
-          <small>{selectedFile?.name || copy.none}</small>
         </label>
-        {preview && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img className="prescription-preview" src={preview} alt={copy.preview} />
-        )}
+        {selectedFile && <div className="prescription-file-preview">
+          {preview && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className="prescription-preview" src={preview} alt={copy.preview} />
+          )}
+          <div className="actions">
+            <button type="button" className="secondary" onClick={() => inputRef.current?.click()}>{copy.replace}</button>
+            <button type="button" className="danger-link" onClick={() => { setSelectedFile(null); if (inputRef.current) inputRef.current.value = ""; }}>{copy.removeFile}</button>
+          </div>
+        </div>}
         <div className="form-grid">
           <label>
             <span>{t("patient")} ({t("optional")})</span>
@@ -201,8 +232,8 @@ export default function PrescriptionsPage() {
             <small>{formatNumber(progress, locale)}% {copy.uploaded}</small>
           </div>
         )}
-        {error && <p className="form-error" role="alert">{error}</p>}
-        {success && <p className="success-banner">{success}</p>}
+        {error && <Toast kind="error" message={error} />}
+        {success && <Toast kind="success" message={success} />}
         <button className="wide" disabled={busy}>
           {busy ? copy.uploading : t("submitRx")}
         </button>

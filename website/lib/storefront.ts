@@ -74,7 +74,9 @@ const dosageTranslations: Record<string, [string, string]> = {
   ointment: ["مرهم", "مرهم"],
   gel: ["ژل", "جیل"],
   drops: ["قطره", "څاڅکي"],
-  inhaler: ["دستگاه تنفسی", "تنفسي اله"]
+  inhaler: ["دستگاه تنفسی", "تنفسي اله"],
+  infusion: ["انفیوژن", "انفیوژن"],
+  "chewable tablet": ["قرص جویدنی", "ژوول کېدونکې ګولۍ"]
 };
 
 export function dosageFormName(medicine: Medicine, locale: Locale) {
@@ -89,12 +91,36 @@ export function dosageFormName(medicine: Medicine, locale: Locale) {
 
 export function localizedPackSize(value: string, locale: Locale) {
   if (locale === "en") return value;
+  const spacedValue = value.replace(
+    /(\d)(?=(?:suspensions?|tablets?|capsules?|vials?|bottles?|packs?|drops?|infusions?)\b)/gi,
+    "$1 "
+  );
   const replacements: [RegExp, string][] = locale === "fa-AF"
-    ? [[/\btablets?\b/gi, "قرص"], [/\bcapsules?\b/gi, "کپسول"], [/\bvials?\b/gi, "ویال"], [/\bretail pack\b/gi, "بسته فروش"]]
-    : [[/\btablets?\b/gi, "ګولۍ"], [/\bcapsules?\b/gi, "کپسول"], [/\bvials?\b/gi, "ویال"], [/\bretail pack\b/gi, "پرچون بسته"]];
+    ? [
+        [/\bretail packs?\b/gi, "بسته فروش"],
+        [/\btablets?\b/gi, "قرص"],
+        [/\bcapsules?\b/gi, "کپسول"],
+        [/\bvials?\b/gi, "ویال"],
+        [/\bbottles?\b/gi, "بوتل"],
+        [/\bpacks?\b/gi, "بسته"],
+        [/\bsuspensions?\b/gi, "سوسپانسیون"],
+        [/\bdrops?\b/gi, "قطره"],
+        [/\binfusions?\b/gi, "انفیوژن"]
+      ]
+    : [
+        [/\bretail packs?\b/gi, "پرچون بسته"],
+        [/\btablets?\b/gi, "ګولۍ"],
+        [/\bcapsules?\b/gi, "کپسول"],
+        [/\bvials?\b/gi, "ویال"],
+        [/\bbottles?\b/gi, "بوتل"],
+        [/\bpacks?\b/gi, "بسته"],
+        [/\bsuspensions?\b/gi, "تعلیق"],
+        [/\bdrops?\b/gi, "څاڅکي"],
+        [/\binfusions?\b/gi, "انفیوژن"]
+      ];
   return replacements.reduce(
     (result, [pattern, replacement]) => result.replace(pattern, replacement),
-    value
+    spacedValue
   );
 }
 

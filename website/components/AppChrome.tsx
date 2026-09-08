@@ -11,6 +11,7 @@ import { Header } from "./Header";
 import { Icon } from "./StoreUI";
 import { LocaleProvider, useLocale } from "./LocaleProvider";
 import { PublicAnnouncements } from "./PublicAnnouncements";
+import { SessionIntro } from "./SessionIntro";
 
 function CustomerChrome({
   authenticated,
@@ -44,6 +45,7 @@ function CustomerChrome({
   ];
 
   return <div className="site-shell">
+    <SessionIntro />
     <a className="skip-link" href="#main">{t("products")}</a>
     <Header authenticated={authenticated} hasHealthContent={hasHealthContent}/>
     {offline && <p className="offline" role="status">{t("offline")}</p>}
@@ -55,7 +57,7 @@ function CustomerChrome({
       </div>
       <div className="footer-grid wrap">
         <div><Image src="/brand/darmalton-logo.png" alt="درملتون" width={140} height={57}/><p>{t("footer")}</p></div>
-        {footer.map((group, index) => <nav key={index}>{group.map(([href, label]) => <Link key={href} href={href}>{t(label)}</Link>)}</nav>)}
+        {footer.map((group, index) => <nav aria-label={`${t("menu")} ${index + 1}`} key={index}>{group.map(([href, label]) => <Link key={href} href={href}>{t(label)}</Link>)}</nav>)}
       </div>
       <div className="footer-bottom wrap"><span>© {new Date().getFullYear()} Darmalton</span><span>{t("privateRx")}</span></div>
     </footer>
