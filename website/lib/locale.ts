@@ -76,6 +76,12 @@ const words = {
   ingredient: ["Generic / ingredient", "نام علمی / ترکیب", "عمومي نوم / ترکیب"], description: ["Product information", "معلومات محصول", "د توکي معلومات"],
   storage: ["Storage instructions", "شرایط نگهداری", "د ساتنې لارښوونې"], unspecified: ["Not supplied", "ثبت نشده", "نه دي ورکړل شوي"],
   related: ["More medicines", "داروهای دیگر", "نور درمل"], notFound: ["We can’t find that page", "این صفحه پیدا نشد", "دا پاڼه ونه موندل شوه"],
+  variantsAvailable: ["strengths available", "مقدار موجود", "شته قوتونه"],
+  shopperCategories: ["Shop by category", "خرید بر اساس دسته", "د کټګورۍ له مخې پېرود"],
+  healthNeeds: ["Browse by health need", "مرور بر اساس نیاز صحی", "د روغتیا اړتیا له مخې وګورئ"],
+  popularMedicines: ["Popular medicines", "داروهای پرطرفدار", "مشهور درمل"],
+  vitaminsSupplements: ["Vitamins & supplements", "ویتامین‌ها و مکمل‌ها", "ویټامینونه او بشپړوونکي"],
+  personalFamilyCare: ["Personal & family care", "مراقبت شخصی و خانواده", "شخصي او کورنۍ پاملرنه"],
   generalError: ["Something went wrong", "مشکلی پیش آمد", "ستونزه رامنځته شوه"], backHome: ["Back to home", "بازگشت به خانه", "کور ته ستنېدل"],
   android: ["Download Android", "دانلود اندروید", "اندروید ښکته کړئ"], ios: ["iOS is not released yet", "نسخه iOS هنوز منتشر نشده", "د iOS نسخه لا نه ده خپره شوې"],
   appTitle: ["Darmalton on your phone", "درملتون در تلفن شما", "درملتون ستاسو په ټیلیفون کې"],
@@ -100,4 +106,8 @@ export function formatNumber(value: number | string, locale: Locale) {
   return locale === "en" ? ascii : ascii.replace(/\d/g, digit => easternArabicDigits[Number(digit)]);
 }
 export function formatMoney(value: string | null, locale: Locale) { return value === null ? textFor(locale,"noPrice") : `${formatNumber(value,locale)} ${textFor(locale,"afn")}`; }
-export function productName(m: {brand_name: string; brand_name_dari: string}, locale: Locale) { return locale === "en" ? m.brand_name : m.brand_name_dari || m.brand_name; }
+export function productName(m: {brand_name: string; brand_name_dari: string; brand_name_pashto?: string}, locale: Locale) {
+  if (locale === "en") return m.brand_name;
+  if (locale === "ps-AF") return m.brand_name_pashto || m.brand_name_dari || m.brand_name;
+  return m.brand_name_dari || m.brand_name;
+}

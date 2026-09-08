@@ -41,6 +41,12 @@ def cms_image_upload_to(instance, filename):
     return f"cms/{instance._meta.model_name}/{now:%Y/%m}/{instance.pk}{suffix}"
 
 
+def cms_mobile_image_upload_to(instance, filename):
+    suffix = Path(filename).suffix.lower()
+    now = timezone.now()
+    return f"cms/{instance._meta.model_name}/{now:%Y/%m}/{instance.pk}-mobile{suffix}"
+
+
 class PublishableContent(TimeStampedUUIDModel):
     status = models.CharField(
         max_length=16,
@@ -118,22 +124,29 @@ class PublishableContent(TimeStampedUUIDModel):
         )
 
     def save(self, *args, **kwargs):
-        old_image = None
-        if self.pk and any(field.name == "image" for field in self._meta.fields):
-            old_image = (
-                self.__class__.objects.filter(pk=self.pk).values_list("image", flat=True).first()
-            )
+        image_fields = {
+            field.name for field in self._meta.fields if field.name in {"image", "mobile_image"}
+        }
+        old_images = {}
+        if self.pk and image_fields:
+            previous = self.__class__.objects.filter(pk=self.pk).values(*image_fields).first()
+            old_images = previous or {}
         super().save(*args, **kwargs)
-        new_image = getattr(getattr(self, "image", None), "name", "")
-        if old_image and old_image != new_image:
-            self._meta.get_field("image").storage.delete(old_image)
+        for field_name, old_image in old_images.items():
+            new_image = getattr(getattr(self, field_name, None), "name", "")
+            if old_image and old_image != new_image:
+                self._meta.get_field(field_name).storage.delete(old_image)
 
     def delete(self, *args, **kwargs):
-        image = getattr(self, "image", None)
-        image_name = getattr(image, "name", "")
-        storage = getattr(image, "storage", None)
+        images = []
+        for field_name in ("image", "mobile_image"):
+            image = getattr(self, field_name, None)
+            image_name = getattr(image, "name", "")
+            storage = getattr(image, "storage", None)
+            if image_name and storage:
+                images.append((storage, image_name))
         result = super().delete(*args, **kwargs)
-        if image_name and storage:
+        for storage, image_name in images:
             storage.delete(image_name)
         return result
 
@@ -144,6 +157,16 @@ class PromotionalBanner(PublishableContent):
         HOME_SECONDARY = "HOME_SECONDARY", "Home secondary"
         CATALOGUE = "CATALOGUE", "Catalogue"
 
+    class TextAlignment(models.TextChoices):
+        START = "START", "Start"
+        CENTER = "CENTER", "Center"
+        END = "END", "End"
+
+    class OverlayStyle(models.TextChoices):
+        LIGHT = "LIGHT", "Light text"
+        DARK = "DARK", "Dark text"
+        NONE = "NONE", "No overlay"
+
     code = models.SlugField(max_length=80, unique=True)
     placement = models.CharField(
         max_length=24,
@@ -152,8 +175,10 @@ class PromotionalBanner(PublishableContent):
     )
     title = models.CharField(max_length=180, blank=True)
     title_dari = models.CharField(max_length=180)
+    title_pashto = models.CharField(max_length=180, blank=True)
     body = models.TextField(blank=True)
     body_dari = models.TextField(blank=True)
+    body_pashto = models.TextField(blank=True)
     image = models.ImageField(
         storage=private_cms_storage,
         upload_to=cms_image_upload_to,
@@ -163,11 +188,33 @@ class PromotionalBanner(PublishableContent):
             validate_cms_image,
         ),
     )
+    mobile_image = models.ImageField(
+        storage=private_cms_storage,
+        upload_to=cms_mobile_image_upload_to,
+        blank=True,
+        validators=(
+            validate_cms_image_extension,
+            validate_cms_image_size,
+            validate_cms_image,
+        ),
+    )
     alt_text = models.CharField(max_length=180, blank=True)
     alt_text_dari = models.CharField(max_length=180)
+    alt_text_pashto = models.CharField(max_length=180, blank=True)
     action_label = models.CharField(max_length=80, blank=True)
     action_label_dari = models.CharField(max_length=80, blank=True)
+    action_label_pashto = models.CharField(max_length=80, blank=True)
     action_url = models.CharField(max_length=500, blank=True, validators=(validate_action_url,))
+    text_alignment = models.CharField(
+        max_length=8,
+        choices=TextAlignment.choices,
+        default=TextAlignment.START,
+    )
+    overlay_style = models.CharField(
+        max_length=8,
+        choices=OverlayStyle.choices,
+        default=OverlayStyle.DARK,
+    )
 
     def __str__(self):
         return self.title_dari

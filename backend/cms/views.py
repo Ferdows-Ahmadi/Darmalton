@@ -85,32 +85,48 @@ class PublishableContentViewSet(viewsets.ModelViewSet):
 
 
 class ImageContentViewSet(PublishableContentViewSet):
-    @extend_schema(responses={(200, "image/*"): OpenApiTypes.BINARY})
-    @action(detail=True, methods=("get",), url_path="image")
-    def image(self, request, pk=None):
-        instance = self.get_object()
-        if not instance.image:
+    def serve_image(self, request, instance, field_name="image"):
+        image = getattr(instance, field_name)
+        if not image:
             return response.Response(status=404)
-        storage = instance.image.storage
-        size = storage.size(instance.image.name)
+        storage = image.storage
+        size = storage.size(image.name)
         etag = hashlib.sha256(
-            f"{instance.pk}:{instance.updated_at.timestamp()}:{size}".encode()
+            f"{instance.pk}:{field_name}:{instance.updated_at.timestamp()}:{size}".encode()
         ).hexdigest()
         if request.headers.get("If-None-Match", "").strip('"') == etag:
             return HttpResponseNotModified()
-        content_type = mimetypes.guess_type(instance.image.name)[0] or "application/octet-stream"
-        result = FileResponse(storage.open(instance.image.name, "rb"), content_type=content_type)
+        content_type = mimetypes.guess_type(image.name)[0] or "application/octet-stream"
+        result = FileResponse(storage.open(image.name, "rb"), content_type=content_type)
         result["Cache-Control"] = "public, no-cache"
         result["ETag"] = f'"{etag}"'
         result["X-Content-Type-Options"] = "nosniff"
         return result
 
+    @extend_schema(responses={(200, "image/*"): OpenApiTypes.BINARY})
+    @action(detail=True, methods=("get",), url_path="image")
+    def image(self, request, pk=None):
+        return self.serve_image(request, self.get_object())
+
 
 class PromotionalBannerViewSet(ImageContentViewSet):
     serializer_class = PromotionalBannerSerializer
     queryset = PromotionalBanner.objects.all()
-    search_fields = ("code", "title", "title_dari", "body", "body_dari")
+    search_fields = (
+        "code",
+        "title",
+        "title_dari",
+        "title_pashto",
+        "body",
+        "body_dari",
+        "body_pashto",
+    )
     filter_fields = ("placement",)
+
+    @extend_schema(responses={(200, "image/*"): OpenApiTypes.BINARY})
+    @action(detail=True, methods=("get",), url_path="mobile-image")
+    def mobile_image(self, request, pk=None):
+        return self.serve_image(request, self.get_object(), "mobile_image")
 
 
 class AnnouncementViewSet(PublishableContentViewSet):

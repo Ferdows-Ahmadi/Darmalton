@@ -59,9 +59,34 @@ class MedicineImageInline(admin.TabularInline):
 
 @admin.register(Medicine)
 class MedicineAdmin(admin.ModelAdmin):
-    list_display = ("sku", "brand_name", "strength", "category", "manufacturer", "status")
-    list_filter = ("status", "category", "manufacturer", "prescription_required")
-    search_fields = ("sku", "brand_name", "generic_name", "barcode")
+    list_display = (
+        "sku",
+        "brand_name",
+        "strength",
+        "family_code",
+        "shopper_category",
+        "category",
+        "manufacturer",
+        "status",
+    )
+    list_filter = (
+        "status",
+        "shopper_category",
+        "category",
+        "manufacturer",
+        "prescription_required",
+    )
+    search_fields = (
+        "sku",
+        "brand_name",
+        "brand_name_dari",
+        "brand_name_pashto",
+        "generic_name",
+        "generic_name_dari",
+        "generic_name_pashto",
+        "family_code",
+        "barcode",
+    )
     autocomplete_fields = ("category", "manufacturer", "dosage_form")
     inlines = (MedicineImageInline,)
 
@@ -158,17 +183,17 @@ class PharmacyBranchAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    search_fields = ("name", "slug")
+    search_fields = ("name", "name_dari", "name_pashto", "slug")
 
 
 @admin.register(Manufacturer)
 class ManufacturerAdmin(admin.ModelAdmin):
     list_display = ("name", "name_dari", "country_code", "display_order", "status")
     list_filter = ("status", "country_code")
-    search_fields = ("name", "name_dari", "country_code")
+    search_fields = ("name", "name_dari", "name_pashto", "country_code")
     ordering = ("display_order", "name")
 
 
 @admin.register(DosageForm)
 class DosageFormAdmin(admin.ModelAdmin):
-    search_fields = ("code", "name")
+    search_fields = ("code", "name", "name_dari", "name_pashto")

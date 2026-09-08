@@ -56,7 +56,7 @@ export async function publicHomeCms() {
       item !== null
   );
   return {
-    hero: heroes[0] ?? null,
+    heroes: heroes.slice(0, 3),
     announcements,
     featuredMedicines,
     articles: articles.slice(0, 3)

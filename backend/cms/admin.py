@@ -121,7 +121,15 @@ class PromotionalBannerAdmin(ImagePreviewMixin, PublishableAdmin):
         "image_preview",
     )
     list_filter = PublishableAdmin.list_filter + ("placement",)
-    search_fields = ("code", "title", "title_dari", "body", "body_dari")
+    search_fields = (
+        "code",
+        "title",
+        "title_dari",
+        "title_pashto",
+        "body",
+        "body_dari",
+        "body_pashto",
+    )
     readonly_fields = PublishableAdmin.readonly_fields + ImagePreviewMixin.readonly_fields
 
 

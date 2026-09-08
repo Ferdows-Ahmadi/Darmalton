@@ -81,6 +81,7 @@ class Category(TimeStampedUUIDModel):
     )
     name = models.CharField(max_length=120)
     name_dari = models.CharField(max_length=120, blank=True)
+    name_pashto = models.CharField(max_length=120, blank=True)
     slug = models.SlugField(max_length=140, unique=True)
     image = models.ImageField(
         upload_to="categories/%Y/%m/",
@@ -115,6 +116,7 @@ class Category(TimeStampedUUIDModel):
 class Manufacturer(TimeStampedUUIDModel):
     name = models.CharField(max_length=180, unique=True)
     name_dari = models.CharField(max_length=180, blank=True)
+    name_pashto = models.CharField(max_length=180, blank=True)
     country_code = models.CharField(max_length=2, blank=True)
     website = models.URLField(blank=True)
     logo = models.ImageField(
@@ -142,6 +144,7 @@ class DosageForm(TimeStampedUUIDModel):
     code = models.CharField(max_length=40, unique=True)
     name = models.CharField(max_length=80, unique=True)
     name_dari = models.CharField(max_length=80, blank=True)
+    name_pashto = models.CharField(max_length=80, blank=True)
 
     def __str__(self):
         return self.name
@@ -157,7 +160,10 @@ class Medicine(TimeStampedUUIDModel):
     sku = models.CharField(max_length=64, unique=True)
     brand_name = models.CharField(max_length=180)
     brand_name_dari = models.CharField(max_length=180, blank=True)
+    brand_name_pashto = models.CharField(max_length=180, blank=True)
     generic_name = models.CharField(max_length=180, blank=True)
+    generic_name_dari = models.CharField(max_length=180, blank=True)
+    generic_name_pashto = models.CharField(max_length=180, blank=True)
     manufacturer = models.ForeignKey(
         Manufacturer, null=True, on_delete=models.SET_NULL, related_name="medicines"
     )
@@ -170,6 +176,7 @@ class Medicine(TimeStampedUUIDModel):
     barcode = models.CharField(max_length=64, unique=True, null=True, blank=True)
     description = models.TextField(blank=True)
     description_dari = models.TextField(blank=True)
+    description_pashto = models.TextField(blank=True)
     storage_instructions = models.TextField(blank=True)
     country_of_manufacture = models.CharField(max_length=120, blank=True)
     source_inventory = models.JSONField(default=dict, blank=True)
@@ -177,6 +184,22 @@ class Medicine(TimeStampedUUIDModel):
         max_digits=14, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0)]
     )
     prescription_required = models.BooleanField(default=False)
+    family_code = models.SlugField(max_length=180, blank=True, db_index=True)
+
+    class ShopperCategory(models.TextChoices):
+        MEDICINES = "medicines", "Medicines"
+        VITAMINS_SUPPLEMENTS = "vitamins-supplements", "Vitamins & supplements"
+        PERSONAL_CARE = "personal-care", "Personal care"
+        BABY_CARE = "baby-care", "Baby care"
+        MEDICAL_DEVICES = "medical-devices", "Medical devices"
+        SKIN_CARE = "skin-care", "Skin care"
+
+    shopper_category = models.CharField(
+        max_length=32,
+        choices=ShopperCategory.choices,
+        default=ShopperCategory.MEDICINES,
+        db_index=True,
+    )
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.ACTIVE)
 
     class Meta:

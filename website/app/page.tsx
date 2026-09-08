@@ -14,7 +14,7 @@ import type { Category, Medicine, PageResult } from "@/lib/types";
 export default async function Home() {
   const locale = await serverLocale();
   const t = (key: Parameters<typeof textFor>[1]) => textFor(locale, key);
-  const [{ hero, announcements, featuredMedicines, articles }, categories, catalogue] =
+  const [{ heroes, announcements, featuredMedicines, articles }, categories, catalogue] =
     await Promise.all([
       publicHomeCms(),
       publicApi<Category[]>("categories/").catch(() => []),
@@ -24,6 +24,7 @@ export default async function Home() {
     featuredMedicines.length > 0
       ? featuredMedicines.map(({ medicine }) => medicine)
       : catalogue?.results.slice(0, 6) || [];
+  const hero = heroes[0];
   const heroTitle =
     locale === "en" ? hero?.title : hero?.title_dari || hero?.title;
 

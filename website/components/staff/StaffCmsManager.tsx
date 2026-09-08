@@ -29,16 +29,22 @@ type CmsFormValues = {
   level: string;
   title: string;
   title_dari: string;
+  title_pashto: string;
   body: string;
   body_dari: string;
+  body_pashto: string;
   summary: string;
   summary_dari: string;
   alt_text: string;
   alt_text_dari: string;
+  alt_text_pashto: string;
   author_source: string;
   action_label: string;
   action_label_dari: string;
+  action_label_pashto: string;
   action_url: string;
+  text_alignment: string;
+  overlay_style: string;
   medicine_id: string;
   label: string;
   label_dari: string;
@@ -53,16 +59,22 @@ const initialForm: CmsFormValues = {
   level: "INFO",
   title: "",
   title_dari: "",
+  title_pashto: "",
   body: "",
   body_dari: "",
+  body_pashto: "",
   summary: "",
   summary_dari: "",
   alt_text: "",
   alt_text_dari: "",
+  alt_text_pashto: "",
   author_source: "",
   action_label: "",
   action_label_dari: "",
+  action_label_pashto: "",
   action_url: "",
+  text_alignment: "START",
+  overlay_style: "DARK",
   medicine_id: "",
   label: "",
   label_dari: "",
@@ -79,16 +91,22 @@ function recordToForm(record: CmsRecord): CmsFormValues {
     level: record.level || "INFO",
     title: record.title || "",
     title_dari: record.title_dari || "",
+    title_pashto: record.title_pashto || "",
     body: record.body || "",
     body_dari: record.body_dari || "",
+    body_pashto: record.body_pashto || "",
     summary: record.summary || "",
     summary_dari: record.summary_dari || "",
     alt_text: record.alt_text || "",
     alt_text_dari: record.alt_text_dari || "",
+    alt_text_pashto: record.alt_text_pashto || "",
     author_source: record.author_source || "",
     action_label: record.action_label || "",
     action_label_dari: record.action_label_dari || "",
+    action_label_pashto: record.action_label_pashto || "",
     action_url: record.action_url || "",
+    text_alignment: record.text_alignment || "START",
+    overlay_style: record.overlay_style || "DARK",
     medicine_id: record.medicine_id || "",
     label: record.label || "",
     label_dari: record.label_dari || "",
@@ -130,6 +148,8 @@ export function StaffCmsManager({ resource }: { resource: CmsResource }) {
   const [form, setForm] = useState<CmsFormValues>(initialForm);
   const [file, setFile] = useState<File | null>(null);
   const [localPreview, setLocalPreview] = useState("");
+  const [mobileFile, setMobileFile] = useState<File | null>(null);
+  const [mobileLocalPreview, setMobileLocalPreview] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [saving, setSaving] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
@@ -185,6 +205,11 @@ export function StaffCmsManager({ resource }: { resource: CmsResource }) {
   }, [localPreview]);
 
   useEffect(() => {
+    if (!mobileLocalPreview) return;
+    return () => URL.revokeObjectURL(mobileLocalPreview);
+  }, [mobileLocalPreview]);
+
+  useEffect(() => {
     if (!modalMode) return;
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key === "Escape" && !saving) {
@@ -192,6 +217,8 @@ export function StaffCmsManager({ resource }: { resource: CmsResource }) {
         setSelected(null);
         setFile(null);
         setLocalPreview("");
+        setMobileFile(null);
+        setMobileLocalPreview("");
         setFieldErrors({});
       }
     }
@@ -204,6 +231,12 @@ export function StaffCmsManager({ resource }: { resource: CmsResource }) {
     if (!selected?.image_url) return "";
     return `/api/backend/${config.endpoint}${selected.id}/image/`;
   }, [config.endpoint, localPreview, selected]);
+
+  const selectedMobileImage = useMemo(() => {
+    if (mobileLocalPreview) return mobileLocalPreview;
+    if (!selected?.mobile_image_url) return "";
+    return `/api/backend/${config.endpoint}${selected.id}/mobile-image/`;
+  }, [config.endpoint, mobileLocalPreview, selected]);
 
   function setValue<K extends keyof CmsFormValues>(key: K, value: CmsFormValues[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -223,6 +256,8 @@ export function StaffCmsManager({ resource }: { resource: CmsResource }) {
     });
     setFile(null);
     setLocalPreview("");
+    setMobileFile(null);
+    setMobileLocalPreview("");
     setFieldErrors({});
     setError("");
     setModalMode("create");
@@ -233,6 +268,8 @@ export function StaffCmsManager({ resource }: { resource: CmsResource }) {
     setForm(recordToForm(record));
     setFile(null);
     setLocalPreview("");
+    setMobileFile(null);
+    setMobileLocalPreview("");
     setFieldErrors({});
     setError("");
     setModalMode(mode);
@@ -244,6 +281,8 @@ export function StaffCmsManager({ resource }: { resource: CmsResource }) {
     setSelected(null);
     setFile(null);
     setLocalPreview("");
+    setMobileFile(null);
+    setMobileLocalPreview("");
     setFieldErrors({});
   }
 
@@ -271,13 +310,33 @@ export function StaffCmsManager({ resource }: { resource: CmsResource }) {
     });
   }
 
+  function handleMobileFile(nextFile?: File) {
+    if (!nextFile) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(nextFile.type)) {
+      setFieldErrors({ mobile_image: "فقط JPEG، PNG یا WebP قابل قبول است." });
+      return;
+    }
+    if (nextFile.size > 5 * 1024 * 1024) {
+      setFieldErrors({ mobile_image: "حجم تصویر باید ۵ مگابایت یا کمتر باشد." });
+      return;
+    }
+    setMobileFile(nextFile);
+    setMobileLocalPreview(URL.createObjectURL(nextFile));
+    setFieldErrors((current) => {
+      const next = { ...current };
+      delete next.mobile_image;
+      return next;
+    });
+  }
+
   function formFields() {
     const common = ["display_order", "is_active"];
     if (resource === "banners") {
       return [
-        "code", "placement", "title", "title_dari", "body", "body_dari",
-        "alt_text", "alt_text_dari", "action_label", "action_label_dari",
-        "action_url", ...common
+        "code", "placement", "title", "title_dari", "title_pashto", "body", "body_dari",
+        "body_pashto", "alt_text", "alt_text_dari", "alt_text_pashto",
+        "action_label", "action_label_dari", "action_label_pashto", "action_url",
+        "text_alignment", "overlay_style", ...common
       ];
     }
     if (resource === "announcements") {
@@ -308,6 +367,7 @@ export function StaffCmsManager({ resource }: { resource: CmsResource }) {
         const data = new FormData();
         for (const key of fields) data.append(key, String(form[key as keyof CmsFormValues]));
         if (file) data.append("image", file);
+        if (mobileFile && resource === "banners") data.append("mobile_image", mobileFile);
         body = data;
       } else {
         body = JSON.stringify(
@@ -324,6 +384,8 @@ export function StaffCmsManager({ resource }: { resource: CmsResource }) {
       setSelected(null);
       setFile(null);
       setLocalPreview("");
+      setMobileFile(null);
+      setMobileLocalPreview("");
       setFieldErrors({});
       showNotice(`${config.singular} ${editing ? "ویرایش" : "ایجاد"} شد.`);
       await load();
@@ -539,12 +601,13 @@ export function StaffCmsManager({ resource }: { resource: CmsResource }) {
                 {(resource === "pages" || resource === "health-articles") && <TextField label="نام مسیر (slug)" name="slug" value={form.slug} onChange={(value) => setValue("slug", value)} error={fieldMessage(fieldErrors, "slug")} required dir="ltr" />}
                 {config.placements.length > 0 && <SelectField label="جایگاه" name="placement" value={form.placement} onChange={(value) => setValue("placement", value)} options={config.placements} error={fieldMessage(fieldErrors, "placement")} />}
                 {resource === "announcements" && <SelectField label="نوع اطلاعیه" name="level" value={form.level} onChange={(value) => setValue("level", value)} options={[["INFO", "معلومات"], ["SUCCESS", "موفقیت"], ["WARNING", "هشدار"], ["CRITICAL", "بحرانی"]]} error={fieldMessage(fieldErrors, "level")} />}
-                {resource !== "featured-medicines" && <><TextField label="عنوان دری" name="title_dari" value={form.title_dari} onChange={(value) => setValue("title_dari", value)} error={fieldMessage(fieldErrors, "title_dari")} required /><TextField label="عنوان انگلیسی" name="title" value={form.title} onChange={(value) => setValue("title", value)} error={fieldMessage(fieldErrors, "title")} dir="ltr" /></>}
+                {resource !== "featured-medicines" && <><TextField label="عنوان دری" name="title_dari" value={form.title_dari} onChange={(value) => setValue("title_dari", value)} error={fieldMessage(fieldErrors, "title_dari")} required /><TextField label="عنوان انگلیسی" name="title" value={form.title} onChange={(value) => setValue("title", value)} error={fieldMessage(fieldErrors, "title")} dir="ltr" />{resource === "banners" && <TextField label="عنوان پشتو" name="title_pashto" value={form.title_pashto} onChange={(value) => setValue("title_pashto", value)} error={fieldMessage(fieldErrors, "title_pashto")} />}</>}
                 {(resource === "pages" || resource === "health-articles") && <><TextArea label="خلاصه دری" name="summary_dari" value={form.summary_dari} onChange={(value) => setValue("summary_dari", value)} error={fieldMessage(fieldErrors, "summary_dari")} /><TextArea label="خلاصه انگلیسی" name="summary" value={form.summary} onChange={(value) => setValue("summary", value)} error={fieldMessage(fieldErrors, "summary")} dir="ltr" /></>}
-                {(resource === "banners" || resource === "announcements" || resource === "pages" || resource === "health-articles") && <><TextArea label="محتوای دری" name="body_dari" value={form.body_dari} onChange={(value) => setValue("body_dari", value)} error={fieldMessage(fieldErrors, "body_dari")} required={resource !== "banners"} /><TextArea label="محتوای انگلیسی" name="body" value={form.body} onChange={(value) => setValue("body", value)} error={fieldMessage(fieldErrors, "body")} dir="ltr" /></>}
+                {(resource === "banners" || resource === "announcements" || resource === "pages" || resource === "health-articles") && <><TextArea label="محتوای دری" name="body_dari" value={form.body_dari} onChange={(value) => setValue("body_dari", value)} error={fieldMessage(fieldErrors, "body_dari")} required={resource !== "banners"} /><TextArea label="محتوای انگلیسی" name="body" value={form.body} onChange={(value) => setValue("body", value)} error={fieldMessage(fieldErrors, "body")} dir="ltr" />{resource === "banners" && <TextArea label="محتوای پشتو" name="body_pashto" value={form.body_pashto} onChange={(value) => setValue("body_pashto", value)} error={fieldMessage(fieldErrors, "body_pashto")} />}</>}
                 {resource === "health-articles" && <TextField label="نویسنده یا منبع" name="author_source" value={form.author_source} onChange={(value) => setValue("author_source", value)} error={fieldMessage(fieldErrors, "author_source")} />}
-                {(resource === "banners" || resource === "announcements") && <><TextField label="متن دکمه دری" name="action_label_dari" value={form.action_label_dari} onChange={(value) => setValue("action_label_dari", value)} error={fieldMessage(fieldErrors, "action_label_dari")} /><TextField label="متن دکمه انگلیسی" name="action_label" value={form.action_label} onChange={(value) => setValue("action_label", value)} error={fieldMessage(fieldErrors, "action_label")} dir="ltr" /><TextField label="پیوند دکمه" name="action_url" value={form.action_url} onChange={(value) => setValue("action_url", value)} error={fieldMessage(fieldErrors, "action_url")} dir="ltr" /></>}
-                {config.hasImage && <><TextField label="توضیح تصویر دری" name="alt_text_dari" value={form.alt_text_dari} onChange={(value) => setValue("alt_text_dari", value)} error={fieldMessage(fieldErrors, "alt_text_dari")} required={config.imageRequired} /><TextField label="توضیح تصویر انگلیسی" name="alt_text" value={form.alt_text} onChange={(value) => setValue("alt_text", value)} error={fieldMessage(fieldErrors, "alt_text")} dir="ltr" /><label className="staff-cms-file staff-form-wide"><span>تصویر {modalMode === "edit" ? "جایگزین" : ""}</span><input type="file" accept="image/jpeg,image/png,image/webp" required={config.imageRequired && modalMode === "create"} onChange={(event) => handleFile(event.target.files?.[0])} /><small>JPEG، PNG یا WebP؛ حداکثر ۵ مگابایت</small>{fieldMessage(fieldErrors, "image") && <em>{fieldMessage(fieldErrors, "image")}</em>}</label>{selectedImage && <Image className="staff-cms-form-preview staff-form-wide" src={selectedImage} alt="پیش‌نمایش تصویر محتوا" width={720} height={320} unoptimized />}</>}
+                {(resource === "banners" || resource === "announcements") && <><TextField label="متن دکمه دری" name="action_label_dari" value={form.action_label_dari} onChange={(value) => setValue("action_label_dari", value)} error={fieldMessage(fieldErrors, "action_label_dari")} /><TextField label="متن دکمه انگلیسی" name="action_label" value={form.action_label} onChange={(value) => setValue("action_label", value)} error={fieldMessage(fieldErrors, "action_label")} dir="ltr" />{resource === "banners" && <TextField label="متن دکمه پشتو" name="action_label_pashto" value={form.action_label_pashto} onChange={(value) => setValue("action_label_pashto", value)} error={fieldMessage(fieldErrors, "action_label_pashto")} />}<TextField label="پیوند دکمه" name="action_url" value={form.action_url} onChange={(value) => setValue("action_url", value)} error={fieldMessage(fieldErrors, "action_url")} dir="ltr" /></>}
+                {resource === "banners" && <><TextField label="توضیح تصویر پشتو" name="alt_text_pashto" value={form.alt_text_pashto} onChange={(value) => setValue("alt_text_pashto", value)} error={fieldMessage(fieldErrors, "alt_text_pashto")} /><SelectField label="جهت متن" name="text_alignment" value={form.text_alignment} onChange={(value) => setValue("text_alignment", value)} options={[["START", "آغاز"], ["CENTER", "وسط"], ["END", "پایان"]]} /><SelectField label="حالت پوشش" name="overlay_style" value={form.overlay_style} onChange={(value) => setValue("overlay_style", value)} options={[["DARK", "متن تیره"], ["LIGHT", "متن روشن"], ["NONE", "بدون پوشش"]]} /></>}
+                {config.hasImage && <><TextField label="توضیح تصویر دری" name="alt_text_dari" value={form.alt_text_dari} onChange={(value) => setValue("alt_text_dari", value)} error={fieldMessage(fieldErrors, "alt_text_dari")} required={config.imageRequired} /><TextField label="توضیح تصویر انگلیسی" name="alt_text" value={form.alt_text} onChange={(value) => setValue("alt_text", value)} error={fieldMessage(fieldErrors, "alt_text")} dir="ltr" /><label className="staff-cms-file staff-form-wide"><span>تصویر دسکتاپ {modalMode === "edit" ? "جایگزین" : ""}</span><input type="file" accept="image/jpeg,image/png,image/webp" required={config.imageRequired && modalMode === "create"} onChange={(event) => handleFile(event.target.files?.[0])} /><small>JPEG، PNG یا WebP؛ حداکثر ۵ مگابایت</small>{fieldMessage(fieldErrors, "image") && <em>{fieldMessage(fieldErrors, "image")}</em>}</label>{selectedImage && <Image className="staff-cms-form-preview staff-form-wide" src={selectedImage} alt="پیش‌نمایش تصویر محتوا" width={720} height={320} unoptimized />}{resource === "banners" && <><label className="staff-cms-file staff-form-wide"><span>تصویر موبایل (اختیاری)</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => handleMobileFile(event.target.files?.[0])}/><small>در صورت خالی‌بودن، تصویر دسکتاپ استفاده می‌شود.</small>{fieldMessage(fieldErrors, "mobile_image") && <em>{fieldMessage(fieldErrors, "mobile_image")}</em>}</label>{selectedMobileImage && <Image className="staff-cms-form-preview staff-cms-mobile-preview staff-form-wide" src={selectedMobileImage} alt="پیش‌نمایش تصویر موبایل" width={360} height={480} unoptimized/>}</>}</>}
                 {resource === "featured-medicines" && <div className="staff-medicine-picker staff-form-wide"><label htmlFor="medicine-search">جستجوی دارو</label><div><input id="medicine-search" value={medicineQuery} onChange={(event) => setMedicineQuery(event.target.value)} placeholder="نام، SKU یا ماده فعال…" /><button type="button" onClick={() => void searchMedicines()} disabled={medicineBusy}>{medicineBusy ? "…" : "جستجو"}</button></div><label htmlFor="medicine_id">انتخاب دارو</label><select id="medicine_id" value={form.medicine_id} onChange={(event) => setValue("medicine_id", event.target.value)} required><option value="">یک دارو را انتخاب کنید</option>{selected?.medicine_id && !medicines.some((item) => item.id === selected.medicine_id) && <option value={selected.medicine_id}>{selected.medicine_name_dari || selected.medicine_name}</option>}{medicines.map((medicine) => <option value={medicine.id} key={medicine.id}>{medicine.brand_name_dari || medicine.brand_name} — {medicine.sku}</option>)}</select>{fieldMessage(fieldErrors, "medicine_id") && <em>{fieldMessage(fieldErrors, "medicine_id")}</em>}</div>}
                 {resource === "featured-medicines" && <><TextField label="برچسب دری" name="label_dari" value={form.label_dari} onChange={(value) => setValue("label_dari", value)} error={fieldMessage(fieldErrors, "label_dari")} /><TextField label="برچسب انگلیسی" name="label" value={form.label} onChange={(value) => setValue("label", value)} error={fieldMessage(fieldErrors, "label")} dir="ltr" /></>}
                 <TextField label="ترتیب نمایش" name="display_order" type="number" min="0" value={form.display_order} onChange={(value) => setValue("display_order", value)} error={fieldMessage(fieldErrors, "display_order")} required />

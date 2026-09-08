@@ -56,12 +56,15 @@ class PublishableContentSerializer(serializers.ModelSerializer):
         action_label_dari = attrs.get(
             "action_label_dari", getattr(self.instance, "action_label_dari", "")
         )
+        action_label_pashto = attrs.get(
+            "action_label_pashto", getattr(self.instance, "action_label_pashto", "")
+        )
         if hasattr(self.Meta.model, "action_url"):
-            if action_url and not (action_label or action_label_dari):
+            if action_url and not (action_label or action_label_dari or action_label_pashto):
                 raise serializers.ValidationError(
                     {"action_label_dari": "Provide an action label when an action URL is set."}
                 )
-            if (action_label or action_label_dari) and not action_url:
+            if (action_label or action_label_dari or action_label_pashto) and not action_url:
                 raise serializers.ValidationError(
                     {"action_url": "Provide an action URL when an action label is set."}
                 )
@@ -87,6 +90,17 @@ class ImageContentSerializer(PublishableContentSerializer):
 
 class PromotionalBannerSerializer(ImageContentSerializer):
     image_route_name = "cms-banner-image"
+    mobile_image_url = serializers.SerializerMethodField()
+
+    def get_mobile_image_url(self, obj) -> str | None:
+        if not obj.mobile_image:
+            return None
+        path = reverse("cms-banner-mobile-image", kwargs={"pk": obj.pk})
+        request = self.context.get("request")
+        return request.build_absolute_uri(path) if request else path
+
+    def validate_mobile_image(self, value):
+        return self.validate_image(value)
 
     class Meta:
         model = PromotionalBanner
@@ -95,15 +109,23 @@ class PromotionalBannerSerializer(ImageContentSerializer):
             "placement",
             "title",
             "title_dari",
+            "title_pashto",
             "body",
             "body_dari",
+            "body_pashto",
             "image",
             "image_url",
+            "mobile_image",
+            "mobile_image_url",
             "alt_text",
             "alt_text_dari",
+            "alt_text_pashto",
             "action_label",
             "action_label_dari",
+            "action_label_pashto",
             "action_url",
+            "text_alignment",
+            "overlay_style",
         )
         read_only_fields = (
             "id",
@@ -114,7 +136,10 @@ class PromotionalBannerSerializer(ImageContentSerializer):
             "created_at",
             "updated_at",
         )
-        extra_kwargs = {"image": {"write_only": True}}
+        extra_kwargs = {
+            "image": {"write_only": True},
+            "mobile_image": {"write_only": True, "required": False},
+        }
 
 
 class AnnouncementSerializer(PublishableContentSerializer):

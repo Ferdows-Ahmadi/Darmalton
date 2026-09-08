@@ -311,6 +311,46 @@ def test_banner_image_validation_and_private_draft_bytes(api_client, tmp_path, s
     assert image_response["Cache-Control"] == "public, no-cache"
 
 
+def test_banner_supports_mobile_image_pashto_copy_and_presentation_controls(
+    api_client, tmp_path, settings
+):
+    settings.PRIVATE_MEDIA_ROOT = tmp_path
+    staff = create_user(User.Role.ADMIN, email="hero-admin@example.test")
+    api_client.force_authenticate(staff)
+    created = api_client.post(
+        reverse("cms-banner-list"),
+        {
+            "code": "localized-hero",
+            "title_dari": "قهرمان دری",
+            "title_pashto": "پښتو سرلیک",
+            "body_pashto": "پښتو لنډ متن",
+            "alt_text_dari": "تصویر قهرمان",
+            "alt_text_pashto": "د سرلیک انځور",
+            "action_label_pashto": "درمل وګورئ",
+            "action_url": "/shop",
+            "text_alignment": PromotionalBanner.TextAlignment.END,
+            "overlay_style": PromotionalBanner.OverlayStyle.LIGHT,
+            "image": image_upload("desktop.png", size=(800, 320)),
+            "mobile_image": image_upload("mobile.png", size=(360, 480)),
+        },
+        format="multipart",
+    )
+    assert created.status_code == 201
+    assert created.data["title_pashto"] == "پښتو سرلیک"
+    assert created.data["mobile_image_url"].endswith(
+        f"/api/v1/cms/banners/{created.data['id']}/mobile-image/"
+    )
+    assert (
+        api_client.post(reverse("cms-banner-publish", args=(created.data["id"],))).status_code
+        == 200
+    )
+    api_client.force_authenticate(user=None)
+    mobile = api_client.get(reverse("cms-banner-mobile-image", args=(created.data["id"],)))
+    assert mobile.status_code == 200
+    assert mobile["X-Content-Type-Options"] == "nosniff"
+    mobile.close()
+
+
 def test_content_page_object_retrieval_and_staff_deletion(api_client):
     staff = create_user(User.Role.STAFF)
     page = ContentPage.objects.create(

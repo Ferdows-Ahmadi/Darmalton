@@ -80,7 +80,7 @@ def test_category_crud_and_media_are_staff_managed(operations_client, settings, 
     guarded_image = client.get(created.data["image_url"])
     assert guarded_image.status_code == 200
     public = client.get("/api/v1/categories/")
-    assert any(item["slug"] == "respiratory" for item in public.data)
+    assert not any(item["slug"] == "respiratory" for item in public.data)
     deactivated = client.patch(
         f"/api/v1/staff/categories/{created.data['id']}/",
         {"status": RecordStatus.INACTIVE},
@@ -98,7 +98,7 @@ def test_catalogue_lookups_include_dosage_forms(api_client, medicine):
 
 
 @pytest.mark.django_db
-def test_manufacturer_crud_logo_and_public_visibility(
+def test_manufacturer_crud_logo_and_public_catalogue_isolation(
     operations_client, api_client, settings, tmp_path
 ):
     settings.MEDIA_ROOT = tmp_path
@@ -124,9 +124,7 @@ def test_manufacturer_crud_logo_and_public_visibility(
     assert client.get(created.data["logo_url"]).status_code == 200
 
     public = api_client.get("/api/v1/manufacturers/")
-    visible = next(row for row in public.data if row["id"] == created.data["id"])
-    assert visible["name_dari"] == "نمونه سلامت"
-    assert visible["logo_url"].endswith(f"/api/v1/manufacturers/{created.data['id']}/logo/")
+    assert not any(row["id"] == created.data["id"] for row in public.data)
 
     deactivated = client.patch(
         f"/api/v1/staff/manufacturers/{created.data['id']}/",

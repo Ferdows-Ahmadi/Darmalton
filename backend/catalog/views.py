@@ -4,7 +4,7 @@ from decimal import Decimal, InvalidOperation
 from uuid import UUID
 
 from django.conf import settings
-from django.db.models import Exists, OuterRef, Q, Subquery
+from django.db.models import Count, Exists, OuterRef, Q, Subquery
 from django.db.models.functions import Coalesce
 from django.http import FileResponse, HttpResponse, HttpResponseNotModified
 from django.utils import timezone
@@ -70,7 +70,15 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
     pagination_class = None
     serializer_class = CategorySerializer
-    queryset = Category.objects.filter(status=RecordStatus.ACTIVE).select_related("parent")
+    public_medicines = Medicine.objects.filter(status=Medicine.Status.ACTIVE).exclude(
+        sku__startswith="DEMO-"
+    )
+    queryset = (
+        Category.objects.filter(status=RecordStatus.ACTIVE)
+        .annotate(has_public_medicines=Exists(public_medicines.filter(category_id=OuterRef("pk"))))
+        .filter(has_public_medicines=True)
+        .select_related("parent")
+    )
 
     @action(detail=True, methods=("get",), url_path="image")
     def image(self, request, pk=None):
@@ -122,7 +130,20 @@ class ManufacturerViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
     pagination_class = None
     serializer_class = ManufacturerSerializer
-    queryset = Manufacturer.objects.filter(status=RecordStatus.ACTIVE)
+    queryset = (
+        Manufacturer.objects.filter(status=RecordStatus.ACTIVE)
+        .annotate(
+            product_count=Count(
+                "medicines",
+                filter=Q(
+                    medicines__status=Medicine.Status.ACTIVE,
+                )
+                & ~Q(medicines__sku__startswith="DEMO-"),
+                distinct=True,
+            )
+        )
+        .filter(product_count__gt=0)
+    )
 
     @action(detail=True, methods=("get",), url_path="logo")
     def logo(self, request, pk=None):
@@ -182,6 +203,7 @@ class MedicineViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = MedicineSerializer
     queryset = (
         Medicine.objects.filter(status=Medicine.Status.ACTIVE)
+        .exclude(sku__startswith="DEMO-")
         .select_related("manufacturer", "category", "dosage_form")
         .prefetch_related("images", "batches__branch")
     )
@@ -194,7 +216,10 @@ class MedicineViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(
                 Q(brand_name__icontains=search)
                 | Q(brand_name_dari__icontains=search)
+                | Q(brand_name_pashto__icontains=search)
                 | Q(generic_name__icontains=search)
+                | Q(generic_name_dari__icontains=search)
+                | Q(generic_name_pashto__icontains=search)
                 | Q(sku__icontains=search)
             )
         if category:
@@ -204,6 +229,16 @@ class MedicineViewSet(viewsets.ReadOnlyModelViewSet):
                 queryset = queryset.filter(category__slug=category)
             else:
                 queryset = queryset.filter(category_id=category_id)
+
+        shopper_category = self.request.query_params.get("shopper_category", "").strip()
+        if shopper_category:
+            if shopper_category not in Medicine.ShopperCategory.values:
+                raise ValidationError({"shopper_category": "Choose a valid shopper category."})
+            queryset = queryset.filter(shopper_category=shopper_category)
+
+        family_code = self.request.query_params.get("family_code", "").strip()
+        if family_code:
+            queryset = queryset.filter(family_code=family_code)
 
         manufacturer = self.request.query_params.get("manufacturer", "").strip()
         if manufacturer:

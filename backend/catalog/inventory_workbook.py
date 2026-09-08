@@ -46,6 +46,44 @@ def flag(value, *, allow_missing=False):
     return str(value).lower() == "yes"
 
 
+def family_code(row):
+    """Group only an exact brand/ingredient/form/manufacturer identity tuple."""
+    identity = "|".join(
+        str(row.get(field) or "").strip().casefold()
+        for field in (
+            "Medicine Name",
+            "Generic Name / Active Ingredient",
+            "Dosage Form",
+            "Manufacturer",
+        )
+    )
+    return f"family-{hashlib.sha256(identity.encode()).hexdigest()[:16]}"
+
+
+def shopper_category(row):
+    """Assign the development dataset to an explicit, non-clinical shopping layer."""
+    text = " ".join(
+        str(row.get(field) or "").casefold()
+        for field in (
+            "Medicine Name",
+            "Generic Name / Active Ingredient",
+            "Category",
+            "Dosage Form",
+        )
+    )
+    if any(value in text for value in ("vitamin", "supplement", "mineral", "omega")):
+        return Medicine.ShopperCategory.VITAMINS_SUPPLEMENTS
+    if any(value in text for value in ("baby", "infant", "pediatric", "paediatric")):
+        return Medicine.ShopperCategory.BABY_CARE
+    if any(value in text for value in ("skin", "cream", "ointment", "derma")):
+        return Medicine.ShopperCategory.SKIN_CARE
+    if any(value in text for value in ("device", "meter", "monitor", "thermometer")):
+        return Medicine.ShopperCategory.MEDICAL_DEVICES
+    if any(value in text for value in ("personal care", "hygiene", "shampoo", "soap")):
+        return Medicine.ShopperCategory.PERSONAL_CARE
+    return Medicine.ShopperCategory.MEDICINES
+
+
 @transaction.atomic
 def import_workbook(path, *, branch, dry_run=False, manifest_path=None, asset_root=None):
     if settings.PRODUCTION or not getattr(settings, "DEVELOPMENT_SAMPLE_DATA", False):
@@ -117,6 +155,8 @@ def import_workbook(path, *, branch, dry_run=False, manifest_path=None, asset_ro
             description=row["Description"] or "",
             storage_instructions=row["Storage Instructions"] or "",
             prescription_required=flag(row["Prescription Required?"], allow_missing=True),
+            family_code=family_code(row),
+            shopper_category=shopper_category(row),
             status=Medicine.Status.ACTIVE if active else Medicine.Status.INACTIVE,
             list_price=price(row["Selling Price (AFN)"]),
             source_inventory=row,

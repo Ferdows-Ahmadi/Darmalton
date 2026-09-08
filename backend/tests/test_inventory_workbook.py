@@ -5,7 +5,7 @@ from decimal import Decimal
 import pytest
 from openpyxl import Workbook
 
-from catalog.inventory_workbook import import_workbook
+from catalog.inventory_workbook import family_code, import_workbook, shopper_category
 from catalog.models import InventoryBatch, Medicine
 from catalog.serializers import MedicineSerializer
 
@@ -94,6 +94,8 @@ def test_sample_import_dry_run_and_rerun_preserve_consumed_stock(sample_workbook
     assert result["batches_created"] == 1
     medicine = Medicine.objects.get(sku="MED-0001")
     assert medicine.brand_name == "Source Speling"
+    assert medicine.family_code.startswith("family-")
+    assert medicine.shopper_category == Medicine.ShopperCategory.MEDICINES
     assert medicine.list_price == Decimal("120")
     batch = InventoryBatch.objects.get(medicine=medicine)
     assert batch.available_quantity == 30
@@ -157,3 +159,18 @@ def test_sample_import_rejects_production(sample_workbook, branch, settings):
     with pytest.raises(ValueError, match="non-production"):
         import_workbook(sample_workbook, branch=branch)
     assert not Medicine.objects.exists()
+
+
+def test_family_and_shopper_metadata_are_deterministic_and_strength_safe():
+    base = {
+        "Medicine Name": "Amlo",
+        "Generic Name / Active Ingredient": "Amlodipine",
+        "Dosage Form": "Tablet",
+        "Manufacturer": "Example maker",
+        "Category": "Cardiovascular",
+    }
+    assert family_code({**base, "Strength": "5 mg"}) == family_code({**base, "Strength": "10 mg"})
+    assert family_code(base) != family_code({**base, "Medicine Name": "Another brand"})
+    assert shopper_category({**base, "Medicine Name": "Vitamin D3"}) == (
+        Medicine.ShopperCategory.VITAMINS_SUPPLEMENTS
+    )

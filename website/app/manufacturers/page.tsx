@@ -12,6 +12,7 @@ export default async function ManufacturersPage() {
   return (
     <ManufacturerDirectory
       manufacturers={manufacturers}
+      locale={locale}
       title={textFor(locale, "manufacturers")}
       intro={textFor(locale, "browse")}
     />

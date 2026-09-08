@@ -12,6 +12,7 @@ export type Category = {
   id: string;
   name: string;
   name_dari: string;
+  name_pashto: string;
   slug: string;
   parent_id?: string | null;
   image_url?: string;
@@ -24,14 +25,32 @@ export type Medicine = {
   sku: string;
   brand_name: string;
   brand_name_dari: string;
+  brand_name_pashto: string;
   generic_name: string;
-  manufacturer: { id: string; name: string } | null;
+  generic_name_dari: string;
+  generic_name_pashto: string;
+  manufacturer: Manufacturer | null;
   category: Category | null;
-  dosage_form: { id: string; code: string; name: string; name_dari: string };
+  dosage_form: {
+    id: string;
+    code: string;
+    name: string;
+    name_dari: string;
+    name_pashto: string;
+  };
   strength: string;
   pack_size: string;
   description: string;
   description_dari: string;
+  description_pashto: string;
+  family_code: string;
+  shopper_category:
+    | "medicines"
+    | "vitamins-supplements"
+    | "personal-care"
+    | "baby-care"
+    | "medical-devices"
+    | "skin-care";
   prescription_required: boolean;
   image_url: string;
   images: {
@@ -56,10 +75,12 @@ export type Manufacturer = {
   id: string;
   name: string;
   name_dari: string;
+  name_pashto: string;
   country_code: string;
   website: string;
   logo_url: string;
   display_order: number;
+  product_count: number;
   status?: "ACTIVE" | "INACTIVE";
   created_at?: string;
   updated_at?: string;
@@ -70,6 +91,7 @@ export type DosageForm = {
   code: string;
   name: string;
   name_dari: string;
+  name_pashto: string;
 };
 
 export type CartItem = {
@@ -206,14 +228,21 @@ export type PublicBanner = {
   placement: "HOME_HERO" | "HOME_SECONDARY" | "CATALOGUE";
   title: string;
   title_dari: string;
+  title_pashto: string;
   body: string;
   body_dari: string;
+  body_pashto: string;
   image_url: string | null;
+  mobile_image_url: string | null;
   alt_text: string;
   alt_text_dari: string;
+  alt_text_pashto: string;
   action_label: string;
   action_label_dari: string;
+  action_label_pashto: string;
   action_url: string;
+  text_alignment: "START" | "CENTER" | "END";
+  overlay_style: "LIGHT" | "DARK" | "NONE";
   display_order: number;
   publish_from: string | null;
   publish_until: string | null;

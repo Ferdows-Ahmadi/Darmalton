@@ -5,7 +5,7 @@ import localFont from "next/font/local";
 import { serverLocale } from "@/lib/server-locale";
 import { AppChrome } from "@/components/AppChrome";
 import { publicCmsList } from "@/lib/public-cms";
-import type { PublicAnnouncement } from "@/lib/types";
+import type { PublicAnnouncement, PublicContentPage } from "@/lib/types";
 import "./globals.css";
 
 const estedad = localFont({src:"./fonts/Estedad.ttf", variable:"--font-estedad", display:"swap"});
@@ -31,9 +31,12 @@ export default async function RootLayout({
   const authenticated = Boolean(
     (await cookies()).get("pharmacy_refresh")?.value
   );
-  const globalAnnouncements = await publicCmsList<PublicAnnouncement>(
-    "cms/announcements/?placement=GLOBAL&ordering=display_order"
-  );
+  const [globalAnnouncements, healthArticles] = await Promise.all([
+    publicCmsList<PublicAnnouncement>(
+      "cms/announcements/?placement=GLOBAL&ordering=display_order"
+    ),
+    publicCmsList<PublicContentPage>("cms/health-articles/?ordering=display_order")
+  ]);
 
   return (
     <html lang={locale} dir={locale === "en" ? "ltr" : "rtl"} data-scroll-behavior="smooth">
@@ -41,6 +44,7 @@ export default async function RootLayout({
         <AppChrome
           locale={locale}
           authenticated={authenticated}
+          hasHealthContent={healthArticles.length > 0}
           globalAnnouncements={globalAnnouncements}
         >
           {children}

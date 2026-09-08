@@ -12,7 +12,14 @@ from PIL import Image
 from rest_framework.exceptions import ValidationError
 
 from accounts.models import User
-from catalog.models import InventoryBatch, Medicine, MedicineImage
+from catalog.models import (
+    Category,
+    DosageForm,
+    InventoryBatch,
+    Manufacturer,
+    Medicine,
+    MedicineImage,
+)
 from commerce.models import Cart, CartItem, CustomerAddress, Order
 from commerce.services import create_order, transition_order_status
 
@@ -89,6 +96,35 @@ def test_medicine_listing_search_and_anonymous_access(api_client, medicine):
     by_id = api_client.get(f"/api/v1/medicines/?category={medicine.category_id}")
     assert by_id.status_code == 200
     assert by_id.data["count"] == 1
+
+
+def test_public_catalogue_isolates_legacy_demo_rows_and_filters_families(api_client, medicine):
+    medicine.family_code = "family-testmed"
+    medicine.shopper_category = Medicine.ShopperCategory.MEDICINES
+    medicine.save(update_fields=("family_code", "shopper_category", "updated_at"))
+    demo_category = Category.objects.create(name="Legacy demo", slug="legacy-demo")
+    demo_manufacturer = Manufacturer.objects.create(name="Legacy Demo Maker")
+    demo_form = DosageForm.objects.create(code="DEMO_TABLET", name="Demo tablet")
+    Medicine.objects.create(
+        sku="DEMO-999",
+        brand_name="Old demonstration item",
+        category=demo_category,
+        manufacturer=demo_manufacturer,
+        dosage_form=demo_form,
+    )
+
+    public = api_client.get("/api/v1/medicines/?family_code=family-testmed")
+    shopper = api_client.get("/api/v1/medicines/?shopper_category=medicines")
+    categories = api_client.get("/api/v1/categories/")
+    manufacturers = api_client.get("/api/v1/manufacturers/")
+
+    assert public.status_code == 200
+    assert [row["sku"] for row in public.data["results"]] == [medicine.sku]
+    assert all(row["sku"] != "DEMO-999" for row in shopper.data["results"])
+    assert all(row["slug"] != demo_category.slug for row in categories.data)
+    assert all(row["name"] != demo_manufacturer.name for row in manufacturers.data)
+    assert manufacturers.data[0]["product_count"] == 1
+    assert api_client.get("/api/v1/medicines/?shopper_category=unknown").status_code == 400
 
 
 def test_medicine_catalogue_filters_are_server_validated(api_client, medicine):

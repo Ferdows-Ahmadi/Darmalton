@@ -24,6 +24,7 @@ class CategorySerializer(serializers.ModelSerializer):
             "id",
             "name",
             "name_dari",
+            "name_pashto",
             "slug",
             "parent_id",
             "image_url",
@@ -63,6 +64,7 @@ class NamedSerializer(serializers.ModelSerializer):
 
 class ManufacturerSerializer(serializers.ModelSerializer):
     logo_url = serializers.SerializerMethodField()
+    product_count = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = Manufacturer
@@ -70,10 +72,12 @@ class ManufacturerSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "name_dari",
+            "name_pashto",
             "country_code",
             "website",
             "logo_url",
             "display_order",
+            "product_count",
         )
 
     def get_logo_url(self, obj: Manufacturer) -> str:
@@ -118,7 +122,7 @@ class StaffManufacturerSerializer(ManufacturerSerializer):
 class DosageFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = DosageForm
-        fields = ("id", "code", "name", "name_dari")
+        fields = ("id", "code", "name", "name_dari", "name_pashto")
 
 
 class MedicineImageSerializer(serializers.ModelSerializer):
@@ -211,7 +215,10 @@ class MedicineSerializer(serializers.ModelSerializer):
             "sku",
             "brand_name",
             "brand_name_dari",
+            "brand_name_pashto",
             "generic_name",
+            "generic_name_dari",
+            "generic_name_pashto",
             "manufacturer",
             "category",
             "dosage_form",
@@ -219,7 +226,10 @@ class MedicineSerializer(serializers.ModelSerializer):
             "pack_size",
             "description",
             "description_dari",
+            "description_pashto",
             "storage_instructions",
+            "family_code",
+            "shopper_category",
             "prescription_required",
             "image_url",
             "images",
