@@ -15,7 +15,7 @@ export default async function ManufacturerPage({
   const data = await Promise.all([
     publicApi<Category[]>("categories/"),
     publicApi<PageResult<Medicine>>(
-      `medicines/?manufacturer=${encodeURIComponent(name)}&ordering=name`
+      `medicines/?family_listing=true&manufacturer=${encodeURIComponent(name)}&ordering=name`
     )
   ]).catch(() => null);
 

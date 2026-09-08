@@ -124,3 +124,23 @@ def test_google_sign_in_requires_server_configuration(api_client, settings):
     )
     assert result.status_code == 503
     assert result.data["error"]["code"] == "google_sign_in_unavailable"
+
+
+@pytest.mark.parametrize("provider_failure", ["wrong audience", "expired credential"])
+@patch("accounts.services.google_id_token.verify_oauth2_token")
+def test_google_sign_in_rejects_provider_validation_failures(
+    verify_oauth2_token, api_client, settings, provider_failure
+):
+    settings.GOOGLE_CLIENT_ID = "expected-client.apps.googleusercontent.com"
+    verify_oauth2_token.side_effect = ValueError(provider_failure)
+
+    result = api_client.post(
+        reverse("google-login"),
+        {"id_token": "rejected-google-id-token"},
+        format="json",
+    )
+
+    assert result.status_code == 401
+    assert result.data["error"]["code"] == "invalid_google_token"
+    assert not User.objects.exists()
+    assert verify_oauth2_token.call_args.args[2] == settings.GOOGLE_CLIENT_ID

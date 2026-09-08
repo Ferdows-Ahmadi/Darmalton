@@ -127,6 +127,36 @@ def test_public_catalogue_isolates_legacy_demo_rows_and_filters_families(api_cli
     assert api_client.get("/api/v1/medicines/?shopper_category=unknown").status_code == 400
 
 
+def test_family_listing_returns_one_card_and_preserves_exact_variants(api_client, medicine):
+    medicine.family_code = "family-two-strengths"
+    medicine.save(update_fields=("family_code", "updated_at"))
+    second = Medicine.objects.create(
+        sku="MED-FAMILY-2",
+        brand_name=medicine.brand_name,
+        brand_name_dari=medicine.brand_name_dari,
+        generic_name=medicine.generic_name,
+        manufacturer=medicine.manufacturer,
+        category=medicine.category,
+        dosage_form=medicine.dosage_form,
+        strength="20 mg",
+        pack_size="20 tablets",
+        family_code=medicine.family_code,
+    )
+
+    listing = api_client.get("/api/v1/medicines/?family_listing=true")
+    exact_family = api_client.get(f"/api/v1/medicines/?family_code={medicine.family_code}")
+    exact_detail = api_client.get(f"/api/v1/medicines/{second.id}/")
+
+    assert listing.status_code == 200
+    assert listing.data["count"] == 1
+    assert {row["id"] for row in listing.data["results"][0]["family_variants"]} == {
+        str(medicine.id),
+        str(second.id),
+    }
+    assert exact_family.data["count"] == 2
+    assert exact_detail.data["sku"] == second.sku
+
+
 def test_medicine_catalogue_filters_are_server_validated(api_client, medicine):
     manufacturer_id = str(medicine.manufacturer_id)
     assert api_client.get("/api/v1/manufacturers/").data[0]["id"] == manufacturer_id

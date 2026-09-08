@@ -22,16 +22,32 @@ type AuthErrorPayload = {
   };
 };
 
-const googleErrorMessages: Record<string, string> = {
-  google_link_required:
+const googleErrorMessages: Record<string, [string, string, string]> = {
+  google_link_required: [
+    "For account safety, sign in with your password before linking Google.",
     "برای حفاظت حساب، نخست با رمز عبور وارد شوید؛ سپس حساب گوگل را پیوند دهید.",
-  google_email_unverified:
+    "د حساب د خوندیتوب لپاره لومړی په پټنوم ننوځئ، بیا ګوګل ونښلوئ."
+  ],
+  google_email_unverified: [
+    "Your Google account must provide a verified email address.",
     "حساب گوگل باید یک ایمیل تأییدشده داشته باشد.",
-  invalid_google_token:
+    "ستاسو ګوګل حساب باید تایید شوی برېښنالیک ولري."
+  ],
+  invalid_google_token: [
+    "Google could not verify this sign-in. Try again.",
     "گوگل نتوانست این ورود را تأیید کند. دوباره کوشش کنید.",
-  google_sign_in_unavailable:
+    "ګوګل دا ننوتل تایید نه کړای شول. بیا هڅه وکړئ."
+  ],
+  google_sign_in_unavailable: [
+    "Google sign-in is temporarily unavailable. Try again later.",
     "ورود با گوگل فعلاً در دسترس نیست. کمی بعد دوباره کوشش کنید.",
-  inactive_account: "این حساب غیرفعال است. با پشتیبانی تماس بگیرید."
+    "په ګوګل ننوتل اوس نشته. لږ وروسته بیا هڅه وکړئ."
+  ],
+  inactive_account: [
+    "This account is inactive. Contact support.",
+    "این حساب غیرفعال است. با پشتیبانی تماس بگیرید.",
+    "دا حساب غیر فعال دی. له ملاتړ سره اړیکه ونیسئ."
+  ]
 };
 
 export function AuthForm({
@@ -50,10 +66,10 @@ export function AuthForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const customerCopy = locale === "en"
-    ? { secure: "Secure customer access", create: "Create your account", welcome: "Welcome back", registerBody: "Enter your details to order and follow updates.", loginBody: "Sign in to view your cart and orders.", returnNote: "After signing in, you will return to the previous page and your cart will be kept.", first: "First name", last: "Last name", phone: "Phone number (optional)", wait: "Please wait…", createButton: "Create account", loginButton: "Sign in", or: "or", registered: "Already registered?", new: "New to Darmalton?", continue: "Continue without signing in", invalid: "Check the information and try again.", connection: "Could not connect to the server. Check your connection.", sync: "You signed in, but the guest cart could not be synced. Check the connection and try again." }
+    ? { secure: "Secure customer access", create: "Create your account", welcome: "Welcome back", registerBody: "Enter your details to order and follow updates.", loginBody: "Sign in to view your cart and orders.", returnNote: "After signing in, you will return to the previous page and your cart will be kept.", first: "First name", last: "Last name", phone: "Phone number (optional)", wait: "Please wait…", createButton: "Create account", loginButton: "Sign in", or: "or", registered: "Already registered?", new: "New to Darmalton?", continue: "Continue without signing in", invalid: "Check the information and try again.", connection: "Could not connect to the server. Check your connection.", sync: "You signed in, but the guest cart could not be synced. Check the connection and try again.", googleMissing: "Google did not return valid sign-in information. Try again.", googleChanged: "Google sign-in settings changed. Refresh the page.", googleLoad: "Google sign-in could not load. Check your connection." }
     : locale === "fa-AF"
-      ? { secure: "دسترسی امن مشتری", create: "ایجاد حساب کاربری", welcome: "خوش آمدید", registerBody: "برای سفارش و پیگیری، معلومات خود را وارد کنید.", loginBody: "برای دیدن سبد و سفارش‌های خود وارد شوید.", returnNote: "پس از ورود به همان بخش قبلی برمی‌گردید و سبد شما حفظ می‌شود.", first: "نام", last: "نام خانوادگی", phone: "شماره تماس (اختیاری)", wait: "لطفاً منتظر بمانید…", createButton: "ایجاد حساب", loginButton: "ورود", or: "یا", registered: "قبلاً ثبت‌نام کرده‌اید؟", new: "حساب کاربری ندارید؟", continue: "ادامه بدون ورود", invalid: "معلومات واردشده را بررسی و دوباره کوشش کنید.", connection: "ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.", sync: "ورود انجام شد، اما سبد مهمان همگام نشد. اتصال را بررسی و دوباره کوشش کنید." }
-      : { secure: "د پېرودونکي خوندي لاسرسی", create: "حساب جوړ کړئ", welcome: "ښه راغلاست", registerBody: "د فرمایش او تعقیب لپاره خپل معلومات ولیکئ.", loginBody: "خپلې ټوکرۍ او فرمایشونو لیدلو لپاره ننوځئ.", returnNote: "له ننوتلو وروسته بېرته همدې برخې ته راګرځئ او ټوکرۍ مو ساتل کېږي.", first: "نوم", last: "تخلص", phone: "د اړیکې شمېره (اختیاري)", wait: "لږ انتظار وکړئ…", createButton: "حساب جوړول", loginButton: "ننوتل", or: "یا", registered: "مخکې مو حساب جوړ کړی؟", new: "په درملتون کې نوي یاست؟", continue: "له ننوتلو پرته دوام", invalid: "معلومات وګورئ او بیا هڅه وکړئ.", connection: "له سرور سره اړیکه ونه شوه. خپله اړیکه وګورئ.", sync: "تاسو ننوتل، خو د مېلمه ټوکرۍ همغږې نه شوه. اړیکه وګورئ او بیا هڅه وکړئ." };
+      ? { secure: "دسترسی امن مشتری", create: "ایجاد حساب کاربری", welcome: "خوش آمدید", registerBody: "برای سفارش و پیگیری، معلومات خود را وارد کنید.", loginBody: "برای دیدن سبد و سفارش‌های خود وارد شوید.", returnNote: "پس از ورود به همان بخش قبلی برمی‌گردید و سبد شما حفظ می‌شود.", first: "نام", last: "نام خانوادگی", phone: "شماره تماس (اختیاری)", wait: "لطفاً منتظر بمانید…", createButton: "ایجاد حساب", loginButton: "ورود", or: "یا", registered: "قبلاً ثبت‌نام کرده‌اید؟", new: "حساب کاربری ندارید؟", continue: "ادامه بدون ورود", invalid: "معلومات واردشده را بررسی و دوباره کوشش کنید.", connection: "ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.", sync: "ورود انجام شد، اما سبد مهمان همگام نشد. اتصال را بررسی و دوباره کوشش کنید.", googleMissing: "گوگل معلومات معتبر ورود را برنگرداند. دوباره کوشش کنید.", googleChanged: "تنظیمات ورود با گوگل تغییر کرده است. صفحه را تازه کنید.", googleLoad: "بارگذاری ورود با گوگل ممکن نشد. اتصال اینترنت را بررسی کنید." }
+      : { secure: "د پېرودونکي خوندي لاسرسی", create: "حساب جوړ کړئ", welcome: "ښه راغلاست", registerBody: "د فرمایش او تعقیب لپاره خپل معلومات ولیکئ.", loginBody: "خپلې ټوکرۍ او فرمایشونو لیدلو لپاره ننوځئ.", returnNote: "له ننوتلو وروسته بېرته همدې برخې ته راګرځئ او ټوکرۍ مو ساتل کېږي.", first: "نوم", last: "تخلص", phone: "د اړیکې شمېره (اختیاري)", wait: "لږ انتظار وکړئ…", createButton: "حساب جوړول", loginButton: "ننوتل", or: "یا", registered: "مخکې مو حساب جوړ کړی؟", new: "په درملتون کې نوي یاست؟", continue: "له ننوتلو پرته دوام", invalid: "معلومات وګورئ او بیا هڅه وکړئ.", connection: "له سرور سره اړیکه ونه شوه. خپله اړیکه وګورئ.", sync: "تاسو ننوتل، خو د مېلمه ټوکرۍ همغږې نه شوه. اړیکه وګورئ او بیا هڅه وکړئ.", googleMissing: "ګوګل د ننوتلو سم معلومات ورنه کړل. بیا هڅه وکړئ.", googleChanged: "د ګوګل ننوتلو امستنې بدلې شوې. پاڼه تازه کړئ.", googleLoad: "په ګوګل ننوتل پورته نه شول. خپله اړیکه وګورئ." };
 
   const finishAuthentication = useCallback(async (profile?: User) => {
     if (audience === "staff" && !isStaffRole(profile?.role)) {
@@ -95,18 +111,15 @@ export function AuthForm({
           return;
         }
         const code = payload.error?.code || "";
-        setError(
-          googleErrorMessages[code] ||
-            payload.error?.message ||
-            "ورود با گوگل انجام نشد. دوباره کوشش کنید."
-        );
+        const message = googleErrorMessages[code];
+        setError(message?.[locale === "en" ? 0 : locale === "fa-AF" ? 1 : 2] || customerCopy.invalid);
       } catch {
         setError(customerCopy.connection);
       } finally {
         setBusy(false);
       }
     },
-    [customerCopy.connection, finishAuthentication]
+    [customerCopy.connection, customerCopy.invalid, finishAuthentication, locale]
   );
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -128,8 +141,7 @@ export function AuthForm({
         await finishAuthentication(payload.user);
       } else {
         setError(
-          payload.error?.message ||
-            customerCopy.invalid
+          customerCopy.invalid
         );
       }
     } catch {
@@ -229,9 +241,15 @@ export function AuthForm({
               <GoogleSignInButton
                 clientId={googleClientId}
                 mode={mode}
+                locale={locale}
                 busy={busy}
                 onCredential={submitGoogle}
                 onError={setError}
+                messages={{
+                  missingCredential: customerCopy.googleMissing,
+                  configurationChanged: customerCopy.googleChanged,
+                  loadFailed: customerCopy.googleLoad
+                }}
               />
             </>
           )}

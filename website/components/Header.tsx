@@ -14,7 +14,7 @@ export function Header({authenticated,hasHealthContent}:{authenticated:boolean;h
  const {locale,setLocale,t}=useLocale();const path=usePathname();const router=useRouter();
  const dialog=useRef<HTMLDialogElement>(null);const opener=useRef<HTMLButtonElement>(null);
  const [query,setQuery]=useState("");const [results,setResults]=useState<Medicine[]>([]);const [active,setActive]=useState(-1);const [open,setOpen]=useState(false);const [compressed,setCompressed]=useState(false);
- useEffect(()=>{if(query.trim().length<2){setResults([]);return;}const controller=new AbortController();const timer=setTimeout(()=>{apiFetch<PageResult<Medicine>>(`medicines/?search=${encodeURIComponent(query)}`,{signal:controller.signal}).then(r=>setResults(r.results.slice(0,6))).catch(()=>setResults([]));},220);return()=>{clearTimeout(timer);controller.abort();};},[query]);
+ useEffect(()=>{if(query.trim().length<2){setResults([]);return;}const controller=new AbortController();const timer=setTimeout(()=>{apiFetch<PageResult<Medicine>>(`medicines/?family_listing=true&search=${encodeURIComponent(query)}`,{signal:controller.signal}).then(r=>setResults(r.results.slice(0,6))).catch(()=>setResults([]));},220);return()=>{clearTimeout(timer);controller.abort();};},[query]);
  useEffect(()=>{dialog.current?.close();setOpen(false);},[path]);
  useEffect(()=>{const update=()=>setCompressed(window.scrollY>96);update();window.addEventListener("scroll",update,{passive:true});return()=>window.removeEventListener("scroll",update);},[]);
  function close(){dialog.current?.close();opener.current?.focus();}

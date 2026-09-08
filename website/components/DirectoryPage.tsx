@@ -4,8 +4,8 @@ import Link from "next/link";
 import { textFor, type Locale } from "@/lib/locale";
 import {
   categoryImage,
-  categoryName,
   manufacturerName,
+  shopperHealthNeeds,
   shopperCategories,
   shopperCategoryLabel
 } from "@/lib/storefront";
@@ -23,6 +23,7 @@ export function CategoryDirectory({
   title: string;
   intro: string;
 }) {
+  const healthNeeds = shopperHealthNeeds(categories, locale);
   return <>
     <header className="page-heading category-page-heading">
       <div className="wrap"><p className="eyebrow">Darmalton</p><h1>{title}</h1><p>{intro}</p></div>
@@ -40,10 +41,10 @@ export function CategoryDirectory({
         </Link>)}
       </div>
       <div className="section-heading health-need-heading"><h2>{textFor(locale, "healthNeeds")}</h2></div>
-      {categories.length ? <div className="health-need-grid">
-        {categories.map(category => <Link className="health-need-card" href={`/categories/${category.slug}`} key={category.id}>
-          <span className="health-need-image"><Image src={category.image_url || categoryImage(category.name)} alt="" fill sizes="72px"/></span>
-          <strong>{categoryName(category, locale)}</strong>
+      {healthNeeds.length ? <div className="health-need-grid">
+        {healthNeeds.map(need => <Link className="health-need-card" href={need.href} key={need.key}>
+          <span className="health-need-image"><Image src={need.image || categoryImage(need.category.name)} alt="" fill sizes="72px"/></span>
+          <strong>{need.label}</strong>
           <span aria-hidden="true">›</span>
         </Link>)}
       </div> : <State title="noResults" body="trySearch"/>}

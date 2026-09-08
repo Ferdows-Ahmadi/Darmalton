@@ -52,7 +52,7 @@ export default function CartPage() {
 
   useEffect(() => {
     if (cart?.items.length !== 0 || recommendations.length) return;
-    apiFetch<PageResult<Medicine>>("medicines/?ordering=name")
+    apiFetch<PageResult<Medicine>>("medicines/?family_listing=true&ordering=name")
       .then((result) => setRecommendations(result.results))
       .catch(() => undefined);
   }, [cart, recommendations.length]);

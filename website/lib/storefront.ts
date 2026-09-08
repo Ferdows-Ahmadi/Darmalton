@@ -156,7 +156,12 @@ export function groupMedicineFamilies(medicines: Medicine[]): MedicineFamily[] {
   const groups = new Map<string, Medicine[]>();
   for (const medicine of medicines) {
     const code = medicine.family_code || `sku-${medicine.sku}`;
-    groups.set(code, [...(groups.get(code) || []), medicine]);
+    const supplied = medicine.family_variants?.length
+      ? medicine.family_variants
+      : [medicine];
+    const known = new Map((groups.get(code) || []).map((variant) => [variant.id, variant]));
+    supplied.forEach((variant) => known.set(variant.id, variant));
+    groups.set(code, [...known.values()]);
   }
   return [...groups.entries()].map(([code, variants]) => ({
     code,
@@ -165,4 +170,51 @@ export function groupMedicineFamilies(medicines: Medicine[]): MedicineFamily[] {
       left.strength.localeCompare(right.strength)
     )
   }));
+}
+
+type HealthNeedPresentation = {
+  key: string;
+  label: string;
+  image: string;
+  category: Category;
+  href: string;
+  filterCategory?: string;
+};
+
+const healthNeedRules: {
+  key: string;
+  pattern: RegExp;
+  label: [string, string, string];
+  image: string;
+  hidden?: boolean;
+}[] = [
+  { key: "antibiotics", pattern: /^antibiotic$/i, label: ["Antibiotics", "آنتی‌بیوتیک‌ها", "انټي‌بیوټیکونه"], image: "/categories/WEB-025_Category_Medicines.webp" },
+  { key: "pain-relief", pattern: /pain relief/i, label: ["Pain relief", "تسکین درد", "د درد ارامول"], image: "/campaigns/WEB-023_Pharmacy-Essentials_Campaign-Banner.webp" },
+  { key: "kidney-urinary", pattern: /kidney stones/i, label: ["Kidney & urinary health", "سلامت کلیه و مجاری ادرار", "د پښتورګو او ادرار روغتیا"], image: "/categories/WEB-029_Category_Medical-Devices.webp" },
+  { key: "digestive", pattern: /proton pump/i, label: ["Digestive health", "سلامت دستگاه گوارش", "د هاضمې روغتیا"], image: "/categories/WEB-027_Category_Personal-Care.webp" },
+  { key: "heart", pattern: /calcium channel blockers/i, label: ["Heart & blood pressure", "قلب و فشار خون", "زړه او د وینې فشار"], image: "/campaigns/WEB-021_Daily-Wellness_Campaign-Banner.webp" },
+  { key: "supplements", pattern: /dietary supplement|iron supplement|nutrition|netritional|nutracatical/i, label: ["Nutrition & supplements", "تغذیه و مکمل‌ها", "تغذیه او بشپړوونکي"], image: "/categories/WEB-026_Category_Vitamins-and-Supplements.webp" },
+  { key: "internal-only", pattern: /antibacterial|anaerobic bacteria|brain improve|appiteite/i, label: ["", "", ""], image: "", hidden: true }
+];
+
+export function shopperHealthNeeds(
+  categories: Category[],
+  locale: Locale
+): HealthNeedPresentation[] {
+  const visible = new Map<string, HealthNeedPresentation>();
+  for (const category of categories) {
+    const rule = healthNeedRules.find((candidate) => candidate.pattern.test(category.name));
+    if (!rule || rule.hidden || visible.has(rule.key)) continue;
+    visible.set(rule.key, {
+      key: rule.key,
+      label: rule.label[localeIndex(locale)],
+      image: category.image_url || rule.image,
+      category,
+      href: rule.key === "supplements"
+        ? "/shop?shopper_category=vitamins-supplements"
+        : `/categories/${category.slug}`,
+      filterCategory: rule.key === "supplements" ? undefined : category.slug
+    });
+  }
+  return [...visible.values()];
 }

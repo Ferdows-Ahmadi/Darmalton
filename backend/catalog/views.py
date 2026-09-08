@@ -208,6 +208,36 @@ class MedicineViewSet(viewsets.ReadOnlyModelViewSet):
         .prefetch_related("images", "batches__branch")
     )
 
+    def list(self, request, *args, **kwargs):
+        """Return family-aware catalogue pages without changing SKU resources.
+
+        Normal API consumers still receive the existing SKU-paginated response.
+        Storefront listings opt in with ``family_listing=true`` and receive one
+        representative row per family plus the exact member SKUs in
+        ``family_variants``.
+        """
+        family_listing = request.query_params.get("family_listing", "").strip()
+        if not family_listing or not self._boolean_parameter("family_listing", family_listing):
+            return super().list(request, *args, **kwargs)
+
+        queryset = self.filter_queryset(self.get_queryset())
+        families = {}
+        for medicine in queryset:
+            key = medicine.family_code or f"sku-{medicine.sku}"
+            families.setdefault(key, []).append(medicine)
+
+        representatives = [variants[0] for variants in families.values()]
+        page = self.paginate_queryset(representatives)
+        visible = page if page is not None else representatives
+        rows = [dict(row) for row in self.get_serializer(visible, many=True).data]
+        for row, representative in zip(rows, visible, strict=True):
+            key = representative.family_code or f"sku-{representative.sku}"
+            row["family_variants"] = self.get_serializer(families[key], many=True).data
+
+        if page is not None:
+            return self.get_paginated_response(rows)
+        return Response(rows)
+
     def get_queryset(self):
         queryset = super().get_queryset()
         search = self.request.query_params.get("search", "").strip()

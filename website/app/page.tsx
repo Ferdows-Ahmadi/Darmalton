@@ -91,7 +91,7 @@ export default async function Home() {
     await Promise.all([
       publicHomeCms(),
       ...[1, 2, 3, 4, 5].map((page) =>
-        publicApi<PageResult<Medicine>>(`medicines/?ordering=name&page=${page}`).catch(() => null)
+        publicApi<PageResult<Medicine>>(`medicines/?family_listing=true&ordering=name&page=${page}`).catch(() => null)
       )
     ]);
   const allFamilies = groupMedicineFamilies(pages.flatMap((page) => page?.results || []));

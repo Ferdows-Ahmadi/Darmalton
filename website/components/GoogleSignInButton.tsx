@@ -2,6 +2,7 @@
 
 import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { Locale } from "@/lib/locale";
 
 type GoogleCredentialResponse = {
   credential: string;
@@ -48,15 +49,23 @@ declare global {
 export function GoogleSignInButton({
   clientId,
   mode,
+  locale,
   busy,
   onCredential,
-  onError
+  onError,
+  messages
 }: {
   clientId: string;
   mode: "login" | "register";
+  locale: Locale;
   busy: boolean;
   onCredential: (credential: string) => void;
   onError: (message: string) => void;
+  messages: {
+    missingCredential: string;
+    configurationChanged: string;
+    loadFailed: string;
+  };
 }) {
   const buttonRef = useRef<HTMLDivElement>(null);
   const [scriptReady, setScriptReady] = useState(false);
@@ -64,7 +73,7 @@ export function GoogleSignInButton({
   useEffect(() => {
     window.__darmaltonGoogleCredentialHandler = (response) => {
       if (!response.credential) {
-        onError("گوگل معلومات معتبر ورود را برنگرداند. دوباره کوشش کنید.");
+        onError(messages.missingCredential);
         return;
       }
       onCredential(response.credential);
@@ -72,7 +81,7 @@ export function GoogleSignInButton({
     return () => {
       window.__darmaltonGoogleCredentialHandler = undefined;
     };
-  }, [onCredential, onError]);
+  }, [messages.missingCredential, onCredential, onError]);
 
   const renderButton = useCallback(() => {
     if (!clientId || !window.google || !buttonRef.current) return;
@@ -80,7 +89,7 @@ export function GoogleSignInButton({
       window.__darmaltonGoogleClientId &&
       window.__darmaltonGoogleClientId !== clientId
     ) {
-      onError("تنظیمات ورود با گوگل تغییر کرده است. صفحه را تازه کنید.");
+      onError(messages.configurationChanged);
       return;
     }
     if (!window.__darmaltonGoogleClientId) {
@@ -102,9 +111,9 @@ export function GoogleSignInButton({
       shape: "rectangular",
       logo_alignment: "left",
       width: Math.min(buttonRef.current.clientWidth || 400, 400),
-      locale: "fa"
+      locale: locale === "en" ? "en" : locale === "fa-AF" ? "fa" : "ps"
     });
-  }, [clientId, mode, onError]);
+  }, [clientId, locale, messages.configurationChanged, mode, onError]);
 
   useEffect(() => {
     if (!scriptReady) return;
@@ -124,11 +133,11 @@ export function GoogleSignInButton({
   return (
     <>
       <Script
-        src="https://accounts.google.com/gsi/client?hl=fa"
+        src={`https://accounts.google.com/gsi/client?hl=${locale === "en" ? "en" : locale === "fa-AF" ? "fa" : "ps"}`}
         strategy="afterInteractive"
         onReady={() => setScriptReady(true)}
         onError={() =>
-          onError("بارگذاری ورود با گوگل ممکن نشد. اتصال اینترنت را بررسی کنید.")
+          onError(messages.loadFailed)
         }
       />
       <div className="google-button-wrap" aria-busy={busy}>

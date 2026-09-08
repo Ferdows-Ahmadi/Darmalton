@@ -3,6 +3,7 @@ import { State } from "@/components/StoreUI";
 import { textFor } from "@/lib/locale";
 import { publicApi } from "@/lib/server-api";
 import { serverLocale } from "@/lib/server-locale";
+import { shopperHealthNeeds } from "@/lib/storefront";
 import type { Category, Medicine, PageResult } from "@/lib/types";
 
 export default async function CategoryPage({
@@ -15,14 +16,17 @@ export default async function CategoryPage({
   const data = await Promise.all([
     publicApi<Category[]>("categories/"),
     publicApi<PageResult<Medicine>>(
-      `medicines/?category=${encodeURIComponent(slug)}&ordering=name`
+      `medicines/?family_listing=true&category=${encodeURIComponent(slug)}&ordering=name`
     )
   ]).catch(() => null);
   const category = data?.[0].find((item) => item.slug === slug);
+  const shopperLabel = data
+    ? shopperHealthNeeds(data[0], locale).find((need) => need.category.slug === slug)?.label
+    : undefined;
   const title = category
-    ? locale === "en"
+    ? shopperLabel || (locale === "en"
       ? category.name
-      : category.name_dari || category.name
+      : category.name_dari || category.name)
     : textFor(locale, "categories");
 
   return (

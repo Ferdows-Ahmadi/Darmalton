@@ -65,6 +65,7 @@ export type Medicine = {
   price: string | null;
   available_quantity: number;
   in_stock: boolean;
+  family_variants?: Medicine[];
   barcode?: string | null;
   status?: "DRAFT" | "ACTIVE" | "INACTIVE" | "RECALLED";
   created_at?: string;
