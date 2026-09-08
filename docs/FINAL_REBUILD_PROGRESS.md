@@ -88,3 +88,54 @@ acceptance gates for the rebuild are complete and the source is ready for the
 separate deployment process. Local review runs at `http://127.0.0.1:3002`
 against the isolated sample-data backend on port 8002. No push, deployment,
 production service, VPS or DNS action was performed.
+
+## Final visual polish — 2026-09-08
+
+### Completed checkpoints
+
+- `5cf9ee9` completed Checkpoint A: public legacy-demo isolation, the six-part
+  shopper category layer, English/Dari/Pashto catalogue presentation, product
+  family and strength grouping, CMS-managed responsive homepage heroes and
+  conditional Health navigation. The supplied medicine identity and medical
+  fields remain unchanged.
+- `c7d7a05235b512b6296e78f29418628eacdd2f0b` completed Checkpoint B against
+  `00_MASTER_HOMEPAGE_GLOBAL_VISUAL_AUTHORITY.png`: unified storefront surfaces,
+  responsive CMS hero carousel, denser family-aware merchandising, prescription
+  strip and upload dropzone, product/search/variant interactions, auth and app
+  promotion pages, empty-cart recommendations, shared secondary pages, footer,
+  skeletons, a one-time reduced-motion-aware intro, microanimations and
+  accessible dismissible status feedback.
+
+### Exact implementation-head acceptance
+
+- PostgreSQL 17.11 ran in the isolated loopback-only QA workspace on port 55434;
+  no Docker container, production service or unrelated user process was
+  inspected, stopped or changed. Ruff format/lint, Django system checks and
+  migration consistency passed. All 110 PostgreSQL-backed tests passed in
+  54.41 seconds.
+- The guarded workbook dry run and committed rerun each read all 61 medicine
+  rows. The idempotent rerun created zero medicines and zero batches, updated
+  all 61 medicine records and skipped all 61 existing batches. It reported 50
+  source batch rows, 11 deterministic synthetic batches, 59 mapped images and
+  MED-0011/MED-0012 as the only source-missing image SKUs.
+- Direct database and anonymous API assertions confirmed the exact MED-0001
+  through MED-0061 set, 54 active and 7 inactive medicines, no duplicate SKU,
+  61 active/approved/positive-stock/future-expiry sample batches, 59 existing
+  mapped image files, safe public SVG fallbacks for MED-0011/MED-0012, public
+  selling prices for all 54 public medicines, and no public purchase price,
+  cost price, barcode or private source-provenance fields.
+- Website acceptance passed strict TypeScript, ESLint, all 45 tests and a
+  production build that generated 61 pages. Flutter analysis reported no
+  issues and all 71 tests passed.
+- Browser QA exercised the homepage plus shop, category, manufacturer, product,
+  cart, checkout/login, prescription, app, About and Health surfaces at desktop
+  and 390-pixel mobile widths. The complete required width matrix (1440, 1366,
+  1280, 1024, 900, 768, 430, 412, 390, 375, 360 and 320) had no horizontal
+  overflow; hero controls stayed inside the viewport and the sticky header and
+  footer did not overlap content. English was LTR, Dari and Pashto were RTL,
+  keyboard search opened the selected medicine family, exact-SKU variant
+  switching worked, guest cart checkout preserved its return path, and a fresh
+  browser session reported no console warnings or errors.
+
+The final-polish implementation is deployment-ready for the separate deployment
+process. No push, deployment, VPS, production or DNS action was performed.

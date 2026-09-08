@@ -883,3 +883,42 @@
   for all 54 public medicines and no public purchase/cost/provenance fields.
 - All rebuild repository acceptance gates are complete. No production or
   deployment action was taken.
+
+## 2026-09-08 - Final storefront visual polish
+
+- Read the final polish master specification and all supplied visual references.
+  Used `00_MASTER_HOMEPAGE_GLOBAL_VISUAL_AUTHORITY.png` as the global authority
+  while retaining page-specific reference composition and all existing Django
+  business contracts.
+- Checkpoint A (`5cf9ee9`) added the six shopper categories, family/strength
+  presentation, three-language catalogue and CMS hero fields, deterministic
+  workbook classifications, public demo isolation and conditional Health
+  navigation. Its PostgreSQL checkpoint passed 110 tests and the guarded sample
+  import retained the documented 61-SKU, 61-batch and 59-image result.
+- Checkpoint B implementation HEAD
+  `c7d7a05235b512b6296e78f29418628eacdd2f0b` applied the master palette and
+  surfaces across customer pages; added the responsive localized hero carousel,
+  dense family-aware homepage rails, editorial and app promotions, polished
+  prescription/auth/cart/secondary states, shape-matched loading, session intro,
+  accessible toasts and responsive RTL behavior. The app page uses only the
+  signed Android download URL specified by the source package; iOS remains an
+  explicit coming-soon state.
+- Browser QA identified and fixed three real polish defects before acceptance:
+  keyboard-selected search results falling through to the generic shop search,
+  an imported no-space pack label leaking English into RTL display, and the
+  visually-hidden prescription file input widening the document. Retesting
+  confirmed exact-SKU search/variant navigation, real mapped images, guest-cart
+  checkout handoff, authenticated prescription UI, correct English LTR and
+  Dari/Pashto RTL, no overflow at all 12 required widths, no header/footer or
+  carousel-control overlap, and zero fresh-session console warnings/errors.
+- Final PostgreSQL 17.11 validation used only the isolated loopback cluster on
+  port 55434. Ruff format/lint, Django checks, migration consistency and all 110
+  backend tests passed (54.41 seconds). The workbook dry run and real idempotent
+  rerun both processed 61 rows; the rerun created zero batches and skipped all
+  61 existing batches. Assertions confirmed 54 active and 7 inactive medicines,
+  no duplicate SKU, 61 valid sample batches, 59 mapped files, safe fallbacks for
+  MED-0011/MED-0012, public prices for all 54 public medicines and no public
+  purchase/cost/barcode/provenance fields.
+- Website TypeScript, ESLint, all 45 tests and the 61-page production build
+  passed. Flutter analysis found no issues and all 71 tests passed. No push,
+  deployment, production service, VPS, DNS or unrelated container was touched.
