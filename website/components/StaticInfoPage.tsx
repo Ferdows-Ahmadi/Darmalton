@@ -12,31 +12,37 @@ export function StaticInfoPage({
   title,
   intro,
   sections,
-  action
+  action,
+  variant = "document"
 }: {
   eyebrow: LocalizedCopy;
   title: LocalizedCopy;
   intro: LocalizedCopy;
   sections: readonly { readonly title: LocalizedCopy; readonly body: LocalizedCopy }[];
   action?: { readonly href: string; readonly label: LocalizedCopy };
+  variant?: "document" | "about" | "help" | "faq";
 }) {
   const { locale, t } = useLocale();
 
   return (
-    <section className="info-page">
+    <section className={`info-page info-page-${variant}`}>
       <header className="info-page-heading">
         <p className="eyebrow">{eyebrow[locale]}</p>
         <h1>{title[locale]}</h1>
         <p>{intro[locale]}</p>
       </header>
-      <article className="info-document">
-        {sections.map((section) => (
-          <section key={section.title.en}>
-            <h2>{section.title[locale]}</h2>
-            <p>{section.body[locale]}</p>
-          </section>
-        ))}
-      </article>
+      {variant === "faq" ? <div className="info-accordion">
+        {sections.map((section, index) => <details key={section.title.en} open={index === 0}>
+          <summary>{section.title[locale]}<span aria-hidden="true">＋</span></summary>
+          <p>{section.body[locale]}</p>
+        </details>)}
+      </div> : <article className="info-document">
+        {sections.map((section, index) => <section key={section.title.en}>
+          {variant === "help" && <span className="info-step" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>}
+          <h2>{section.title[locale]}</h2>
+          <p>{section.body[locale]}</p>
+        </section>)}
+      </article>}
       <Link className="button secondary" href={action?.href || "/"}>
         {action?.label[locale] || t("backHome")}
       </Link>

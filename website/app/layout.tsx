@@ -7,6 +7,7 @@ import { AppChrome } from "@/components/AppChrome";
 import { publicCmsList } from "@/lib/public-cms";
 import type { PublicAnnouncement, PublicContentPage } from "@/lib/types";
 import "./globals.css";
+import "./polish.css";
 
 const estedad = localFont({src:"./fonts/Estedad.ttf", variable:"--font-estedad", display:"swap"});
 

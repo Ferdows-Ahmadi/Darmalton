@@ -139,3 +139,60 @@ production service, VPS or DNS action was performed.
 
 The final-polish implementation is deployment-ready for the separate deployment
 process. No push, deployment, VPS, production or DNS action was performed.
+
+## Final surgical correction — 2026-09-09
+
+### Completed checkpoints
+
+- `28c8992` completed the functional correction checkpoint: public family
+  listing is explicitly opt-in, every exact SKU remains independently
+  addressable, family cards require an exact strength/pack choice, shopper
+  taxonomy no longer exposes raw internal labels, real Google token validation
+  remains server-owned, logout clears the Google chooser, and alert/error
+  feedback is explicit and localized.
+- The visual correction checkpoint applies the supplied master composition and
+  app-page asset family without changing medicine identity, price, inventory,
+  order, prescription, authorization or admin contracts. It compacts the shared
+  header, hero, product rails, catalogue, product detail, cart and account
+  surfaces; adds the address geolocation pre-permission dialog; gives Help, FAQ
+  and About distinct layouts; and polishes sparse/empty states.
+- Non-English product detail pages now show the localized description when one
+  exists and the localized missing-information message otherwise; English
+  source prose is no longer exposed as Pashto or Dari content.
+
+### Exact implementation-head acceptance
+
+- PostgreSQL 17.11 ran in the existing isolated loopback-only QA workspace on
+  port 55434. Ruff format/lint, Django checks and migration consistency passed;
+  all 113 PostgreSQL-backed tests passed in 45.45 seconds. Docker Desktop was
+  unavailable and no existing container was inspected, stopped or changed.
+- The documented SQLite workstation fallback also passed Ruff, Django checks,
+  migration consistency and all 113 backend tests. OpenAPI generation and
+  validation completed through `scripts/test-all.ps1`.
+- Website strict TypeScript and ESLint passed, all 55 tests passed, and the
+  production build compiled and generated 61 routes. A live 35-route smoke
+  matrix returned only successful or expected redirect responses, and the
+  anonymous family-listing API returned HTTP 200.
+- Flutter analysis reported no issues, all 71 tests passed and a fresh debug APK
+  compiled successfully. This was a build verification only; no signed release
+  artifact, device install or release configuration was changed.
+- Browser QA covered home, catalogue, product detail, cart, login/error,
+  registration/return routing, account/profile, address empty state, address
+  form, geolocation pre-permission, app, Help, FAQ and About. The full 1440,
+  1366, 1280, 1024, 900, 768, 430, 412, 390, 375, 360 and 320 width matrix had
+  no horizontal document overflow. The exact 5 mg and 10 mg product variants,
+  localized empty/error states and account navigation were visibly verified.
+- The local-only browser QA account was removed after verification and had no
+  orders, addresses or prescriptions. No QA credentials are present in the
+  application defaults or tracked source.
+
+### Frozen V1 handoff
+
+The V1 surgical correction is complete on
+`customer-storefront-v1-final-rebuild`. Local review remains available at
+`http://127.0.0.1:3002` against the isolated SQLite sample-data backend on port
+8002. Real production Google-provider sign-in still requires the separately
+managed deployment credentials and external-provider acceptance; no production
+credential was introduced for this local pass. No push, deployment, production
+service, VPS, DNS or signed Android release action was performed. Further V1
+changes require an explicit new request.

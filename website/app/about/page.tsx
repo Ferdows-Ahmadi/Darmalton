@@ -17,5 +17,5 @@ export default async function AboutPage() {
         locale={locale}
       />
     );
-  return <StaticInfoPage {...staticPages.about} />;
+  return <StaticInfoPage {...staticPages.about} variant="about" />;
 }

@@ -158,7 +158,7 @@ export default async function Home() {
 
       <section className="home-app-promo section">
         <div><p className="eyebrow">{t("app")}</p><h2>{t("appTitle")}</h2><p>{copy.appBody}</p><div className="actions"><Link className="button" href="/app">{t("android")}</Link><span>{copy.coming}</span></div></div>
-        <Image src="/brand/android-icon.png" alt="" width={170} height={170} />
+        <Image className="home-app-phones" src="/app/APP-01_Hero_Dual_Phones.png" alt="" width={488} height={404} />
       </section>
     </div>
   </>;

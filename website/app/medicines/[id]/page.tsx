@@ -40,8 +40,8 @@ export default async function MedicinePage({ params }: { params: Promise<{ id: s
   const description = locale === "en"
     ? medicine.description
     : locale === "ps-AF"
-      ? medicine.description_pashto || medicine.description_dari || medicine.description
-      : medicine.description_dari || medicine.description;
+      ? medicine.description_pashto
+      : medicine.description_dari;
 
   return <section className="page-section product-detail-page">
     <div className="product-detail">

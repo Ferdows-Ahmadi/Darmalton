@@ -60,7 +60,7 @@ export function AddressBook() {
         {error && <p className="form-error">{error}</p>}
         {!items && !error && <p className="loading">{t("loading")}</p>}
         {items?.length === 0 && (
-          <State title="addresses" body="newAddress" />
+          <State title="addresses" body="newAddress" actionHref="/account/addresses/new" actionLabel="newAddress" />
         )}
         <div className="address-grid">
           {items?.map((address) => (
