@@ -58,7 +58,7 @@ function CustomerChrome({
         {[["ICON-005_Prescription-Upload", "privateRx"], ["ICON-009_Secure-Checkout", "cod"], ["ICON-002_Account", "orderHistory"], ["ICON-010_Customer-Support", "support"]].map(([icon, label]) => <div key={icon}><Icon name={icon}/><span>{t(label as TextKey)}</span></div>)}
       </div>
       <div className="footer-grid wrap">
-        <div><Image src="/brand/darmalton-logo.png" alt="درملتون" width={160} height={64}/><p>{t("footer")}</p></div>
+        <div><Image src="/brand/darmalton-logo.png" alt="درملتون" width={160} height={64} priority/><p>{t("footer")}</p></div>
         {footer.map((group, index) => <nav aria-label={`${t("menu")} ${index + 1}`} key={index}>{group.map(([href, label]) => <Link key={href} href={href}>{t(label)}</Link>)}</nav>)}
       </div>
       <div className="footer-bottom wrap"><span>© {new Date().getFullYear()} Darmalton</span><span>{t("privateRx")}</span></div>

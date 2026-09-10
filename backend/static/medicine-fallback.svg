@@ -1,9 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
   <title id="title">Medicine image unavailable</title>
   <desc id="desc">A neutral medical image symbol</desc>
-  <rect width="640" height="480" rx="32" fill="#edf8f7"/>
-  <rect x="188" y="104" width="264" height="264" rx="44" fill="#ffffff" stroke="#b9ddda" stroke-width="8"/>
-  <path d="M290 154h60v72h72v60h-72v72h-60v-72h-72v-60h72z" fill="#119f9a"/>
-  <circle cx="514" cy="90" r="24" fill="#d7efed"/>
-  <circle cx="126" cy="390" r="34" fill="#d7efed"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f7fbfa"/>
+      <stop offset="1" stop-color="#e7f5f3"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f3f8f7"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="480" rx="32" fill="url(#bg)"/>
+  <circle cx="516" cy="92" r="45" fill="none" stroke="#d5ece9" stroke-width="16"/>
+  <circle cx="120" cy="392" r="58" fill="#dff1ef" opacity=".78"/>
+  <g transform="translate(165 72)">
+    <rect x="84" y="34" width="144" height="54" rx="16" fill="#c8e5e2"/>
+    <path d="M76 84h160l18 42v190c0 24-20 44-44 44H102c-24 0-44-20-44-44V126z" fill="url(#glass)" stroke="#acd5d1" stroke-width="7"/>
+    <rect x="83" y="160" width="146" height="108" rx="20" fill="#e0f2f0"/>
+    <path d="M137 181h38v29h29v38h-29v29h-38v-29h-29v-38h29z" fill="#119f9a"/>
+  </g>
+  <g transform="rotate(-32 455 352)">
+    <rect x="388" y="321" width="134" height="62" rx="31" fill="#ffffff" stroke="#9fcfca" stroke-width="7"/>
+    <path d="M455 325v54" stroke="#9fcfca" stroke-width="7"/>
+    <path d="M459 325h32c17 0 29 12 29 27s-12 27-29 27h-32z" fill="#65c8bc"/>
+  </g>
 </svg>

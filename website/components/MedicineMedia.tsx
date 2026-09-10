@@ -13,6 +13,7 @@ type MedicineMediaProps = Omit<ImageProps, "src" | "alt" | "onError"> & {
 export function MedicineMedia({
   imageUrl,
   alt,
+  className,
   ...imageProps
 }: MedicineMediaProps) {
   const [source, setSource] = useState(imageUrl || FALLBACK_IMAGE);
@@ -24,6 +25,7 @@ export function MedicineMedia({
   return (
     <Image
       {...imageProps}
+      className={["media-product", className].filter(Boolean).join(" ")}
       src={source}
       alt={alt}
       unoptimized={source.endsWith(".svg")}

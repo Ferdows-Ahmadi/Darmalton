@@ -36,7 +36,7 @@ export function CategoryDirectory({
           href={`/shop?shopper_category=${category.slug}`}
           key={category.slug}
         >
-          <Image src={category.image} alt="" width={420} height={260} sizes="(max-width: 767px) 50vw, 18vw"/>
+          <Image className="media-editorial" src={category.image} alt="" width={420} height={260} sizes="(max-width: 767px) 50vw, 18vw"/>
           <strong>{shopperCategoryLabel(category, locale)}</strong>
         </Link>)}
       </div>
@@ -73,7 +73,7 @@ export function ManufacturerDirectory({
           key={manufacturer.id}
         >
           {manufacturer.logo_url
-            ? <span className="manufacturer-logo"><Image src={manufacturer.logo_url} alt="" fill sizes="52px"/></span>
+            ? <span className="manufacturer-logo"><Image className="media-logo" src={manufacturer.logo_url} alt="" fill sizes="52px"/></span>
             : <span className="manufacturer-mark" aria-hidden="true">{manufacturer.name.slice(0, 1).toUpperCase()}</span>}
           <span><strong><bdi>{manufacturerName(manufacturer, locale)}</bdi></strong><small>{manufacturer.product_count} {textFor(locale, "results")}</small></span>
         </Link>)}

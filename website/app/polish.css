@@ -88,3 +88,116 @@ button,.button{min-height:42px;border-radius:10px;font-weight:650}.secondary,.bu
 .wide-campaign{width:100%}
 .footer-grid>div img{width:140px;height:auto}
 @media(max-width:767px){.footer-grid>div img{width:110px;height:auto}}
+
+/* Acceptance refinement: clearer controls, editorial media rules and narrow-screen rhythm. */
+.media-editorial{object-fit:cover}
+.media-product,.media-logo{object-fit:contain}
+
+.hero-carousel-controls{position:absolute;inset:0;display:block;pointer-events:none}
+.carousel-arrow{position:absolute;top:50%;z-index:2;width:40px;min-width:40px;min-height:40px;padding:0;border:1px solid #ffffffb8;border-radius:50%;background:#ffffffd9;color:#0b625d;box-shadow:0 8px 24px #0c2f4420;font-size:25px;line-height:1;pointer-events:auto;transform:translateY(-50%);transition:background .18s ease,color .18s ease,transform .18s ease}
+.carousel-arrow-previous{inset-inline-start:clamp(14px,2.7vw,42px)}
+.carousel-arrow-next{inset-inline-end:clamp(14px,2.7vw,42px)}
+.carousel-arrow:hover{background:#0b756d;color:#fff;transform:translateY(-50%) scale(1.04)}
+.carousel-arrow:focus-visible,.carousel-dots button:focus-visible{outline:3px solid #0a7068;outline-offset:3px}
+.carousel-dots{position:absolute;bottom:15px;left:50%;display:flex;gap:7px;pointer-events:auto;transform:translateX(-50%)}
+.carousel-dots button{border:1px solid #0b625d66;background:#ffffffd9;box-shadow:0 2px 8px #0c2f4417}
+.carousel-dots button[aria-current=true]{background:#0b756d;border-color:#0b756d}
+
+.page-heading{width:min(var(--page-max),calc(100% - 64px));min-height:142px;margin:22px auto 28px;border:1px solid #deecea;border-radius:20px;box-shadow:0 10px 30px #0c2f4408}
+.page-heading:before{content:"";position:absolute;z-index:-1;width:34%;height:100%;inset-inline-end:0;top:0;background:linear-gradient(135deg,transparent 12%,#ffffff70);clip-path:polygon(30% 0,100% 0,100% 100%,0 100%)}
+.page-heading .wrap{width:calc(100% - 56px)}
+
+.product-info .product-variant,.product-info .product-generic,.product-info .product-form{min-height:16px}
+.product-info .is-placeholder{visibility:hidden}
+.badge-slot{display:flex;align-items:center;min-height:21px}
+.product-info>strong{min-height:26px;display:flex;align-items:center;line-height:1.35}
+
+.editorial-rx .media-editorial,.editorial-vitamins .media-editorial,.wide-campaign .media-editorial{object-position:center}
+.editorial-card>span,.wide-campaign>span{filter:drop-shadow(0 1px 0 #ffffff70)}
+.manufacturer-card{background:linear-gradient(135deg,#fff 0,#fbfdfd 100%)}
+.manufacturer-mark{box-shadow:inset 0 0 0 1px #c9e5e2}
+.health-need-card:hover,.manufacturer-card:hover{box-shadow:0 10px 26px #0c2f440c!important}
+.catalogue-layout>.state,.catalogue-layout>div>.state{max-width:620px;min-height:205px;margin-block:18px}
+
+.app-benefits article img{padding:7px;border-radius:14px;background:#eaf7f4}
+.app-benefits article h2{line-height:1.55}
+.app-stories article:nth-child(2){background:linear-gradient(115deg,#eef6fa,#f4f9f7)}
+.app-stories .eyebrow{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#fff;color:#0b756d;letter-spacing:0}
+.app-final-panel>img{object-fit:contain}
+
+.store-footer{margin-top:28px}
+.service-strip{gap:12px;padding-block:13px}
+.service-strip>div{min-height:43px;padding:8px 12px}
+.footer-grid{gap:22px;padding-block:21px}
+.footer-grid nav{gap:5px;line-height:1.65}
+
+@media(max-width:1100px){
+  .page-heading{width:calc(100% - 40px)}
+}
+
+@media(max-width:860px){
+  .catalogue-layout{grid-template-columns:1fr;gap:14px}
+  .mobile-filter{display:inline-flex;width:max-content}
+  .filters{display:none;position:static}
+  .filters.is-open{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:17px}
+}
+
+@media(max-width:767px){
+  .hero-carousel,.hero-carousel-content{min-height:344px}
+  .hero-carousel-copy{padding-block:18px 50px}
+  .hero-carousel-copy h1{max-width:310px;font-size:clamp(25px,7.3vw,29px);line-height:1.2}
+  .hero-carousel-copy>p:not(.eyebrow){max-width:300px;font-size:12px;line-height:1.6}
+  .carousel-arrow{display:none}
+  .carousel-dots{bottom:12px;gap:6px}
+  .carousel-dots button{width:7px;min-width:7px;height:7px;min-height:7px}
+  .carousel-dots button[aria-current=true]{width:21px}
+
+  .page-heading{width:calc(100% - 28px);min-height:112px;margin:14px auto 20px;padding-block:14px;border-radius:16px}
+  .page-heading .wrap{width:calc(100% - 32px)}
+  .page-heading h1{font-size:clamp(25px,7vw,29px);line-height:1.3}
+  .page-heading p:last-child{margin-top:2px}
+
+  .section-heading h2{max-width:80%;font-size:clamp(18px,5.25vw,21px);line-height:1.42}
+  .product-info h2{font-size:clamp(11px,3.1vw,12px);line-height:1.45}
+  .product-info>strong{font-size:clamp(14px,4vw,16px)}
+  .badge-slot{min-height:19px}
+  .editorial-card{min-height:194px}
+  .editorial-card strong{font-size:clamp(18px,5.3vw,21px)}
+  .wide-campaign{min-height:205px}
+  .wide-campaign strong{font-size:clamp(20px,6vw,23px)}
+  .editorial-card>span,.wide-campaign>span{padding:18px}
+
+  .shopper-category-tile strong{min-height:40px;display:flex;align-items:center;line-height:1.45}
+  .health-need-card strong{font-size:12px;line-height:1.45}
+  .manufacturer-card strong{font-size:12.5px;line-height:1.45}
+  .manufacturer-card small{font-size:10px}
+
+  .app-hero-copy h1{font-size:clamp(31px,9vw,36px);line-height:1.18}
+  .app-benefits article{min-height:132px}
+  .app-stories article,.app-stories article:nth-child(even){gap:12px;padding:21px}
+  .app-stories h2{font-size:21px;line-height:1.4}
+
+  .service-strip{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .service-strip>div{min-height:40px;padding:7px 9px}
+  .footer-grid{gap:15px;padding-block:18px}
+}
+
+@media(max-width:380px){
+  .hero-carousel,.hero-carousel-content{min-height:326px}
+  .hero-carousel-copy h1{max-width:275px;font-size:24px}
+  .hero-carousel-copy>p:not(.eyebrow){font-size:11.5px}
+  .page-heading{min-height:104px}
+  .page-heading h1{font-size:24px}
+  .page-heading-eyebrow{font-size:8.5px}
+  .section-heading h2{font-size:18px}
+  .product-info{gap:4px}
+  .product-info .product-variant,.product-info .product-generic,.product-info .product-form{min-height:15px}
+  .editorial-card{min-height:184px}
+  .wide-campaign{min-height:195px}
+  .app-benefits article{min-height:0}
+  .app-stories h2{font-size:19px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .carousel-arrow,.product-card,.product-photo img,.category-tile,.category-tile img,.health-need-card,.manufacturer-card{transition:none!important}
+}

@@ -142,18 +142,18 @@ export default async function Home() {
         <ProductRail title={t("products")} families={featured} />
         <section className="editorial-mosaic section">
           <Link className="editorial-card editorial-rx" href="/prescriptions/upload">
-            <Image src="/campaigns/WEB-022_Prescription-Support_Campaign-Banner.webp" alt="" fill sizes="(max-width: 767px) 100vw, 55vw" />
+            <Image className="media-editorial" src="/campaigns/WEB-022_Prescription-Support_Campaign-Banner.webp" alt="" fill sizes="(max-width: 767px) 100vw, 55vw" />
             <span><strong>{copy.prescriptionTitle}</strong><small>{copy.prescriptionBody}</small></span>
           </Link>
           <Link className="editorial-card editorial-vitamins" href="/shop?shopper_category=vitamins-supplements">
-            <Image src="/campaigns/WEB-021_Daily-Wellness_Campaign-Banner.webp" alt="" fill sizes="(max-width: 767px) 100vw, 45vw" />
+            <Image className="media-editorial" src="/campaigns/WEB-021_Daily-Wellness_Campaign-Banner.webp" alt="" fill sizes="(max-width: 767px) 100vw, 45vw" />
             <span><strong>{copy.vitaminsTitle}</strong><small>{copy.vitaminsBody}</small></span>
           </Link>
         </section>
         <ProductRail title={t("popularMedicines")} families={popular} />
         <ProductRail title={t("vitaminsSupplements")} families={vitamins} href="/shop?shopper_category=vitamins-supplements" />
         <Link className="wide-campaign section" href="/categories">
-          <Image src="/campaigns/WEB-024_Home-and-Family_Campaign-Banner.webp" alt="" fill sizes="100vw" />
+          <Image className="media-editorial" src="/campaigns/WEB-024_Home-and-Family_Campaign-Banner.webp" alt="" fill sizes="100vw" />
           <span><strong>{copy.familyTitle}</strong><small>{copy.familyBody}</small><b>{t("viewAll")} <span aria-hidden="true">↗</span></b></span>
         </Link>
         <ProductRail title={t("personalFamilyCare")} families={familyCare} />

@@ -24,6 +24,7 @@ export function HeroCarousel({ slides }: { slides: PublicBanner[] }) {
   const [paused, setPaused] = useState(false);
   const pointerStart = useRef<number | null>(null);
   const count = Math.max(slides.length, 1);
+  const activeIndex = active < slides.length ? active : 0;
 
   useEffect(() => {
     if (slides.length < 2 || paused) return;
@@ -37,7 +38,7 @@ export function HeroCarousel({ slides }: { slides: PublicBanner[] }) {
   }, [paused, slides.length]);
 
   const go = (index: number) => setActive((index + count) % count);
-  const current = slides[active];
+  const current = slides[activeIndex];
   const title = current
     ? localized(locale, current.title, current.title_dari, current.title_pashto)
     : t("heroTitle");
@@ -69,8 +70,8 @@ export function HeroCarousel({ slides }: { slides: PublicBanner[] }) {
         if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false);
       }}
       onKeyDown={(event) => {
-        if (event.key === "ArrowLeft") go(active - 1);
-        if (event.key === "ArrowRight") go(active + 1);
+        if (event.key === "ArrowLeft") go(activeIndex - 1);
+        if (event.key === "ArrowRight") go(activeIndex + 1);
       }}
       onPointerDown={(event) => {
         pointerStart.current = event.clientX;
@@ -78,7 +79,10 @@ export function HeroCarousel({ slides }: { slides: PublicBanner[] }) {
       onPointerUp={(event) => {
         if (pointerStart.current === null) return;
         const distance = event.clientX - pointerStart.current;
-        if (Math.abs(distance) > 45) go(active + (distance < 0 ? 1 : -1));
+        if (Math.abs(distance) > 45) go(activeIndex + (distance < 0 ? 1 : -1));
+        pointerStart.current = null;
+      }}
+      onPointerCancel={() => {
         pointerStart.current = null;
       }}
     >
@@ -121,11 +125,11 @@ export function HeroCarousel({ slides }: { slides: PublicBanner[] }) {
         <div className="hero-carousel-controls">
           <button
             type="button"
-            className="carousel-arrow"
+            className="carousel-arrow carousel-arrow-previous"
             aria-label={t("previous")}
-            onClick={() => go(active - 1)}
+            onClick={() => go(activeIndex - 1)}
           >
-            ‹
+            {locale === "en" ? "‹" : "›"}
           </button>
           <div className="carousel-dots">
             {slides.map((slide, index) => (
@@ -133,18 +137,18 @@ export function HeroCarousel({ slides }: { slides: PublicBanner[] }) {
                 type="button"
                 key={slide.id}
                 aria-label={`${index + 1} / ${slides.length}`}
-                aria-current={index === active ? "true" : undefined}
+                aria-current={index === activeIndex ? "true" : undefined}
                 onClick={() => go(index)}
               />
             ))}
           </div>
           <button
             type="button"
-            className="carousel-arrow"
+            className="carousel-arrow carousel-arrow-next"
             aria-label={t("next")}
-            onClick={() => go(active + 1)}
+            onClick={() => go(activeIndex + 1)}
           >
-            ›
+            {locale === "en" ? "›" : "‹"}
           </button>
         </div>
       )}
