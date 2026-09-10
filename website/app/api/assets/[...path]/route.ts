@@ -47,7 +47,11 @@ export async function GET(_request: Request, context: RouteContext) {
   const backendPath = normalizedPath.join("/");
   const backend = await fetch(`${backendOrigin}/${backendPath}`, {
     headers: { "X-Forwarded-Proto": forwardedProto },
-    cache: "force-cache"
+    // The backend response carries the public browser cache policy. Avoid
+    // persisting a temporary fallback response in Next's server data cache,
+    // because an image uploaded or restored at the same guarded URL must be
+    // visible without rebuilding the storefront.
+    cache: "no-store"
   });
   if (!backend.ok || !backend.body) {
     return new NextResponse(null, { status: backend.status });

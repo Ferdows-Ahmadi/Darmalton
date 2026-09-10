@@ -6,18 +6,24 @@ import { useRouter } from "next/navigation";
 
 import { OrderCard } from "@/components/OrderCard";
 import { AccountShell } from "@/components/AccountShell";
+import { useAuthenticated } from "@/components/AuthStateProvider";
 import { useLocale } from "@/components/LocaleProvider";
 import { ApiError, apiFetch } from "@/lib/api";
 import { loginPath } from "@/lib/auth-navigation";
 import type { Order, PageResult } from "@/lib/types";
 
 export default function OrdersPage() {
+  const authenticated = useAuthenticated();
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [error, setError] = useState("");
   const router = useRouter();
   const { t } = useLocale();
 
   useEffect(() => {
+    if (!authenticated) {
+      router.replace(loginPath("/account/orders"));
+      return;
+    }
     apiFetch<PageResult<Order>>("orders/")
       .then((data) => setOrders(data.results))
       .catch((err) => {
@@ -26,7 +32,7 @@ export default function OrdersPage() {
         }
         else setError(err instanceof Error ? err.message : t("connection"));
       });
-  }, [router, t]);
+  }, [authenticated, router, t]);
 
   return (
     <section className="page-section narrow">

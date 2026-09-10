@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ApiError, apiFetch } from "@/lib/api";
 import { loginPath } from "@/lib/auth-navigation";
 import { AccountShell } from "@/components/AccountShell";
+import { useAuthenticated } from "@/components/AuthStateProvider";
 import { useLocale } from "@/components/LocaleProvider";
 import { Toast } from "@/components/Toast";
 import { prescriptionStatus } from "@/lib/status";
@@ -44,6 +45,7 @@ function uploadWithProgress(
 }
 
 export default function PrescriptionsPage() {
+  const authenticated = useAuthenticated();
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedMedicineId = searchParams.get("medicineId");
@@ -66,6 +68,10 @@ export default function PrescriptionsPage() {
       : { kicker: "د درملپوه خوندي کتنه", new: "نوې نسخه لېږل", none: "فایل دلته راکش کړئ یا یې له وسیلې وټاکئ", preview: "د نسخې مخکتنه", select: "لومړی د نسخې انځور یا فایل وټاکئ.", replace: "فایل بدلول", removeFile: "فایل لرې کول", camera: "کمره، انځورونه یا سند", uploadFailure: "نسخه ونه لېږل شوه. فایل او اړیکه وګورئ.", history: "د نسخو تاریخچه", historyBody: "له لېږلو وروسته د کتنې حالت دلته ښکاري.", customer: "د پېرودونکي نسخه", requested: "وضاحت غوښتل شوی", upTo: "تر", units: "دانې", added: "تایید شوي درمل ټوکرۍ ته زیات شول. خپله ټوکرۍ وګورئ او فرمایش تایید کړئ.", already: "تایید شوي درمل لا له مخکې په ټوکرۍ کې دي.", addFailure: "درمل ټوکرۍ ته زیات نه شول.", addNote: "تر اوسه فرمایش نه جوړېږي. بیه، موجودي، پته او نغدي تادیه له وروستي تایید مخکې وګورئ.", cancelling: "غوښتنه لغوه کول", uploading: "لېږل کېږي…", uploaded: "ولېږل شوه", submitFailure: "غوښتنه ترسره نه شوه." };
 
   const load = useCallback(async () => {
+    if (!authenticated) {
+      router.replace(loginPath("/account/prescriptions"));
+      return;
+    }
     try {
       const data = await apiFetch<PageResult<Prescription>>("prescriptions/");
       setItems(data.results);
@@ -76,7 +82,7 @@ export default function PrescriptionsPage() {
       }
       setError(err instanceof Error ? err.message : t("connection"));
     }
-  }, [router, t]);
+  }, [authenticated, router, t]);
 
   useEffect(() => {
     load();

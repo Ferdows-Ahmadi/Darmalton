@@ -196,3 +196,33 @@ managed deployment credentials and external-provider acceptance; no production
 credential was introduced for this local pass. No push, deployment, production
 service, VPS, DNS or signed Android release action was performed. Further V1
 changes require an explicit new request.
+
+### Final customer storefront polish pass
+
+- The customer storefront received its final asset-aware composition and
+  responsive refinement pass without changing medicine, price, inventory,
+  cart, checkout, prescription, authentication, authorization or CMS contracts.
+- Product media now falls back only when the stored image is genuinely absent,
+  and the same-site image proxy no longer caches a temporary fallback over a
+  restored source image. Local development serves the approved media tree from
+  the website public directory while retaining guarded backend URLs.
+- Guest pages now use the server-provided authentication state before protected
+  API reads, eliminating expected anonymous 401 noise. Account routes remain
+  protected and preserve the existing return-path behavior.
+- Google sign-in remains visible and recognizable when credentials are absent,
+  but is honestly disabled; the existing Google Identity Services flow is used
+  unchanged when the documented client IDs are configured.
+- Final browser coverage included 1440, 1366, 1280, 1024, 900, 768, 430, 412,
+  390, 375, 360 and 320 pixel widths across the homepage, catalogue,
+  directories, product detail, cart, authentication, account, prescription,
+  order, notification and app surfaces. The clean browser pass reported no
+  broken images, horizontal overflow, console errors or console warnings, and
+  verified English LTR plus Dari RTL switching.
+- The final verification passed all 113 backend tests with SQLite and the
+  isolated PostgreSQL runtime, Ruff, Django checks, migration consistency,
+  OpenAPI validation, all 58 website tests, strict TypeScript, ESLint, the
+  61-route production build, all 71 Flutter tests, Flutter analysis, a debug
+  APK build, Compose configuration validation and the integrated commerce smoke
+  flow. Docker Desktop itself was unavailable, so no live Compose stack ran.
+- Local review uses `http://127.0.0.1:3002` with the isolated SQLite backend at
+  `http://127.0.0.1:8000`. No push, deployment or production action was taken.

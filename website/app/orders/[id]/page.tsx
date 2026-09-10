@@ -6,12 +6,14 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ApiError, apiFetch } from "@/lib/api";
 import { loginPath } from "@/lib/auth-navigation";
 import { AccountShell } from "@/components/AccountShell";
+import { useAuthenticated } from "@/components/AuthStateProvider";
 import { useLocale } from "@/components/LocaleProvider";
 import { formatMoney, formatNumber } from "@/lib/locale";
 import { orderStatus } from "@/lib/status";
 import type { Order } from "@/lib/types";
 
 export default function OrderPage() {
+  const authenticated = useAuthenticated();
   const { id } = useParams<{ id: string }>();
   const query = useSearchParams();
   const router = useRouter();
@@ -25,6 +27,10 @@ export default function OrderPage() {
       : { unavailable: "فرمایش نشته", placed: "فرمایش په بریالیتوب ثبت شو. د درملتون ډله به یې اوس وګوري.", refresh: "حالت تازه کول", placedOn: "ثبت شوی", items: "د فرمایش توکي", cod: "د سپارلو پر مهال نغدې پیسې", address: "د سپارلو پته", placedNote: "فرمایش ثبت شو" };
 
   const load = useCallback(async function load() {
+    if (!authenticated) {
+      router.replace(loginPath(`/account/orders/${id}`));
+      return;
+    }
     try {
       setOrder(await apiFetch<Order>(`orders/${id}/`));
       setError("");
@@ -34,7 +40,7 @@ export default function OrderPage() {
       }
       else setError(err instanceof Error ? err.message : t("connection"));
     }
-  }, [id, router, t]);
+  }, [authenticated, id, router, t]);
 
   useEffect(() => {
     void load();

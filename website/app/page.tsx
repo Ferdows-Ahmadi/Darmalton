@@ -84,17 +84,28 @@ function editorialCopy(locale: Locale) {
   };
 }
 
+async function publicMedicinePages() {
+  const pages: PageResult<Medicine>[] = [];
+
+  for (let page = 1; page <= 5; page += 1) {
+    const result = await publicApi<PageResult<Medicine>>(
+      `medicines/?family_listing=true&ordering=name&page=${page}`
+    ).catch(() => null);
+
+    if (!result) break;
+    pages.push(result);
+    if (!result.next) break;
+  }
+
+  return pages;
+}
+
 export default async function Home() {
   const locale = await serverLocale();
   const t = (key: TextKey) => textFor(locale, key);
-  const [{ heroes, announcements, featuredMedicines, articles }, ...pages] =
-    await Promise.all([
-      publicHomeCms(),
-      ...[1, 2, 3, 4, 5].map((page) =>
-        publicApi<PageResult<Medicine>>(`medicines/?family_listing=true&ordering=name&page=${page}`).catch(() => null)
-      )
-    ]);
-  const allFamilies = groupMedicineFamilies(pages.flatMap((page) => page?.results || []));
+  const [{ heroes, announcements, featuredMedicines, articles }, pages] =
+    await Promise.all([publicHomeCms(), publicMedicinePages()]);
+  const allFamilies = groupMedicineFamilies(pages.flatMap((page) => page.results));
   const used = new Set<string>();
   const cmsFamilies = groupMedicineFamilies(featuredMedicines.map(({ medicine }) => medicine))
     .map((family) => allFamilies.find(({ code }) => code === family.code) || family);

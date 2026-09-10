@@ -47,7 +47,7 @@ export default async function MedicinePage({ params }: { params: Promise<{ id: s
     <div className="product-detail">
       <div className="detail-gallery">
         <div className="detail-image">
-          <MedicineMedia imageUrl={medicine.image_url} alt={name} width={640} height={480} sizes="(max-width: 900px) 100vw, 50vw" priority/>
+          <MedicineMedia imageUrl={medicine.image_url} alt={name} fill sizes="(max-width: 900px) 100vw, 50vw" priority/>
         </div>
       </div>
       <div className="detail-copy">

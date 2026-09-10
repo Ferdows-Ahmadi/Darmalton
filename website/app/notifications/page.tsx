@@ -7,10 +7,12 @@ import { useRouter } from "next/navigation";
 import { ApiError, apiFetch } from "@/lib/api";
 import { loginPath } from "@/lib/auth-navigation";
 import { AccountShell } from "@/components/AccountShell";
+import { useAuthenticated } from "@/components/AuthStateProvider";
 import { useLocale } from "@/components/LocaleProvider";
 import type { AppNotification, PageResult } from "@/lib/types";
 
 export default function NotificationsPage() {
+  const authenticated = useAuthenticated();
   const router = useRouter();
   const [items, setItems] = useState<AppNotification[] | null>(null);
   const [error, setError] = useState("");
@@ -23,6 +25,10 @@ export default function NotificationsPage() {
       : { kicker: "د حساب تایید شوي تازه معلومات", body: "د فرمایشونو او نسخو د حالت بدلونونه دلته ساتل کېږي.", empty: "د فرمایش یا نسخې حالت چې بدل شي، دلته به ښکاره شي.", unread: "نه دی لوستل شوی" };
 
   const load = useCallback(async () => {
+    if (!authenticated) {
+      router.replace(loginPath("/account/notifications"));
+      return;
+    }
     setError("");
     try {
       const data = await apiFetch<PageResult<AppNotification>>("notifications/");
@@ -34,7 +40,7 @@ export default function NotificationsPage() {
       }
       setError(caught instanceof Error ? caught.message : t("connection"));
     }
-  }, [router, t]);
+  }, [authenticated, router, t]);
 
   useEffect(() => { void load(); }, [load]);
 

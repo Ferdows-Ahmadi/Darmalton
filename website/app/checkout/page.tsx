@@ -4,6 +4,8 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { apiFetch } from "@/lib/api";
+import { useAuthenticated } from "@/components/AuthStateProvider";
+import { loginPath } from "@/lib/auth-navigation";
 import { useLocale } from "@/components/LocaleProvider";
 import { formatMoney } from "@/lib/locale";
 import type { Address, Cart, Order, PageResult } from "@/lib/types";
@@ -22,6 +24,7 @@ const emptyAddress = {
 };
 
 export default function CheckoutPage() {
+  const authenticated = useAuthenticated();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [cart, setCart] = useState<Cart | null>(null);
   const [selected, setSelected] = useState("");
@@ -37,6 +40,10 @@ export default function CheckoutPage() {
       : { home: "کور", intro: "د سپارلو پته وټاکئ. اوس یوازې د سپارلو پر مهال نغدې پیسې منل کېږي.", saveError: "پته ونه ساتل شوه.", confirm: "د سپارلو پر مهال د نغدو پیسو فرمایش ثبت شي؟ بیه", orderError: "فرمایش ثبت نه شو.", other: "بله پته زیاتول", new: "د سپارلو نوې پته", optional: "اختیاري", cod: "د سپارلو پر مهال نغدې پیسې", placing: "فرمایش ثبتېږي…" };
 
   const load = useCallback(async function load() {
+    if (!authenticated) {
+      router.replace(loginPath("/checkout"));
+      return;
+    }
     try {
       const [{ results: list }, currentCart] = await Promise.all([
         apiFetch<PageResult<Address>>("addresses/"),
@@ -51,7 +58,7 @@ export default function CheckoutPage() {
     } catch {
       router.push("/checkout/login");
     }
-  }, [router]);
+  }, [authenticated, router]);
 
   useEffect(() => {
     void load();

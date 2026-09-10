@@ -11,6 +11,7 @@ import {
   updateGuestCartItem
 } from "@/lib/guest-cart";
 import { MedicineMedia } from "@/components/MedicineMedia";
+import { useAuthenticated } from "@/components/AuthStateProvider";
 import { MedicineCard } from "@/components/MedicineCard";
 import { Toast } from "@/components/Toast";
 import { useLocale } from "@/components/LocaleProvider";
@@ -19,6 +20,7 @@ import { groupMedicineFamilies } from "@/lib/storefront";
 import type { Cart, Medicine, PageResult } from "@/lib/types";
 
 export default function CartPage() {
+  const authenticated = useAuthenticated();
   const [cart, setCart] = useState<Cart | null>(null);
   const [error, setError] = useState("");
   const [guest, setGuest] = useState(false);
@@ -31,6 +33,12 @@ export default function CartPage() {
       : { kicker: "ستاسو ټاکنې", count: "توکي ستاسو په ټوکرۍ کې", server: "بیه او موجودي د درملتون له سرور څخه راځي.", load: "ټوکرۍ پورته نه شوه.", update: "ټوکرۍ تازه نه شوه.", remove: "توکی لرې نه شو.", choose: "یو موجود توکی وټاکئ.", decrease: "شمېر کمول", increase: "شمېر زیاتول" };
 
   const load = useCallback(async function load() {
+    if (!authenticated) {
+      setGuest(true);
+      setCart(guestCart());
+      setError("");
+      return;
+    }
     try {
       setCart(await apiFetch<Cart>("cart/"));
       setGuest(false);
@@ -44,7 +52,7 @@ export default function CartPage() {
         setError(err instanceof Error ? err.message : copy.load);
       }
     }
-  }, [copy.load]);
+  }, [authenticated, copy.load]);
 
   useEffect(() => {
     void load();

@@ -35,7 +35,7 @@ $env:Path = "C:\Program Files\nodejs;" + $env:Path
 $backendArgs = @(
     "-NoProfile",
     "-Command",
-    "`$env:DJANGO_USE_SQLITE='true'; `$env:DJANGO_DEBUG='true'; & '$python' '$repo\backend\manage.py' runserver 127.0.0.1:8000"
+    "`$env:DJANGO_USE_SQLITE='true'; `$env:DJANGO_DEBUG='true'; `$env:DJANGO_MEDIA_ROOT='$repo\website\public'; & '$python' '$repo\backend\manage.py' runserver 127.0.0.1:8000"
 )
 $backend = Start-Process -FilePath "powershell.exe" -ArgumentList $backendArgs `
     -WindowStyle Hidden -PassThru `

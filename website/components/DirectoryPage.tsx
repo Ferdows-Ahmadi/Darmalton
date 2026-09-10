@@ -25,8 +25,8 @@ export function CategoryDirectory({
 }) {
   const healthNeeds = shopperHealthNeeds(categories, locale);
   return <>
-    <header className="page-heading category-page-heading">
-      <div className="wrap"><p className="eyebrow">Darmalton</p><h1>{title}</h1><p>{intro}</p></div>
+    <header className="page-heading page-heading-categories category-page-heading">
+      <div className="wrap"><div className="crumb"><Link href="/">{textFor(locale, "home")}</Link><span aria-hidden="true"> / </span><span>{title}</span></div><p className="page-heading-eyebrow">Darmalton</p><h1>{title}</h1><p>{intro}</p></div>
     </header>
     <section className="page-section category-directory">
       <div className="section-heading"><h2>{textFor(locale, "shopperCategories")}</h2></div>
@@ -64,7 +64,7 @@ export function ManufacturerDirectory({
   intro: string;
 }) {
   return <>
-    <header className="page-heading"><div className="wrap"><h1>{title}</h1><p>{intro}</p></div></header>
+    <header className="page-heading page-heading-manufacturers"><div className="wrap"><div className="crumb"><Link href="/">{textFor(locale, "home")}</Link><span aria-hidden="true"> / </span><span>{title}</span></div><p className="page-heading-eyebrow">Darmalton</p><h1>{title}</h1><p>{intro}</p></div></header>
     <section className="page-section">
       {manufacturers.length ? <div className="manufacturer-grid">
         {manufacturers.map(manufacturer => <Link
@@ -75,7 +75,7 @@ export function ManufacturerDirectory({
           {manufacturer.logo_url
             ? <span className="manufacturer-logo"><Image src={manufacturer.logo_url} alt="" fill sizes="52px"/></span>
             : <span className="manufacturer-mark" aria-hidden="true">{manufacturer.name.slice(0, 1).toUpperCase()}</span>}
-          <span><strong>{manufacturerName(manufacturer, locale)}</strong><small>{manufacturer.product_count} {textFor(locale, "results")}</small></span>
+          <span><strong><bdi>{manufacturerName(manufacturer, locale)}</bdi></strong><small>{manufacturer.product_count} {textFor(locale, "results")}</small></span>
         </Link>)}
       </div> : <State title="noResults" body="trySearch"/>}
     </section>

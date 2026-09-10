@@ -268,7 +268,7 @@ class MedicineSerializer(serializers.ModelSerializer):
 
     def get_image_url(self, obj) -> str:
         primary = obj.images.first()
-        if primary and primary.image:
+        if primary and primary.image and primary.image.storage.exists(primary.image.name):
             return MedicineImageSerializer(primary, context=self.context).data["image_url"]
         request = self.context.get("request")
         path = "/static/medicine-fallback.svg"

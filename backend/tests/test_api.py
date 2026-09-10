@@ -350,6 +350,10 @@ def test_missing_medicine_image_file_returns_safe_fallback(
     assert response.status_code == 200
     assert response["Content-Type"] == "image/svg+xml"
     assert response["X-Content-Type-Options"] == "nosniff"
+
+    detail = api_client.get(f"/api/v1/medicines/{medicine.id}/")
+    assert detail.status_code == 200
+    assert detail.data["image_url"].endswith("/static/medicine-fallback.svg")
     response.close()
 
 

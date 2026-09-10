@@ -26,6 +26,7 @@ export function MedicineMedia({
       {...imageProps}
       src={source}
       alt={alt}
+      unoptimized={source.endsWith(".svg")}
       onError={() => setSource(FALLBACK_IMAGE)}
     />
   );

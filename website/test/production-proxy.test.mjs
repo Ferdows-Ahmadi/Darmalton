@@ -17,3 +17,8 @@ test("all internal backend requests preserve the trusted HTTPS scheme", () => {
     assert.match(source, /X-Forwarded-Proto/);
   }
 });
+
+test("the asset proxy does not pin temporary image fallbacks in the server cache", () => {
+  assert.match(sources[3], /cache: "no-store"/);
+  assert.doesNotMatch(sources[3], /cache: "force-cache"/);
+});

@@ -158,8 +158,8 @@ export function AuthForm({
         className="auth-brand"
         src="/brand/darmalton-logo.png"
         alt="درملتون"
-        width={2000}
-        height={808}
+        width={160}
+        height={64}
         priority
       />
       <p className="eyebrow">
@@ -233,26 +233,22 @@ export function AuthForm({
       </button>
       {audience === "customer" && (
         <>
-          {googleClientId && (
-            <>
-              <div className="auth-divider" aria-hidden="true">
-                <span>{customerCopy.or}</span>
-              </div>
-              <GoogleSignInButton
-                clientId={googleClientId}
-                mode={mode}
-                locale={locale}
-                busy={busy}
-                onCredential={submitGoogle}
-                onError={setError}
-                messages={{
-                  missingCredential: customerCopy.googleMissing,
-                  configurationChanged: customerCopy.googleChanged,
-                  loadFailed: customerCopy.googleLoad
-                }}
-              />
-            </>
-          )}
+          <div className="auth-divider" aria-hidden="true">
+            <span>{customerCopy.or}</span>
+          </div>
+          <GoogleSignInButton
+            clientId={googleClientId}
+            mode={mode}
+            locale={locale}
+            busy={busy}
+            onCredential={submitGoogle}
+            onError={setError}
+            messages={{
+              missingCredential: customerCopy.googleMissing,
+              configurationChanged: customerCopy.googleChanged,
+              loadFailed: customerCopy.googleLoad
+            }}
+          />
           <p className="auth-switch">
             {register ? customerCopy.registered : customerCopy.new}{" "}
             <Link

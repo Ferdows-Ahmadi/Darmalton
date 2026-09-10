@@ -41,7 +41,7 @@ export default function AppDownloadPage() {
       <div className="wrap app-hero-grid">
         <div className="app-hero-copy">
           <p className="eyebrow">{copy.eyebrow}</p>
-          <Image className="app-page-brand" src="/brand/darmalton-logo.png" alt="درملتون" width={190} height={77} priority />
+          <Image className="app-page-brand" src="/brand/darmalton-logo.png" alt="درملتون" width={190} height={76} priority />
           <h1>{copy.title}</h1>
           <p>{copy.body}</p>
           <div className="app-download-actions">

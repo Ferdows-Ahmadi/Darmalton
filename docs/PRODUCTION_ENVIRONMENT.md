@@ -40,7 +40,8 @@ set the same trusted header through `API_INTERNAL_FORWARDED_PROTO=https`.
 ## Optional external integrations
 
 `GOOGLE_CLIENT_ID` is shared by Django and the server-rendered Next.js login
-page. Leave it empty to hide Google login. `GOOGLE_CLIENT_SECRET` is reserved
+page. When it is empty, the Google entry point remains visible but disabled and
+clearly marked unavailable; configuring the client ID activates the provider flow. `GOOGLE_CLIENT_SECRET` is reserved
 for a future server-side authorization-code integration and remains empty for
 the current ID-token verification flow. SMTP, object storage, payment gateway, courier and push-notification
 credentials are intentionally absent because those integrations are not in the

@@ -12,6 +12,7 @@ import { Icon } from "./StoreUI";
 import { LocaleProvider, useLocale } from "./LocaleProvider";
 import { PublicAnnouncements } from "./PublicAnnouncements";
 import { SessionIntro } from "./SessionIntro";
+import { AuthStateProvider } from "./AuthStateProvider";
 
 function CustomerChrome({
   authenticated,
@@ -25,6 +26,7 @@ function CustomerChrome({
   globalAnnouncements: PublicAnnouncement[];
 }) {
   const { t } = useLocale();
+  const pathname = usePathname();
   const [offline, setOffline] = useState(false);
   useEffect(() => {
     const update = () => setOffline(!navigator.onLine);
@@ -44,7 +46,7 @@ function CustomerChrome({
     [["/privacy", "privacy"], ["/terms", "terms"], ["/delivery-policy", "delivery"], ["/returns", "returns"]]
   ];
 
-  return <div className="site-shell">
+  return <AuthStateProvider authenticated={authenticated}><div className="site-shell">
     <SessionIntro />
     <a className="skip-link" href="#main">{t("products")}</a>
     <Header authenticated={authenticated} hasHealthContent={hasHealthContent}/>
@@ -56,15 +58,15 @@ function CustomerChrome({
         {[["ICON-005_Prescription-Upload", "privateRx"], ["ICON-009_Secure-Checkout", "cod"], ["ICON-002_Account", "orderHistory"], ["ICON-010_Customer-Support", "support"]].map(([icon, label]) => <div key={icon}><Icon name={icon}/><span>{t(label as TextKey)}</span></div>)}
       </div>
       <div className="footer-grid wrap">
-        <div><Image src="/brand/darmalton-logo.png" alt="درملتون" width={140} height={57}/><p>{t("footer")}</p></div>
+        <div><Image src="/brand/darmalton-logo.png" alt="درملتون" width={160} height={64}/><p>{t("footer")}</p></div>
         {footer.map((group, index) => <nav aria-label={`${t("menu")} ${index + 1}`} key={index}>{group.map(([href, label]) => <Link key={href} href={href}>{t(label)}</Link>)}</nav>)}
       </div>
       <div className="footer-bottom wrap"><span>© {new Date().getFullYear()} Darmalton</span><span>{t("privateRx")}</span></div>
     </footer>
     <nav className="mobile-bottom" aria-label={t("menu")}>
-      {[["/", "home"], ["/shop", "shop"], ["/prescriptions/upload", "rx"], ["/cart", "cart"], ["/account", "account"]].map(([href, label]) => <Link key={href} href={href}>{t(label as TextKey)}</Link>)}
+      {[["/", "home", "⌂"], ["/shop", "shop", "⌕"], ["/prescriptions/upload", "rx", "Rx"], ["/cart", "cart", "▱"], ["/account", "account", "○"]].map(([href, label, icon]) => <Link key={href} href={href} aria-current={pathname === href || (href !== "/" && pathname.startsWith(href)) ? "page" : undefined}><span aria-hidden="true">{icon}</span>{t(label as TextKey)}</Link>)}
     </nav>
-  </div>;
+  </div></AuthStateProvider>;
 }
 
 export function AppChrome({
