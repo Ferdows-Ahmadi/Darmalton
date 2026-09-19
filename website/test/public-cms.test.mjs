@@ -9,6 +9,8 @@ const publicCms = readFileSync(
   "utf8"
 );
 const home = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
+const legacyHome = readFileSync(new URL("../components/LegacyHome.tsx", import.meta.url), "utf8");
+const marketplaceHome = readFileSync(new URL("../components/home/MarketplaceHome.tsx", import.meta.url), "utf8");
 const heroCarousel = readFileSync(
   new URL("../components/HeroCarousel.tsx", import.meta.url),
   "utf8"
@@ -51,11 +53,16 @@ test("public CMS media remains behind the same-site guarded asset proxy", () => 
 
 test("Home uses CMS with curated zero-state fallbacks", () => {
   assert.match(home, /publicHomeCms/);
-  assert.match(home, /<HeroCarousel slides=\{heroes\}/);
+  assert.match(home, /<LegacyHome locale=\{locale\} cms=\{cms\}/);
+  assert.match(home, /<MarketplaceHome cms=\{cms\}/);
+  assert.match(legacyHome, /<HeroCarousel slides=\{heroes\}/);
+  assert.match(marketplaceHome, /<HeroCarousel slides=\{cms\.heroes\}/);
   assert.match(heroCarousel, /health-delivered\.webp/);
   assert.match(heroCarousel, /t\("heroTitle"\)/);
-  assert.match(home, /cmsFamilies\.length/);
-  assert.match(home, /articles\.length > 0/);
+  for (const presentation of [legacyHome, marketplaceHome]) {
+    assert.match(presentation, /cmsFamilies\.length/);
+    assert.match(presentation, /articles\.length > 0/);
+  }
 });
 
 test("public CMS routes provide list, detail, and informational zero states", () => {

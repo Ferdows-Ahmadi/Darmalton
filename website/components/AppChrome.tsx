@@ -13,6 +13,7 @@ import { LocaleProvider, useLocale } from "./LocaleProvider";
 import { PublicAnnouncements } from "./PublicAnnouncements";
 import { SessionIntro } from "./SessionIntro";
 import { AuthStateProvider } from "./AuthStateProvider";
+import marketplace from "./home/MarketplaceChrome.module.css";
 
 function CustomerChrome({
   authenticated,
@@ -25,7 +26,7 @@ function CustomerChrome({
   children: React.ReactNode;
   globalAnnouncements: PublicAnnouncement[];
 }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const pathname = usePathname();
   const [offline, setOffline] = useState(false);
   useEffect(() => {
@@ -46,7 +47,7 @@ function CustomerChrome({
     [["/privacy", "privacy"], ["/terms", "terms"], ["/delivery-policy", "delivery"], ["/returns", "returns"]]
   ];
 
-  return <AuthStateProvider authenticated={authenticated}><div className="site-shell">
+  return <AuthStateProvider authenticated={authenticated}><div className={`site-shell${pathname === "/" && locale === "fa-AF" ? ` ${marketplace.chrome}` : ""}`}>
     <SessionIntro />
     <a className="skip-link" href="#main">{t("products")}</a>
     <Header authenticated={authenticated} hasHealthContent={hasHealthContent}/>

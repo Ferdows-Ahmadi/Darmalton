@@ -18,7 +18,7 @@ function localized(
   return dari || english;
 }
 
-export function HeroCarousel({ slides }: { slides: PublicBanner[] }) {
+export function HeroCarousel({ slides, imageSizes = "100vw" }: { slides: PublicBanner[]; imageSizes?: string }) {
   const { locale, t } = useLocale();
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -94,7 +94,7 @@ export function HeroCarousel({ slides }: { slides: PublicBanner[] }) {
             alt={alt}
             fill
             priority
-            sizes="100vw"
+            sizes={imageSizes}
           />
         )}
         <Image
@@ -103,7 +103,7 @@ export function HeroCarousel({ slides }: { slides: PublicBanner[] }) {
           alt={alt}
           fill
           priority
-          sizes="100vw"
+          sizes={imageSizes}
         />
       </div>
       <div className="hero-carousel-shade" aria-hidden="true" />

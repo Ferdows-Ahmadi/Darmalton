@@ -1,0 +1,30 @@
+/* Presentation adapter for the existing functional shell, only on the
+   Dari desktop homepage. Other routes and viewports retain their own skin. */
+@media (min-width: 1200px) {
+  .chrome :global(.wrap) { width: 88.4%; max-width: 1440px; }
+  .chrome :global(.store-header) { position: relative; background: #fff; border-bottom: 1px solid #e9ebed; box-shadow: none; }
+  .chrome :global(.header-main), .chrome :global(.store-header.is-compressed .header-main) { min-height: 54px; height: 54px; padding-block: 6px; gap: 22px; }
+  .chrome :global(.brand) { flex-basis: 118px; }
+  .chrome :global(.brand img), .chrome :global(.store-header.is-compressed .brand img) { width: 118px; height: auto; }
+  .chrome :global(.header-search) { flex: 1; max-width: 690px; }
+  .chrome :global(.header-search input), .chrome :global(.store-header.is-compressed .header-search input) { height: 35px; min-height: 35px; font-size: 11px; border-radius: 0 5px 5px 0; background: #f5f6f7; border-color: #edf0f1; box-shadow: none; }
+  .chrome :global(.header-search button) { min-height: 35px; min-width: 42px; border-radius: 5px 0 0 5px; padding: 5px; }
+  .chrome :global(.language-switch) { margin-inline-start: auto; }
+  .chrome :global(.language-switch select) { min-height: 30px; height: 30px; font-size: 10px; border-radius: 4px; padding: 3px 8px; }
+  .chrome :global(.header-action) { font-size: 10px; min-height: 32px; gap: 5px; }
+  .chrome :global(.header-action img) { width: 21px; height: 21px; }
+  .chrome :global(.header-nav), .chrome :global(.store-header.is-compressed .header-nav) { min-height: 28px; height: 28px; padding-block: 3px; gap: 26px; font-size: 10px; }
+  .chrome :global(.header-nav a) { padding-block: 0; }
+  .chrome :global(.header-nav [aria-current=page]:after), .chrome :global(.store-header.is-compressed .header-nav [aria-current=page]:after) { bottom: -4px; height: 2px; }
+  .chrome :global(.store-footer) { margin-top: 0; margin-bottom: 0; background: #fff; color: #4d5e68; border-top: 1px solid #e8ecef; }
+  .chrome :global(.service-strip) { display: flex; justify-content: space-around; padding-block: 16px; border-bottom: 1px solid #edf0f2; }
+  .chrome :global(.service-strip > div) { font-size: 10px; display: flex; flex-direction: column; gap: 4px; }
+  .chrome :global(.service-strip img) { width: 28px; height: 28px; }
+  .chrome :global(.footer-grid) { grid-template-columns: 1.3fr repeat(4,1fr); padding-block: 16px; gap: 28px; }
+  .chrome :global(.footer-grid img) { width: 105px; height: auto; }
+  .chrome :global(.footer-grid p) { font-size: 10px; margin: 3px 0; max-width: 190px; color: #6c7b83; }
+  .chrome :global(.footer-grid nav) { gap: 4px; font-size: 10px; line-height: 1.8; }
+  .chrome :global(.footer-grid a) { color: #4d5e68; }
+  .chrome :global(.footer-grid a:hover) { color: #008577; }
+  .chrome :global(.footer-bottom) { border-top: 1px solid #edf0f2; padding-block: 8px; font-size: 9px; color: #7c888f; }
+}
