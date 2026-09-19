@@ -1,6 +1,5 @@
 import { LegacyHome } from "@/components/LegacyHome";
 import { MarketplaceHome } from "@/components/home/MarketplaceHome";
-import styles from "@/components/home/MarketplaceHome.module.css";
 import { publicHomeCms } from "@/lib/public-cms";
 import { publicApi } from "@/lib/server-api";
 import { serverLocale } from "@/lib/server-locale";
@@ -28,12 +27,6 @@ export default async function Home() {
     publicApi<Category[]>("categories/").catch(() => []),
     publicApi<Manufacturer[]>("manufacturers/").catch(() => [])
   ]);
-  // Scope this review milestone without changing other viewport layouts.
-  return <>
-    <div className={styles.legacy}>{legacy}</div>
-    <div className={styles.desktop}>
-      <MarketplaceHome cms={cms} medicines={pages.flatMap(page => page.results)}
-        categories={categories} manufacturers={manufacturers} />
-    </div>
-  </>;
+  return <MarketplaceHome cms={cms} medicines={pages.flatMap(page => page.results)}
+    categories={categories} manufacturers={manufacturers} />;
 }

@@ -1,5 +1,5 @@
 /* Presentation adapter for the existing functional shell, only on the
-   Dari desktop homepage. Other routes and viewports retain their own skin. */
+   Dari homepage. Other routes and locales retain their own skin. */
 @media (min-width: 1200px) {
   .chrome :global(.wrap) { width: 88.4%; max-width: 1440px; }
   .chrome :global(.store-header) { position: relative; background: #fff; border-bottom: 1px solid #e9ebed; box-shadow: none; }
@@ -27,4 +27,58 @@
   .chrome :global(.footer-grid a) { color: #4d5e68; }
   .chrome :global(.footer-grid a:hover) { color: #008577; }
   .chrome :global(.footer-bottom) { border-top: 1px solid #edf0f2; padding-block: 8px; font-size: 9px; color: #7c888f; }
+}
+@media (max-width: 1399px) and (min-width: 1200px) {
+  .chrome :global(.wrap) { width: calc(100% - 48px); }
+  .chrome :global(.header-main) { gap: 16px; }
+}
+@media (max-width: 1199px) {
+  .chrome :global(.wrap) { width: calc(100% - 32px); }
+  .chrome :global(.store-header) { position: relative; background: #fff; border-bottom: 1px solid #e9ebed; box-shadow: none; }
+  .chrome :global(.header-main), .chrome :global(.store-header.is-compressed .header-main) { min-height: 62px; padding-block: 6px; gap: 12px; }
+  .chrome :global(.brand) { flex-basis: 106px; }
+  .chrome :global(.brand img), .chrome :global(.store-header.is-compressed .brand img) { width: 106px; height: auto; }
+  .chrome :global(.header-search) { flex: 1; min-width: 0; }
+  .chrome :global(.header-search input) { min-height: 44px; font-size: 12px; border-radius: 0 5px 5px 0; background: #f5f6f7; }
+  .chrome :global(.header-search button) { min-height: 44px; min-width: 44px; border-radius: 5px 0 0 5px; }
+  .chrome :global(.language-switch select), .chrome :global(.header-action) { min-height: 44px; font-size: 11px; }
+  .chrome :global(.header-nav), .chrome :global(.store-header.is-compressed .header-nav) { min-height: 44px; gap: 22px; padding-block: 0; font-size: 11px; }
+  .chrome :global(.header-nav a) { display: flex; align-items: center; min-height: 44px; padding-block: 0; }
+  .chrome :global(.header-nav [aria-current=page]:after) { bottom: 0; }
+  .chrome :global(.store-footer) { background: #fff; color: #4d5e68; margin-top: 0; border-top: 1px solid #e8ecef; }
+  .chrome :global(.service-strip) { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; padding-block: 12px; }
+  .chrome :global(.service-strip > div) { display: grid; justify-items: center; text-align: center; gap: 3px; font-size: 9px; }
+  .chrome :global(.service-strip img) { width: 26px; height: 26px; }
+  .chrome :global(.footer-grid) { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; padding-block: 12px; }
+  .chrome :global(.footer-grid > div) { grid-column: 1 / -1; }
+  .chrome :global(.footer-grid img) { width: 106px; height: auto; }
+  .chrome :global(.footer-grid p) { font-size: 10px; margin: 4px 0; }
+  .chrome :global(.footer-grid nav) { gap: 0; }
+  .chrome :global(.footer-grid a) { display: flex; align-items: center; min-height: 44px; color: #4d5e68; font-size: 11px; }
+  .chrome :global(.footer-bottom) { padding-block: 10px; font-size: 9px; }
+}
+@media (max-width: 767px) {
+  .chrome :global(.wrap) { width: calc(100% - 20px); }
+  .chrome :global(.header-main), .chrome :global(.store-header.is-compressed .header-main) { display: grid; grid-template-columns: 36px minmax(75px,1fr) 66px 36px 36px; gap: 3px 5px; padding-block: 4px 6px; }
+  .chrome :global(.menu-toggle) { display: flex; align-items: center; justify-content: center; grid-column: 1; grid-row: 1; width: 36px; min-width: 36px; min-height: 44px; padding: 0; }
+  .chrome :global(.brand), .chrome :global(.language-switch), .chrome :global(.header-action) { grid-row: 1; }
+  .chrome :global(.brand) { grid-column: 2; }
+  .chrome :global(.language-switch) { grid-column: 3; }
+  .chrome :global(.header-action:nth-last-child(2)) { grid-column: 4; }
+  .chrome :global(.header-action:last-child) { grid-column: 5; }
+  .chrome :global(.brand img), .chrome :global(.store-header.is-compressed .brand img) { width: 90px; max-width: 100%; height: auto; }
+  .chrome :global(.language-switch) { margin: 0; }
+  .chrome :global(.language-switch select) { width: 66px; padding: 4px; font-size: 10px; }
+  .chrome :global(.header-action) { display: flex; justify-content: center; min-width: 36px; }
+  .chrome :global(.header-action span) { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .chrome :global(.header-action img) { width: 21px; height: 21px; }
+  .chrome :global(.header-search) { grid-column: 1 / -1; grid-row: 2; width: 100%; max-width: none; }
+  .chrome :global(.header-nav), .chrome :global(.store-header.is-compressed .header-nav) { display: none; }
+  .chrome :global(.nav-drawer) { max-width: calc(100% - 24px); }
+  .chrome :global(.drawer-content nav a), .chrome :global(.drawer-content button) { min-height: 44px; }
+  .chrome :global(.footer-grid) { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .chrome :global(.store-footer) { margin-bottom: calc(60px + env(safe-area-inset-bottom)); }
+  .chrome :global(.mobile-bottom) { min-height: 58px; padding: 3px 0 calc(3px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid #dce8e3; }
+  .chrome :global(.mobile-bottom a) { min-height: 50px; font-size: 9px; color: #50665e; }
+  .chrome :global(.mobile-bottom a[aria-current=page]) { color: #087b64; background: #edf7f2; border-radius: 6px; }
 }

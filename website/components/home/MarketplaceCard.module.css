@@ -12,3 +12,7 @@
 .action button, .action > a { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 27px; border: 1px solid #d4e5df; border-radius: 4px; padding: 4px 2px; font-size: 9px; background: #f4f9f6; color: #226c59; line-height: 1.6; }
 .action button:hover, .action > a:hover { background: #e4f2eb; color: #174e40; }
 .card:focus-within, .card:hover { border-color: #9eb7ac; }
+@media (max-width: 1199px) {
+  .card { height: 250px; }
+  .action button, .action > a { min-height: 44px; font-size: 10px; }
+}
