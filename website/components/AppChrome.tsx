@@ -47,7 +47,7 @@ function CustomerChrome({
     [["/privacy", "privacy"], ["/terms", "terms"], ["/delivery-policy", "delivery"], ["/returns", "returns"]]
   ];
 
-  return <AuthStateProvider authenticated={authenticated}><div className={`site-shell${(pathname === "/" || pathname === "/shop" || pathname === "/categories" || pathname === "/manufacturers") && locale === "fa-AF" ? ` ${marketplace.chrome}` : ""}`}>
+  return <AuthStateProvider authenticated={authenticated}><div className={`site-shell${(pathname === "/" || pathname === "/shop" || pathname === "/categories" || pathname === "/manufacturers" || /^\/medicines\/[^/]+$/.test(pathname)) && locale === "fa-AF" ? ` ${marketplace.chrome}` : ""}`}>
     <SessionIntro />
     <a className="skip-link" href="#main">{t("products")}</a>
     <Header authenticated={authenticated} hasHealthContent={hasHealthContent}/>

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { AddToCart } from "@/components/AddToCart";
 import { MedicineMedia } from "@/components/MedicineMedia";
+import { ProductDetail } from "@/components/ProductDetail";
 import { formatMoney, formatNumber, productName, textFor } from "@/lib/locale";
 import { publicApi } from "@/lib/server-api";
 import { serverLocale } from "@/lib/server-locale";
@@ -42,6 +43,8 @@ export default async function MedicinePage({ params }: { params: Promise<{ id: s
     : locale === "ps-AF"
       ? medicine.description_pashto
       : medicine.description_dari;
+
+  if (locale === "fa-AF") return <ProductDetail medicine={medicine} variants={variants}/>;
 
   return <section className="page-section product-detail-page">
     <div className="product-detail">
