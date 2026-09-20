@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 import { useLocale } from "@/components/LocaleProvider";
+import { AccountShell } from "@/components/AccountShell";
 
 export default function PrescriptionSuccessPage() {
   const { id } = useParams<{ id: string }>();
-  const { t } = useLocale();
-  return (
-    <section className="page-section narrow">
+  const { t, locale } = useLocale();
+  const content = (
       <div className="state success-state">
         <span className="state-symbol" aria-hidden="true">✓</span>
         <h1>{t("rxSuccess")}</h1>
@@ -18,6 +18,6 @@ export default function PrescriptionSuccessPage() {
           {t("view")}
         </Link>
       </div>
-    </section>
   );
+  return <section className="page-section narrow">{locale === "fa-AF" ? <AccountShell>{content}</AccountShell> : content}</section>;
 }

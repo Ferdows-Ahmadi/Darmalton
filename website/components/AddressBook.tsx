@@ -8,11 +8,12 @@ import { AccountShell } from "./AccountShell";
 import { useLocale } from "./LocaleProvider";
 import { State } from "./StoreUI";
 import { ApiError, apiFetch } from "@/lib/api";
+import { accountError } from "@/lib/account-feedback";
 import { loginPath } from "@/lib/auth-navigation";
 import type { Address, PageResult } from "@/lib/types";
 
 export function AddressBook() {
-  const { t } = useLocale();
+  const { locale, t } = useLocale();
   const router = useRouter();
   const [items, setItems] = useState<Address[] | null>(null);
   const [error, setError] = useState("");
@@ -27,21 +28,21 @@ export function AddressBook() {
         router.push(loginPath("/account/addresses"));
         return;
       }
-      setError(caught instanceof Error ? caught.message : t("connection"));
+      setError(accountError(caught, locale, t("connection")));
     }
-  }, [router, t]);
+  }, [locale, router, t]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   async function remove(id: string) {
-    if (!window.confirm(t("removeConfirm"))) return;
+    if (!window.confirm(locale === "fa-AF" ? "این آدرس حذف شود؟" : t("removeConfirm"))) return;
     try {
       await apiFetch(`addresses/${id}/`, { method: "DELETE" });
       await load();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : t("connection"));
+      setError(accountError(caught, locale, t("connection")));
     }
   }
 

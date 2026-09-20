@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AccountShell } from "./AccountShell";
 import { useLocale } from "./LocaleProvider";
 import { ApiError, apiFetch } from "@/lib/api";
+import { accountError } from "@/lib/account-feedback";
 import { loginPath } from "@/lib/auth-navigation";
 import type { User } from "@/lib/types";
 
@@ -23,10 +24,10 @@ export function ProfileEditor() {
         if (caught instanceof ApiError && caught.status === 401) {
           router.push(loginPath("/account/profile"));
         } else {
-          setMessage(caught instanceof Error ? caught.message : t("connection"));
+          setMessage(accountError(caught, locale, t("connection")));
         }
       });
-  }, [router, t]);
+  }, [locale, router, t]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -37,12 +38,12 @@ export function ProfileEditor() {
       setUser(
         await apiFetch<User>("auth/me/", {
           method: "PATCH",
-          body: JSON.stringify({ ...body, preferred_language: locale })
+          body: JSON.stringify({ ...body, preferred_language: locale === "fa-AF" ? "fa" : locale })
         })
       );
       setMessage(t("saved"));
     } catch (caught) {
-      setMessage(caught instanceof Error ? caught.message : t("connection"));
+      setMessage(accountError(caught, locale, t("connection")));
     } finally {
       setBusy(false);
     }
@@ -54,7 +55,7 @@ export function ProfileEditor() {
         <p className="eyebrow">{t("account")}</p>
         <h1>{t("profile")}</h1>
         {!user ? (
-          <p className="loading">{t("loading")}</p>
+          <p className={message ? "form-error" : "loading"} role={message ? "alert" : undefined}>{message || t("loading")}</p>
         ) : (
           <form className="panel form-grid" onSubmit={submit}>
             <label>
@@ -76,7 +77,7 @@ export function ProfileEditor() {
             <button className="full" disabled={busy}>
               {busy ? t("loading") : t("save")}
             </button>
-            {message && <p className="success-banner full">{message}</p>}
+            {message && <p className={`${message === t("saved") ? "success-banner" : "form-error"} full`} role={message === t("saved") ? "status" : "alert"}>{message}</p>}
           </form>
         )}
       </AccountShell>

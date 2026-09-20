@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AccountShell } from "./AccountShell";
 import { useLocale } from "./LocaleProvider";
 import { ApiError, apiFetch } from "@/lib/api";
+import { accountError } from "@/lib/account-feedback";
 import { loginPath } from "@/lib/auth-navigation";
 import type { Locale } from "@/lib/locale";
 import type { Address } from "@/lib/types";
@@ -39,10 +40,10 @@ export function AddressEditor({ id }: { id?: string }) {
         if (caught instanceof ApiError && caught.status === 401) {
           router.push(loginPath(`/account/addresses/${id}/edit`));
         } else {
-          setError(caught instanceof Error ? caught.message : t("connection"));
+          setError(accountError(caught, locale, t("connection")));
         }
       });
-  }, [id, router, t]);
+  }, [id, locale, router, t]);
 
   function locate() {
     setLocationPrompt(false);
@@ -78,7 +79,7 @@ export function AddressEditor({ id }: { id?: string }) {
       router.push("/account/addresses");
       router.refresh();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : t("connection"));
+      setError(accountError(caught, locale, t("connection")));
       setBusy(false);
     }
   }

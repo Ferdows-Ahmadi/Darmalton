@@ -5,6 +5,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { ApiError, apiFetch } from "@/lib/api";
+import { accountError } from "@/lib/account-feedback";
 import { loginPath } from "@/lib/auth-navigation";
 import { AccountShell } from "@/components/AccountShell";
 import { useAuthenticated } from "@/components/AuthStateProvider";
@@ -36,7 +37,7 @@ function uploadWithProgress(
       const message =
         request.response?.error?.message ||
         failureMessage;
-      reject(new Error(message));
+      reject(new ApiError(request.status, { error: { ...request.response?.error, message } }));
     };
     request.onerror = () =>
       reject(new Error(failureMessage));
@@ -80,9 +81,9 @@ export default function PrescriptionsPage() {
         router.push(loginPath("/account/prescriptions"));
         return;
       }
-      setError(err instanceof Error ? err.message : t("connection"));
+      setError(accountError(err, locale, t("connection")));
     }
-  }, [authenticated, router, t]);
+  }, [authenticated, locale, router, t]);
 
   useEffect(() => {
     load();
@@ -128,7 +129,7 @@ export default function PrescriptionsPage() {
       formRef.current?.reset();
       router.push(`/prescriptions/success/${created.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : copy.uploadFailure);
+      setError(accountError(err, locale, copy.uploadFailure));
     } finally {
       setBusy(false);
     }
@@ -147,7 +148,7 @@ export default function PrescriptionsPage() {
       setResponses((current) => ({ ...current, [id]: "" }));
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : copy.submitFailure);
+      setError(accountError(err, locale, copy.submitFailure));
     }
   }
 
@@ -164,7 +165,7 @@ export default function PrescriptionsPage() {
       router.push("/cart");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : copy.addFailure
+        accountError(err, locale, copy.addFailure)
       );
     }
   }
@@ -181,7 +182,8 @@ export default function PrescriptionsPage() {
         <span aria-hidden="true">Rx</span>
       </div>
 
-      <form ref={formRef} className="panel prescription-form" onSubmit={submit}>
+      {locale === "fa-AF" && <nav className="account-jump" aria-label={t("rxList")}><a href="#prescription-upload">{copy.new}</a><a href="#prescription-history">{copy.history}</a></nav>}
+      <form id="prescription-upload" ref={formRef} className="panel prescription-form" onSubmit={submit}>
         <h2>{copy.new}</h2>
         <p className="muted">{t("uploadHint")}</p>
         <label
@@ -245,7 +247,7 @@ export default function PrescriptionsPage() {
         </button>
       </form>
 
-      <h2 className="subheading">{copy.history}</h2>
+      <h2 id="prescription-history" className="subheading">{copy.history}</h2>
       {!items && !error && <div className="loading">{t("loading")}</div>}
       {items?.length === 0 && (
         <div className="empty-state">
@@ -266,12 +268,16 @@ export default function PrescriptionsPage() {
                   {new Date(item.created_at).toLocaleString(locale)}
                 </small>
               </div>
+              {locale === "fa-AF" ? <div className="actions">
+                <Link className="secondary button" href={`/account/prescriptions/${item.id}`}>{t("view")}</Link>
+                <Link className="secondary button" href={`/api/backend/prescriptions/${item.id}/file/?download=1`}>{t("file")}</Link>
+              </div> :
               <Link
                 className="secondary button"
                 href={`/api/backend/prescriptions/${item.id}/file/?download=1`}
               >
                 {t("file")}
-              </Link>
+              </Link>}
             </div>
             {item.customer_visible_note && <p>{item.customer_visible_note}</p>}
             {item.clarification_request && (

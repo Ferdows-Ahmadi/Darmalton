@@ -47,7 +47,7 @@ function CustomerChrome({
     [["/privacy", "privacy"], ["/terms", "terms"], ["/delivery-policy", "delivery"], ["/returns", "returns"]]
   ];
 
-  return <AuthStateProvider authenticated={authenticated}><div className={`site-shell${(pathname === "/" || pathname === "/shop" || pathname === "/categories" || pathname === "/manufacturers" || pathname === "/cart" || pathname === "/login" || pathname === "/register" || /^\/medicines\/[^/]+$/.test(pathname)) && locale === "fa-AF" ? ` ${marketplace.chrome}` : ""}`}>
+  return <AuthStateProvider authenticated={authenticated}><div className={`site-shell${(pathname === "/" || pathname === "/shop" || pathname === "/categories" || pathname === "/manufacturers" || pathname === "/cart" || pathname === "/login" || pathname === "/register" || pathname === "/account" || pathname.startsWith("/account/") || pathname === "/orders" || pathname.startsWith("/orders/") || pathname === "/notifications" || pathname === "/prescriptions" || pathname.startsWith("/prescriptions/") || /^\/medicines\/[^/]+$/.test(pathname)) && locale === "fa-AF" ? ` ${marketplace.chrome}` : ""}`}>
     <SessionIntro />
     <a className="skip-link" href="#main">{t("products")}</a>
     <Header authenticated={authenticated} hasHealthContent={hasHealthContent}/>

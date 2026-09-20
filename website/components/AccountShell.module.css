@@ -1,0 +1,101 @@
+:global(.page-section):has(.shell) { width: min(1425px, 88.4%); max-width: none; margin-block: 20px 32px; color: #263d38; }
+:global(.page-section):has(.shell) > :global(.eyebrow), .shell :global(.eyebrow) { font-size: 10px; margin: 0 0 4px; color: #718277; }
+:global(.page-section):has(.shell) h1 { font-size: 23px; line-height: 1.7; margin: 0 0 16px; }
+.shell { display: grid; grid-template-columns: 190px minmax(0,1fr); gap: 24px; align-items: start; }
+.shell :global(.account-nav) { display: grid; gap: 3px; padding: 8px; border: 1px solid #dce6df; border-top: 3px solid #4e8a70; border-radius: 4px; background: #fafcfb; box-shadow: none; }
+.shell :global(.account-nav a) { display: flex; align-items: center; min-height: 44px; padding: 9px 12px; font-size: 12px; border-radius: 3px; color: #506b5b; }
+.shell :global(.account-nav a[aria-current=page]) { background: #e9f3ed; color: #155f45; font-weight: 700; box-shadow: inset -3px 0 #3f8264; }
+.shell :global(.account-content) { min-width: 0; }
+.shell h2 { font-size: 17px; line-height: 1.8; margin: 0 0 8px; }
+.shell h3 { font-size: 14px; margin: 6px 0; }
+.shell p { font-size: 12px; line-height: 1.9; overflow-wrap: anywhere; }
+.shell :global(.muted) { font-size: 11px; color: #6b7f72; }
+.shell :global(.panel), .shell :global(.address-card), .shell :global(.order-card), .shell :global(.prescription-card), .shell :global(.notification-card) { padding: 18px; border: 1px solid #dfe7e2; border-radius: 4px; background: #fff; box-shadow: none; min-width: 0; }
+.shell :global(.account-content .panel) { padding: 18px; border-radius: 4px; }
+.shell :global(.panel + .panel) { margin-top: 14px; }
+.shell :global(.section-heading), .shell :global(.order-title), .shell :global(.notification-heading) { gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.shell :global(.section-heading h1), .shell :global(.notification-heading h1) { margin-bottom: 4px; }
+.shell button, .shell :global(.button) { min-height: 44px; padding: 9px 15px; border-radius: 4px; font-size: 12px; box-shadow: none; }
+.shell button:not(:global(.secondary)):not(:global(.danger-link)), .shell :global(.button):not(:global(.secondary)) { background: #12684e; border-color: #12684e; color: #fff; }
+.shell :global(.secondary) { color: #23694f; background: #f5f9f6; border: 1px solid #dce6df; }
+.shell :global(.danger-link) { color: #9b4c45; background: transparent; border: 0; }
+.shell label { min-width: 0; font-size: 11px; gap: 5px; }
+.shell input:not([type=checkbox]):not([type=file]), .shell textarea, .shell select { min-width: 0; width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid #d5e1d9; border-radius: 4px; background: #fcfdfc; font-size: 14px; color: #263d38; box-shadow: none; }
+.shell input[readonly] { color: #738277; background: #f4f7f5; }
+.shell input:focus-visible, .shell button:focus-visible, .shell a:focus-visible, .shell :global(.file-drop):focus-within { outline: 2px solid #28795e; outline-offset: 2px; }
+.shell :global(.form-grid) { gap: 14px; }
+.shell :global(.check-label) { display: flex; align-items: center; gap: 8px; min-height: 32px; }
+.shell :global(.actions) { gap: 8px; flex-wrap: wrap; }
+.shell :global(.status) { padding: 3px 8px; border-radius: 3px; font-size: 10px; line-height: 1.9; }
+.shell :global(.state), .shell :global(.empty-state) { display: grid; justify-items: start; text-align: start; gap: 8px; min-height: 0; max-width: none; padding: 22px; border: 1px solid #dfe7e2; border-radius: 4px; background: #f7faf8; box-shadow: none; margin: 0; }
+.shell :global(.state h2), .shell :global(.empty-state h2) { font-size: 18px; margin: 0; }
+.shell :global(.state p), .shell :global(.empty-state p) { margin: 0 0 6px; font-size: 11px; }
+.shell :global(.state-symbol) { width: 32px; height: 32px; margin: 0; font-size: 15px; border-radius: 4px; }
+.shell :global(.loading) { padding: 24px 12px; font-size: 12px; }
+.shell :global(.form-error), .shell :global(.success-banner), .shell :global(.error-box) { padding: 10px 12px; border-radius: 4px; font-size: 11px; line-height: 1.9; overflow-wrap: anywhere; }
+.shell :global(.profile-card) { gap: 14px; margin-bottom: 14px; }
+.shell :global(.avatar) { width: 44px; height: 44px; font-size: 18px; border-radius: 4px; background: #edf5ef; color: #2f7255; }
+.shell :global(.profile-card h2) { font-size: 18px; }
+.shell :global(.account-stats) { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-bottom: 14px; }
+.shell :global(.account-stats a) { padding: 14px 16px; border-radius: 4px; display: flex; align-items: center; gap: 12px; background: #f7faf8; }
+.shell :global(.account-stats strong) { font-size: 24px; color: #256d50; }
+.shell :global(.profile-menu) { border-radius: 4px; }
+.shell :global(.profile-menu a) { padding: 13px 16px; font-size: 12px; }
+.shell :global(.address-grid) { gap: 12px; }
+.shell :global(.address-card h2) { font-size: 16px; margin-top: 10px; }
+.shell :global(.address-card p) { margin: 5px 0; }
+.shell :global(.address-card .actions) { margin-top: 10px; }
+.shell :global(.order-list), .shell :global(.record-list), .shell :global(.notification-list) { gap: 12px; }
+.shell :global(.order-card) { gap: 16px; }
+.shell :global(.order-card h2) { font-size: 15px; }
+.shell :global(.order-card strong) { font-size: 18px; color: #23694f; }
+.shell :global(.order-title p), .shell :global(.status-timeline small) { font-size: 11px; }
+.shell :global(.summary-row) { flex-wrap: wrap; gap: 8px 12px; padding-block: 8px; font-size: 12px; overflow-wrap: anywhere; }
+.shell :global(.prescription-heading) { display: flex; padding: 0; margin-bottom: 16px; gap: 16px; background: none; border: 0; border-radius: 0; }
+.shell :global(.prescription-heading > div) { min-width: 0; }
+.shell :global(.prescription-heading h1) { margin-bottom: 5px; }
+.shell :global(.prescription-heading > span) { width: 42px; height: 42px; border-radius: 4px; font-size: 19px; background: #edf5ef; color: #3f795c; }
+.shell :global(.prescription-form) { gap: 14px; padding: 18px; }
+.shell :global(.account-jump) { display: flex; gap: 8px; margin-bottom: 12px; }
+.shell :global(.account-jump a) { min-height: 40px; padding: 9px 12px; border: 1px solid #dce6df; border-radius: 4px; background: #f6faf7; font-size: 11px; color: #23694f; }
+.shell :global(#prescription-upload), .shell :global(#prescription-history) { scroll-margin-top: 125px; }
+.shell :global(.file-drop) { min-height: 156px; padding: 18px; gap: 7px; border: 1px dashed #a4bdac; border-radius: 4px; background: #f7faf8; }
+.shell :global(.file-drop strong) { font-size: 12px; overflow-wrap: anywhere; }
+.shell :global(.file-drop small) { font-size: 10px; }
+.shell :global(.file-drop-icon) { width: 30px; height: 30px; border-radius: 4px; font-size: 20px; }
+.shell :global(.file-drop-action) { padding: 8px 14px; font-size: 11px; border-radius: 4px; }
+.shell :global(.prescription-file-preview) { padding: 10px; border-radius: 4px; }
+.shell :global(.prescription-preview) { max-height: 160px; max-width: 100%; object-fit: contain; }
+.shell :global(.prescription-card-title) { display: flex; align-items: center; justify-content: flex-start; gap: 12px; flex-wrap: wrap; }
+.shell :global(.prescription-card-title > div:first-child) { flex: 1 1 200px; min-width: 0; }
+.shell :global(.prescription-card small) { font-size: 10px; }
+.shell :global(.subheading) { margin-block: 22px 12px; font-size: 18px; }
+.shell :global(.clarification-box), .shell :global(.authorized-list) { padding: 12px; border-radius: 4px; font-size: 12px; }
+.shell :global(.clarification-response) { flex-wrap: wrap; }
+.shell :global(.notification-card > span) { width: 36px; height: 36px; border-radius: 4px; font-size: 13px; }
+.shell :global(.notification-card > div) { min-width: 0; }
+.shell :global(.location-dialog) { width: min(420px,calc(100% - 24px)); padding: 20px; border-radius: 5px; }
+.shell :global(.location-dialog-icon) { width: 36px; height: 36px; border-radius: 4px; font-size: 22px; }
+@media (max-width:1399px) { :global(.page-section):has(.shell) { width: calc(100% - 48px); } }
+@media (max-width:1199px) { :global(.page-section):has(.shell) { width: calc(100% - 32px); } .shell { grid-template-columns: 170px minmax(0,1fr); gap: 18px; } }
+@media (max-width:899px) { .shell { grid-template-columns: minmax(0,1fr); gap: 18px; } .shell :global(.account-nav) { position: static; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; } .shell :global(.account-nav a) { justify-content: center; text-align: center; padding: 8px 5px; font-size: 11px; } }
+@media (max-width:767px) {
+  :global(.page-section):has(.shell) { width: calc(100% - 20px); margin-block: 14px 24px; }
+  :global(.page-section):has(.shell) h1 { font-size: 21px; margin-bottom: 12px; }
+  .shell { gap: 16px; }
+  .shell :global(.account-nav) { padding: 5px; }
+  .shell :global(.account-nav a) { font-size: 10px; min-height: 42px; }
+  .shell :global(.panel), .shell :global(.address-card), .shell :global(.order-card), .shell :global(.prescription-card), .shell :global(.notification-card) { padding: 14px; }
+  .shell :global(.account-content .panel) { padding: 14px; }
+  .shell :global(.form-grid) { grid-template-columns: minmax(0,1fr); gap: 12px; }
+  .shell input:not([type=checkbox]):not([type=file]), .shell textarea, .shell select { font-size: 16px; }
+  .shell :global(.address-grid) { grid-template-columns: minmax(0,1fr); }
+  .shell :global(.state), .shell :global(.empty-state) { padding: 18px; }
+  .shell :global(.account-stats a) { padding: 12px; gap: 8px; flex-wrap: wrap; }
+  .shell :global(.account-stats strong) { font-size: 21px; }
+  .shell :global(.prescription-heading > span) { flex: 0 0 36px; width: 36px; height: 36px; }
+  .shell :global(.file-drop) { min-height: 150px; padding: 14px 10px; }
+  .shell :global(.prescription-form) { padding: 14px; gap: 12px; }
+  .shell :global(.order-card) { flex-wrap: wrap; }
+  .shell :global(.order-card > div:last-child) { text-align: start; }
+}

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 import { ApiError, apiFetch } from "@/lib/api";
+import { accountError } from "@/lib/account-feedback";
 import { loginPath } from "@/lib/auth-navigation";
 import { AccountShell } from "@/components/AccountShell";
 import { useAuthenticated } from "@/components/AuthStateProvider";
@@ -38,28 +39,27 @@ export default function OrderPage() {
       if (err instanceof ApiError && err.status === 401) {
         router.push(loginPath(`/account/orders/${id}`));
       }
-      else setError(err instanceof Error ? err.message : t("connection"));
+      else setError(accountError(err, locale, t("connection")));
     }
-  }, [authenticated, id, router, t]);
+  }, [authenticated, id, locale, router, t]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   if (error) {
-    return (
-      <section className="page-section narrow">
+    const content = (
         <div className="empty-state error-state">
           <h1>{copy.unavailable}</h1>
           <p>{error}</p>
         </div>
-      </section>
     );
+    return <section className="page-section narrow">{locale === "fa-AF" ? <AccountShell>{content}</AccountShell> : content}</section>;
   }
   if (!order) {
     return (
       <section className="page-section narrow">
-        <div className="loading">{t("loading")}</div>
+        {locale === "fa-AF" ? <AccountShell><div className="loading">{t("loading")}</div></AccountShell> : <div className="loading">{t("loading")}</div>}
       </section>
     );
   }

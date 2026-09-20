@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { ApiError, apiFetch } from "@/lib/api";
+import { accountError } from "@/lib/account-feedback";
 import { loginPath } from "@/lib/auth-navigation";
 import { AccountShell } from "@/components/AccountShell";
 import { useAuthenticated } from "@/components/AuthStateProvider";
@@ -38,9 +39,9 @@ export default function NotificationsPage() {
         router.push(loginPath("/account/notifications"));
         return;
       }
-      setError(caught instanceof Error ? caught.message : t("connection"));
+      setError(accountError(caught, locale, t("connection")));
     }
-  }, [authenticated, router, t]);
+  }, [authenticated, locale, router, t]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -50,7 +51,7 @@ export default function NotificationsPage() {
       await apiFetch("notifications/read-all/", { method: "POST", body: "{}" });
       await load();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : t("connection"));
+      setError(accountError(caught, locale, t("connection")));
     } finally {
       setBusy(false);
     }
@@ -73,7 +74,7 @@ export default function NotificationsPage() {
     {items?.length === 0 && <div className="empty-state"><h2>{t("noNotifications")}</h2><p>{copy.empty}</p></div>}
     <div className="notification-list">{items?.map((item) => <Link
       href={item.order_id ? `/account/orders/${item.order_id}` : item.prescription_id ? `/account/prescriptions/${item.prescription_id}` : "/shop"}
-      onClick={async (event) => { event.preventDefault(); router.push(await destination(item)); }}
+      onClick={async (event) => { event.preventDefault(); try { router.push(await destination(item)); } catch (caught) { setError(accountError(caught, locale, t("connection"))); } }}
       className={`notification-card ${item.read_at ? "is-read" : "is-unread"}`}
       key={item.id}
     ><span aria-hidden="true">{item.order_id ? "🚚" : "Rx"}</span><div><strong>{item.title}</strong><p>{item.message}</p><small>{new Date(item.created_at).toLocaleString(locale)}</small></div>{!item.read_at && <i aria-label={copy.unread}/>}</Link>)}</div>

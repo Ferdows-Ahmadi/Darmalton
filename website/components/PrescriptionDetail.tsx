@@ -8,6 +8,7 @@ import { AccountShell } from "./AccountShell";
 import { useLocale } from "./LocaleProvider";
 import { State } from "./StoreUI";
 import { ApiError, apiFetch } from "@/lib/api";
+import { accountError } from "@/lib/account-feedback";
 import { loginPath } from "@/lib/auth-navigation";
 import { prescriptionStatus } from "@/lib/status";
 import { formatNumber } from "@/lib/locale";
@@ -29,9 +30,9 @@ export function PrescriptionDetail({ id }: { id: string }) {
         router.push(loginPath(`/account/prescriptions/${id}`));
         return;
       }
-      setError(caught instanceof Error ? caught.message : t("connection"));
+      setError(accountError(caught, locale, t("connection")));
     }
-  }, [id, router, t]);
+  }, [id, locale, router, t]);
 
   useEffect(() => {
     void load();
@@ -46,7 +47,7 @@ export function PrescriptionDetail({ id }: { id: string }) {
       setResponse("");
       await load();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : t("connection"));
+      setError(accountError(caught, locale, t("connection")));
     }
   }
 
@@ -58,7 +59,7 @@ export function PrescriptionDetail({ id }: { id: string }) {
       });
       router.push("/cart");
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : t("connection"));
+      setError(accountError(caught, locale, t("connection")));
     }
   }
 
