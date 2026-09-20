@@ -14,10 +14,12 @@ import { MedicineMedia } from "@/components/MedicineMedia";
 import { useAuthenticated } from "@/components/AuthStateProvider";
 import { MedicineCard } from "@/components/MedicineCard";
 import { Toast } from "@/components/Toast";
+import { Icon } from "@/components/StoreUI";
 import { useLocale } from "@/components/LocaleProvider";
 import { formatMoney, formatNumber, productName } from "@/lib/locale";
-import { groupMedicineFamilies } from "@/lib/storefront";
+import { groupMedicineFamilies, localizedPackSize } from "@/lib/storefront";
 import type { Cart, Medicine, PageResult } from "@/lib/types";
+import styles from "./cart.module.css";
 
 export default function CartPage() {
   const authenticated = useAuthenticated();
@@ -98,7 +100,8 @@ export default function CartPage() {
   }
 
   return (
-    <section className="page-section">
+    <section className={`page-section${locale === "fa-AF" ? ` ${styles.cart}` : ""}`}>
+      {locale === "fa-AF" && <nav className={styles.breadcrumb} aria-label="مسیر صفحه"><Link href="/">{t("home")}</Link><span aria-hidden="true">/</span><span aria-current="page">{t("cart")}</span></nav>}
       <p className="eyebrow">{copy.kicker}</p>
       <h1>{t("cart")}</h1>
       <p className="muted">
@@ -116,7 +119,7 @@ export default function CartPage() {
       {cart && !cart.items.length && (
         <>
           <div className="empty-state cart-empty-state">
-            <span className="empty-cart-illustration" aria-hidden="true"><span>＋</span></span>
+            {locale === "fa-AF" ? <span className={styles.emptyIcon} aria-hidden="true"><Icon name="ICON-004_Cart" size={48}/></span> : <span className="empty-cart-illustration" aria-hidden="true"><span>＋</span></span>}
             <div><p className="eyebrow">Darmalton</p><h2>{t("emptyCart")}</h2><p>{copy.choose}</p>
               <Link className="button" href="/shop">{t("continueShopping")}</Link>
             </div>
@@ -124,7 +127,7 @@ export default function CartPage() {
           {recommendations.length > 0 && <section className="section empty-cart-recommendations">
             <div className="section-heading"><h2>{t("popularMedicines")}</h2><Link href="/shop">{t("viewAll")}</Link></div>
             <div className="product-rail">
-              {groupMedicineFamilies(recommendations).slice(0, 6).map((family) => <MedicineCard key={family.code} medicine={family.medicine} variants={family.variants} />)}
+              {groupMedicineFamilies(recommendations).slice(0, 6).map((family) => <MedicineCard key={family.code} medicine={family.medicine} variants={family.variants} presentation={locale === "fa-AF" ? "marketplace" : undefined} />)}
             </div>
           </section>}
         </>
@@ -134,20 +137,20 @@ export default function CartPage() {
           <div className="cart-list">
             {cart.items.map((item) => {
               const name = productName(item.medicine, locale);
+              const media = <MedicineMedia imageUrl={item.medicine.image_url} alt={name} width={92} height={92} sizes="92px"/>;
               return (
                 <article key={item.id} className="cart-row">
-                  <MedicineMedia
-                    imageUrl={item.medicine.image_url}
-                    alt={name}
-                    width={92}
-                    height={92}
-                    sizes="92px"
-                  />
-                  <div>
-                    <h2>{name}</h2>
+                  {locale === "fa-AF" ? <Link className={styles.photo} href={`/medicines/${item.medicine.id}`}>{media}</Link> : media}
+                  <div className="cart-item-copy">
+                    <h2>{locale === "fa-AF" ? <Link href={`/medicines/${item.medicine.id}`}>{name}</Link> : name}</h2>
                     <p dir="ltr">
                       {item.medicine.brand_name} · {item.medicine.strength}
                     </p>
+                    {locale === "fa-AF" && <>
+                      <p>{localizedPackSize(item.medicine.pack_size, locale)}</p>
+                      {item.medicine.prescription_required && <span className={styles.rx}>{t("requiresRx")}</span>}
+                      <p className={styles.unitPrice}>قیمت واحد <b>{formatMoney(item.unit_price, locale)}</b></p>
+                    </>}
                   </div>
                   <div
                     className="quantity"
@@ -170,7 +173,7 @@ export default function CartPage() {
                       +
                     </button>
                   </div>
-                  <strong>{formatMoney(item.line_total, locale)}</strong>
+                  <strong className="cart-line-total">{locale === "fa-AF" && <small>مجموع</small>}{formatMoney(item.line_total, locale)}</strong>
                   <button
                     className="danger-link"
                     onClick={() => remove(item.id)}
