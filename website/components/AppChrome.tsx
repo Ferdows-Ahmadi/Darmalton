@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import { Locale, TextKey } from "@/lib/locale";
 import type { PublicAnnouncement } from "@/lib/types";
+import { isCustomerRoute, mobileCustomerSection } from "@/lib/customer-navigation";
 import { Header } from "./Header";
 import { Icon } from "./StoreUI";
 import { LocaleProvider, useLocale } from "./LocaleProvider";
@@ -28,6 +29,8 @@ function CustomerChrome({
 }) {
   const { t, locale } = useLocale();
   const pathname = usePathname();
+  const approvedChrome = locale === "fa-AF" && isCustomerRoute(pathname);
+  const mobileSection = approvedChrome ? mobileCustomerSection(pathname) : undefined;
   const [offline, setOffline] = useState(false);
   useEffect(() => {
     const update = () => setOffline(!navigator.onLine);
@@ -47,7 +50,7 @@ function CustomerChrome({
     [["/privacy", "privacy"], ["/terms", "terms"], ["/delivery-policy", "delivery"], ["/returns", "returns"]]
   ];
 
-  return <AuthStateProvider authenticated={authenticated}><div className={`site-shell${(pathname === "/" || pathname === "/shop" || pathname === "/categories" || pathname === "/manufacturers" || pathname === "/cart" || pathname === "/login" || pathname === "/register" || pathname === "/app" || pathname === "/account" || pathname.startsWith("/account/") || pathname === "/orders" || pathname.startsWith("/orders/") || pathname === "/notifications" || pathname === "/prescriptions" || pathname.startsWith("/prescriptions/") || /^\/medicines\/[^/]+$/.test(pathname)) && locale === "fa-AF" ? ` ${marketplace.chrome}` : ""}`}>
+  return <AuthStateProvider authenticated={authenticated}><div className={`site-shell${approvedChrome ? ` ${marketplace.chrome} ${marketplace.contentFlow}` : ""}`}>
     <SessionIntro />
     <a className="skip-link" href="#main">{t("products")}</a>
     <Header authenticated={authenticated} hasHealthContent={hasHealthContent}/>
@@ -65,7 +68,7 @@ function CustomerChrome({
       <div className="footer-bottom wrap"><span>© {new Date().getFullYear()} Darmalton</span><span>{t("privateRx")}</span></div>
     </footer>
     <nav className="mobile-bottom" aria-label={t("menu")}>
-      {[["/", "home", "⌂"], ["/shop", "shop", "⌕"], ["/prescriptions/upload", "rx", "Rx"], ["/cart", "cart", "▱"], ["/account", "account", "○"]].map(([href, label, icon]) => <Link key={href} href={href} aria-current={pathname === href || (href !== "/" && pathname.startsWith(href)) ? "page" : undefined}><span aria-hidden="true">{icon}</span>{t(label as TextKey)}</Link>)}
+      {[["/", "home", "⌂"], ["/shop", "shop", "⌕"], ["/prescriptions/upload", "rx", "Rx"], ["/cart", "cart", "▱"], ["/account", "account", "○"]].map(([href, label, icon]) => <Link key={href} href={href} aria-current={(approvedChrome ? mobileSection === href : pathname === href || (href !== "/" && pathname.startsWith(href))) ? "page" : undefined}><span aria-hidden="true">{icon}</span>{t(label as TextKey)}</Link>)}
     </nav>
   </div></AuthStateProvider>;
 }
@@ -85,7 +88,7 @@ export function AppChrome({
 }) {
   const pathname = usePathname();
   return <LocaleProvider key={locale} locale={locale}>
-    {pathname.startsWith("/staff")
+    {!isCustomerRoute(pathname)
       ? <main className="staff-root">{children}</main>
       : <CustomerChrome authenticated={authenticated} hasHealthContent={hasHealthContent} globalAnnouncements={globalAnnouncements}>{children}</CustomerChrome>}
   </LocaleProvider>;

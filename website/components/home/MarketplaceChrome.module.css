@@ -1,5 +1,16 @@
-/* Presentation adapter for the existing functional shell, only on the
-   Dari homepage. Other routes and locales retain their own skin. */
+/* Shared Dari customer chrome. Staff/internal routes and other locales retain
+   their existing presentation. Page-body selectors do not belong here. */
+
+/* Content-following footer policy: preserve the viewport-height shell, but put
+   spare short-page space AFTER the footer, not between content and footer.
+   Long pages retain intrinsic flow; the global main flex rule stays intact. */
+.chrome.contentFlow > main { flex: 0 0 auto; }
+.chrome.contentFlow > :global(.store-footer) { flex-shrink: 0; }
+.chrome :global(.service-strip img), .chrome :global(.footer-grid img) { filter: none; opacity: 1; }
+.chrome :global(.footer-grid p), .chrome :global(.footer-bottom) { color: #61736b; }
+.chrome :global(.footer-grid nav) { align-content: start; }
+.chrome :global(.service-strip > div) { background: transparent; }
+.chrome :global(.drawer-content nav a[aria-current=page]) { background: #edf7f2; color: #12684e; font-weight: 700; }
 @media (min-width: 1200px) {
   .chrome :global(.wrap) { width: 88.4%; max-width: 1440px; }
   .chrome :global(.store-header) { position: relative; background: #fff; border-bottom: 1px solid #e9ebed; box-shadow: none; }
@@ -55,7 +66,7 @@
   .chrome :global(.footer-grid p) { font-size: 10px; margin: 4px 0; }
   .chrome :global(.footer-grid nav) { gap: 0; }
   .chrome :global(.footer-grid a) { display: flex; align-items: center; min-height: 44px; color: #4d5e68; font-size: 11px; }
-  .chrome :global(.footer-bottom) { padding-block: 10px; font-size: 9px; }
+  .chrome :global(.footer-bottom) { padding-block: 10px; font-size: 9px; border-top-color: #e8ecef; }
 }
 @media (max-width: 767px) {
   .chrome :global(.wrap) { width: calc(100% - 20px); }
@@ -76,7 +87,15 @@
   .chrome :global(.header-nav), .chrome :global(.store-header.is-compressed .header-nav) { display: none; }
   .chrome :global(.nav-drawer) { max-width: calc(100% - 24px); }
   .chrome :global(.drawer-content nav a), .chrome :global(.drawer-content button) { min-height: 44px; }
-  .chrome :global(.footer-grid) { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .chrome :global(.service-strip) { gap: 8px; padding-block: 10px; border-bottom-color: #e8ecef; }
+  .chrome :global(.service-strip > div) { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 0; padding: 0; gap: 4px; font-size: 9px; line-height: 1.8; }
+  .chrome :global(.service-strip img) { width: 24px; height: 24px; }
+  .chrome :global(.footer-grid) { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; padding-block: 10px; }
+  .chrome :global(.footer-grid > div) { display: flex; align-items: center; gap: 12px; padding-bottom: 4px; }
+  .chrome :global(.footer-grid img) { width: 90px; flex-shrink: 0; }
+  .chrome :global(.footer-grid p) { margin: 0; font-size: 10px; color: #61736b; }
+  .chrome :global(.footer-grid a) { min-height: 44px; font-size: 10px; line-height: 1.8; padding-block: 4px; overflow-wrap: anywhere; }
+  .chrome :global(.footer-bottom) { padding-block: 8px; gap: 8px; flex-wrap: wrap; color: #61736b; }
   .chrome :global(.store-footer) { margin-bottom: calc(60px + env(safe-area-inset-bottom)); }
   .chrome :global(.mobile-bottom) { min-height: 58px; padding: 3px 0 calc(3px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid #dce8e3; }
   .chrome :global(.mobile-bottom a) { min-height: 50px; font-size: 9px; color: #50665e; }
