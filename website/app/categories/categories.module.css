@@ -1,0 +1,54 @@
+.categories { background: #fff; color: #263d38; }
+.categories :global(.page-heading) { width: 100%; min-height: 0; margin: 0; padding-block: 16px 12px; border: 0; border-radius: 0; box-shadow: none; background: #fff; }
+.categories :global(.page-heading)::before, .categories :global(.page-heading)::after { display: none; }
+.categories :global(.page-heading .wrap), .categories :global(.page-section) { width: min(1425px, 88.4%); }
+.categories :global(.page-heading .crumb) { font-size: 10px; }
+.categories :global(.page-heading h1) { font-size: 22px; line-height: 1.7; margin: 3px 0; }
+.categories :global(.page-heading p) { margin: 0; font-size: 11px; }
+.categories :global(.page-heading .page-heading-eyebrow) { display: none; }
+.categories :global(.page-section) { margin-block: 0 32px; }
+.categories :global(.section-heading) { min-height: 0; margin: 0 0 10px; padding: 0; }
+.categories :global(.section-heading h2) { margin: 0; font-size: 14px; line-height: 1.8; font-weight: 700; }
+.categories :global(.shopper-category-grid) { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.categories :global(.shopper-category-tile) { display: flex; flex-direction: column; min-width: 0; overflow: hidden; border: 1px solid #e1e9e5; border-radius: 4px; box-shadow: none; background: #fafcfb; transition: border-color .15s, background .15s; }
+.categories :global(.shopper-category-tile img) { display: block; width: 100%; height: auto; aspect-ratio: 1.65; max-height: 176px; object-fit: cover; object-position: center; border-radius: 0; transition: none; }
+.categories :global(.shopper-category-tile strong) { display: flex; align-items: center; justify-content: space-between; gap: 6px; flex: 1; min-height: 44px; padding: 8px 10px; font-size: 12px; line-height: 1.7; font-weight: 650; }
+.categories :global(.shopper-category-tile strong)::after { content: "←"; color: #498673; flex: none; }
+.categories :global(.shopper-category-tile:hover), .categories :global(.health-need-card:hover) { transform: none; border-color: #8caf9f; background: #f2f8f5; color: #174e40; }
+.categories :global(.shopper-category-tile:hover img) { transform: none; }
+.categories :global(.health-need-heading) { margin: 22px 0 0; padding: 10px 12px 0; background: #f5f8f6; border: 1px solid #e1e9e5; border-bottom: 0; border-radius: 4px 4px 0 0; }
+.categories :global(.health-need-grid) { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 10px 12px 12px; background: #f5f8f6; border: 1px solid #e1e9e5; border-top: 0; border-radius: 0 0 4px 4px; }
+.categories :global(.health-need-card) { grid-template-columns: 58px minmax(0, 1fr) auto; gap: 10px; min-height: 76px; padding: 7px; border: 1px solid #e1e9e5; border-radius: 4px; box-shadow: none; background: #fff; transition: border-color .15s, background .15s; }
+.categories :global(.health-need-image) { width: 58px; height: 58px; border-radius: 3px; }
+.categories :global(.health-need-image img) { object-fit: cover; object-position: center; }
+.categories :global(.health-need-card strong) { font-size: 12px; line-height: 1.8; font-weight: 650; }
+.categories :global(.health-need-card > span:last-child) { direction: ltr; transform: rotate(180deg); color: #498673; }
+.categories :global(.state) { border: 1px solid #e1e9e5; border-radius: 0 0 4px 4px; box-shadow: none; background: #f5f8f6; padding: 24px 14px; }
+.categories :global(.state h2) { font-size: 18px; }
+.categories :global(.state p) { font-size: 12px; }
+.categories :global(.state .button) { min-height: 44px; border-radius: 4px; font-size: 12px; }
+@media (max-width: 1399px) {
+  .categories :global(.page-heading .wrap), .categories :global(.page-section) { width: calc(100% - 48px); }
+}
+@media (max-width: 1199px) {
+  .categories :global(.page-heading .wrap), .categories :global(.page-section) { width: calc(100% - 32px); }
+  .categories :global(.shopper-category-grid) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 899px) {
+  .categories :global(.health-need-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .categories :global(.page-heading .wrap), .categories :global(.page-section) { width: calc(100% - 20px); }
+  .categories :global(.page-heading) { padding-block: 12px 10px; }
+  .categories :global(.page-heading h1) { font-size: 20px; }
+  .categories :global(.page-heading p) { font-size: 10px; }
+  .categories :global(.section-heading h2) { font-size: 13px; }
+  .categories :global(.shopper-category-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .categories :global(.shopper-category-tile strong) { padding: 7px 8px; font-size: 11px; gap: 4px; }
+  .categories :global(.health-need-heading) { margin-top: 16px; padding: 8px 8px 0; }
+  .categories :global(.health-need-grid) { gap: 7px; padding: 8px; }
+  .categories :global(.health-need-card) { grid-template-columns: 38px minmax(0, 1fr); gap: 6px; padding: 6px; min-height: 68px; }
+  .categories :global(.health-need-image) { width: 38px; height: 48px; }
+  .categories :global(.health-need-card strong) { font-size: 10px; line-height: 1.8; }
+  .categories :global(.health-need-card > span:last-child) { display: none; }
+}
