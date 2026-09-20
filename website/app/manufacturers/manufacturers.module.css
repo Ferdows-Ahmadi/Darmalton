@@ -1,0 +1,41 @@
+.manufacturers { background: #fff; color: #263d38; }
+.manufacturers :global(.page-heading) { width: 100%; min-height: 0; margin: 0; padding-block: 16px 12px; border: 0; border-radius: 0; box-shadow: none; background: #fff; }
+.manufacturers :global(.page-heading)::before, .manufacturers :global(.page-heading)::after { display: none; }
+.manufacturers :global(.page-heading .wrap), .manufacturers :global(.page-section) { width: min(1425px, 88.4%); }
+.manufacturers :global(.page-heading .crumb) { font-size: 10px; }
+.manufacturers :global(.page-heading h1) { font-size: 22px; line-height: 1.7; margin: 3px 0; }
+.manufacturers :global(.page-heading p) { margin: 0; font-size: 11px; }
+.manufacturers :global(.page-heading .page-heading-eyebrow) { display: none; }
+.manufacturers :global(.page-section) { margin-block: 0 32px; }
+.manufacturers :global(.manufacturer-grid) { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 12px; background: #f5f8f6; border: 1px solid #e1e9e5; border-radius: 4px; }
+.manufacturers :global(.manufacturer-card) { display: grid; grid-template-columns: 32px minmax(0, 1fr); grid-template-rows: minmax(42px, auto) auto; align-items: center; gap: 10px; min-width: 0; min-height: 114px; padding: 12px; border: 1px solid #dce7e1 !important; border-top: 2px solid #6d9e8b !important; border-radius: 4px !important; box-shadow: none !important; background: #fff; transition: border-color .15s, background .15s; }
+.manufacturers :global(.manufacturer-card:nth-child(even)) { background: #fbfdfc; }
+.manufacturers :global(.manufacturer-mark) { width: 32px; height: 32px; border-radius: 3px; border: 1px solid #e1e9e5; background: #f3f7f4; color: #719083; font: 600 14px/1 Arial, sans-serif; }
+.manufacturers :global(.manufacturer-logo) { width: 32px; height: 32px; }
+.manufacturers :global(.manufacturer-card > span:last-child) { display: contents; }
+.manufacturers :global(.manufacturer-card strong) { min-width: 0; font-size: 14px; line-height: 1.65; font-weight: 700; overflow-wrap: anywhere; }
+.manufacturers :global(.manufacturer-card small) { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; padding-top: 7px; border-top: 1px solid #edf1ee; color: #577469; font-size: 11px; line-height: 1.7; }
+.manufacturers :global(.manufacturer-card small)::after { content: "←"; color: #34745f; font-size: 16px; }
+.manufacturers :global(.manufacturer-card:hover), .manufacturers :global(.manufacturer-card:focus-visible) { transform: none; border-color: #64947f !important; background: #edf6f0; color: #174e40; }
+.manufacturers :global(.state) { border: 1px solid #e1e9e5; border-radius: 4px; box-shadow: none; background: #f5f8f6; padding: 24px 14px; }
+.manufacturers :global(.state h2) { font-size: 18px; }
+.manufacturers :global(.state p) { font-size: 12px; }
+.manufacturers :global(.state .button) { min-height: 44px; border-radius: 4px; font-size: 12px; }
+@media (max-width: 1399px) {
+  .manufacturers :global(.page-heading .wrap), .manufacturers :global(.page-section) { width: calc(100% - 48px); }
+}
+@media (max-width: 1199px) {
+  .manufacturers :global(.page-heading .wrap), .manufacturers :global(.page-section) { width: calc(100% - 32px); }
+  .manufacturers :global(.manufacturer-grid) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .manufacturers :global(.page-heading .wrap), .manufacturers :global(.page-section) { width: calc(100% - 20px); }
+  .manufacturers :global(.page-heading) { padding-block: 12px 10px; }
+  .manufacturers :global(.page-heading h1) { font-size: 20px; }
+  .manufacturers :global(.page-heading p) { font-size: 10px; }
+  .manufacturers :global(.manufacturer-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 7px; gap: 7px; }
+  .manufacturers :global(.manufacturer-card) { grid-template-columns: minmax(0, 1fr); grid-template-rows: 22px minmax(38px, auto) auto; gap: 6px; padding: 9px; min-height: 124px; }
+  .manufacturers :global(.manufacturer-mark), .manufacturers :global(.manufacturer-logo) { width: 22px; height: 22px; font-size: 11px; }
+  .manufacturers :global(.manufacturer-card strong) { font-size: 12px; line-height: 1.6; }
+  .manufacturers :global(.manufacturer-card small) { font-size: 10px; padding-top: 5px; }
+}
