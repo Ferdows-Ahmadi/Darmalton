@@ -13,6 +13,7 @@ import {
 import { synchronizeGuestCart } from "@/lib/guest-cart";
 import type { User } from "@/lib/types";
 import { useLocale } from "./LocaleProvider";
+import styles from "./AuthForm.module.css";
 
 type AuthErrorPayload = {
   user?: User;
@@ -153,7 +154,7 @@ export function AuthForm({
 
   const register = mode === "register";
   return (
-    <form className="auth-card" onSubmit={submit}>
+    <form method="post" className={`auth-card${audience === "customer" && locale === "fa-AF" ? ` ${styles.card}` : ""}`} onSubmit={submit}>
       <Image
         className="auth-brand"
         src="/brand/darmalton-logo.png"

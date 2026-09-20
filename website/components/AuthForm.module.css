@@ -1,0 +1,34 @@
+:global(.auth-shell):has(> .card) { min-height: 0; padding: 24px 20px 32px; background: #f7faf8; border-bottom: 1px solid #e5ece7; }
+.card { width: min(480px, 100%); padding: 24px 28px; gap: 12px; border: 1px solid #dce7e0; border-top: 3px solid #4e8a70; border-radius: 5px; background: #fff; box-shadow: none; color: #263d38; }
+.card :global(.auth-brand) { width: 108px; height: auto; }
+.card > :global(.eyebrow) { display: none; }
+.card h1 { font-size: 23px; line-height: 1.7; }
+.card > :global(.muted) { font-size: 11px; line-height: 1.9; margin-top: -7px; color: #687c71; }
+.card label { display: grid; gap: 5px; min-width: 0; font-size: 11px; color: #425c4f; }
+.card input { width: 100%; min-width: 0; min-height: 44px; padding: 9px 12px; border: 1px solid #d5e1d9; border-radius: 4px; background: #fcfdfc; color: #263d38; font-size: 14px; box-shadow: none; }
+.card input:focus { outline: 2px solid #28795e; outline-offset: 1px; border-color: #28795e; background: #fff; }
+.card :global(.two-columns) { gap: 12px; }
+.card > :global(.primary) { min-height: 44px; border-radius: 4px; border-color: #12684e; background: #12684e; box-shadow: none; font-size: 13px; }
+.card > :global(.primary:disabled) { opacity: .65; cursor: wait; }
+.card :global(.auth-return-note) { padding: 8px 10px; border: 1px solid #e0e9e3; border-radius: 4px; background: #f4f8f5; font-size: 10px; line-height: 1.9; }
+.card :global(.form-error) { padding: 9px 11px; font-size: 11px; line-height: 1.9; border: 1px solid #eed4d1; border-radius: 4px; background: #fff5f3; color: #942f34; }
+.card :global(.auth-divider) { gap: 12px; font-size: 10px; color: #77867c; }
+.card :global(.auth-divider)::before, .card :global(.auth-divider)::after { background: #e2e9e4; }
+.card :global(.google-entry-button) { min-height: 44px; border-radius: 4px; border-color: #d8e2dc; background: #fff; font-size: 12px; color: #596d62; }
+.card :global(.google-entry-unavailable) { gap: 5px; }
+.card :global(.google-entry-unavailable small) { font-size: 10px; line-height: 1.8; color: #6d7c73; }
+.card :global(.auth-switch) { font-size: 11px; line-height: 1.9; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0 8px; }
+.card :global(.auth-switch a) { color: #17694e; text-underline-offset: 3px; min-height: 32px; display: inline-flex; align-items: center; }
+.card > :global(.auth-switch):last-child { border-top: 1px solid #e7ece9; padding-top: 5px; }
+.card a:focus-visible, .card button:focus-visible { outline: 2px solid #28795e; outline-offset: 3px; }
+@media (max-width: 767px) {
+  :global(.auth-shell):has(> .card) { padding: 16px 10px 24px; }
+  .card { padding: 18px; gap: 11px; }
+  .card h1 { font-size: 21px; }
+  .card :global(.auth-brand) { width: 96px; }
+  .card input { font-size: 16px; }
+}
+@media (max-width: 359px) {
+  .card { padding: 16px 12px; }
+  .card :global(.two-columns) { gap: 8px; }
+}
