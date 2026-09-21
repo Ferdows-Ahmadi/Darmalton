@@ -1,19 +1,5 @@
-"use client";
-
-import Link from "next/link";
-import { useLocale } from "@/components/LocaleProvider";
+import { ApplicationState } from "@/components/ApplicationState";
 
 export default function NotFound() {
-  const { t } = useLocale();
-  return (
-    <section className="page-section narrow">
-      <div className="empty-state">
-        <h1>{t("notFound")}</h1>
-        <p>{t("trySearch")}</p>
-        <Link className="button" href="/">
-          {t("backHome")}
-        </Link>
-      </div>
-    </section>
-  );
+  return <ApplicationState title="notFound" body="trySearch" />;
 }

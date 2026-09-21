@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 
 import { CmsInfoPage } from "@/components/CmsInfoPage";
 import { publicContentPage } from "@/lib/public-cms";
+import { serverLocale } from "@/lib/server-locale";
+import { textFor } from "@/lib/locale";
+import { cmsText } from "@/lib/cms-locale";
+import styles from "@/components/HealthContent.module.css";
 
 export async function generateMetadata({
   params
@@ -10,7 +14,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const page = await publicContentPage((await params).slug);
-  return { title: page?.title_dari || page?.title || "معلومات درملتون" };
+  const locale = await serverLocale();
+  return { title: page ? cmsText(page.title, page.title_dari, locale) : textFor(locale, "cmsContext") };
 }
 
 export default async function PublicCmsPage({
@@ -20,5 +25,6 @@ export default async function PublicCmsPage({
 }) {
   const page = await publicContentPage((await params).slug);
   if (!page) notFound();
-  return <CmsInfoPage page={page} eyebrow="معلومات درملتون" />;
+  const locale = await serverLocale();
+  return <CmsInfoPage utility className={locale === "fa-AF" ? styles.cmsDocument : undefined} page={page} locale={locale} eyebrow={textFor(locale, "cmsContext")} />;
 }

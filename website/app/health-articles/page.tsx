@@ -4,6 +4,7 @@ import { HealthArticleCard } from "@/components/HealthArticleCard";
 import { publicCmsList } from "@/lib/public-cms";
 import { serverLocale } from "@/lib/server-locale";
 import type { PublicContentPage } from "@/lib/types";
+import styles from "@/components/HealthContent.module.css";
 
 export const metadata: Metadata = { title: "مقاله‌های سلامت" };
 
@@ -18,7 +19,7 @@ export default async function HealthArticlesPage() {
     "cms/health-articles/?ordering=display_order"
   );
   return (
-    <section className="page-section public-content-index">
+    <section className={`page-section public-content-index${locale === "fa-AF" ? ` ${styles.index}` : ""}`}>
       <header className="public-content-heading">
         <p className="eyebrow">{copy.kicker}</p>
         <h1>{copy.title}</h1>

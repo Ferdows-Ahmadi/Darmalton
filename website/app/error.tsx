@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-import { State } from "@/components/StoreUI";
+import { ApplicationState } from "@/components/ApplicationState";
 
 export default function ErrorBoundary({
   error,
@@ -15,8 +15,6 @@ export default function ErrorBoundary({
     console.error(error);
   }, [error]);
   return (
-    <section className="page-section">
-      <State kind="error" title="generalError" body="connection" retry={reset} />
-    </section>
+    <ApplicationState title="generalError" body="connection" retry={reset} />
   );
 }

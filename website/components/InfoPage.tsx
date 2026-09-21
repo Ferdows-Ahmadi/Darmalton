@@ -9,17 +9,19 @@ export function InfoPage({
   title,
   intro,
   children,
-  utility = false
+  utility = false,
+  className = ""
 }: {
   eyebrow: string;
   title: string;
   intro: string;
   children: React.ReactNode;
   utility?: boolean;
+  className?: string;
 }) {
   const { locale, t } = useLocale();
   return (
-    <section className={`info-page${utility && locale === "fa-AF" ? ` ${styles.document}` : ""}`}>
+    <section className={`info-page${utility && locale === "fa-AF" ? ` ${styles.document}` : ""}${className ? ` ${className}` : ""}`}>
       <div className="info-page-heading">
         <p className="eyebrow">{eyebrow}</p>
         <h1>{title}</h1>

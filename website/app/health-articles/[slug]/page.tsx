@@ -5,6 +5,9 @@ import { CmsImage } from "@/components/CmsImage";
 import { publicCmsList } from "@/lib/public-cms";
 import { serverLocale } from "@/lib/server-locale";
 import type { PublicContentPage } from "@/lib/types";
+import { cmsText } from "@/lib/cms-locale";
+import { textFor } from "@/lib/locale";
+import styles from "@/components/HealthContent.module.css";
 
 async function articleFor(slug: string) {
   const articles = await publicCmsList<PublicContentPage>(
@@ -19,7 +22,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const article = await articleFor((await params).slug);
-  return { title: article?.title_dari || article?.title || "مقاله سلامت" };
+  const locale = await serverLocale();
+  return { title: article ? cmsText(article.title, article.title_dari, locale) : textFor(locale, "articleContext") };
 }
 
 export default async function HealthArticlePage({
@@ -30,13 +34,12 @@ export default async function HealthArticlePage({
   const locale = await serverLocale();
   const article = await articleFor((await params).slug);
   if (!article) notFound();
-  const english = locale === "en";
-  const title = english ? article.title : article.title_dari || article.title;
-  const summary = english ? article.summary : article.summary_dari || article.summary;
-  const body = english ? article.body : article.body_dari || article.body;
+  const title = cmsText(article.title, article.title_dari, locale);
+  const summary = cmsText(article.summary, article.summary_dari, locale);
+  const body = cmsText(article.body, article.body_dari, locale);
   const copy = locale === "en" ? { article: "Health article", source: "Source" } : locale === "fa-AF" ? { article: "مقاله سلامت", source: "منبع" } : { article: "روغتیایي لیکنه", source: "سرچینه" };
   return (
-    <article className="public-article">
+    <article className={`public-article${locale === "fa-AF" ? ` ${styles.article}` : ""}`}>
       <header>
         <p className="eyebrow">{copy.article}</p>
         <h1>{title}</h1>
@@ -49,7 +52,7 @@ export default async function HealthArticlePage({
         <div className="public-article-image">
           <CmsImage
             src={article.image_url}
-            alt={(english ? article.alt_text : article.alt_text_dari) || title}
+            alt={cmsText(article.alt_text, article.alt_text_dari, locale) || title}
             priority
           />
         </div>

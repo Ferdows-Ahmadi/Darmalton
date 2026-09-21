@@ -2,23 +2,27 @@ import { CmsImage } from "./CmsImage";
 import { InfoPage } from "./InfoPage";
 import type { Locale } from "@/lib/locale";
 import type { PublicContentPage } from "@/lib/types";
+import { cmsText } from "@/lib/cms-locale";
 
 export function CmsInfoPage({
   page,
   eyebrow,
-  locale = "fa-AF",
-  utility = false
+  locale,
+  utility = false,
+  className
 }: {
   page: PublicContentPage;
   eyebrow: string;
-  locale?: Locale;
+  locale: Locale;
   utility?: boolean;
+  className?: string;
 }) {
   const localized = (english: string, dari: string) =>
-    locale === "fa-AF" ? dari || english : english || dari;
+    cmsText(english, dari, locale);
   return (
     <InfoPage
       utility={utility}
+      className={className}
       eyebrow={eyebrow}
       title={localized(page.title, page.title_dari)}
       intro={localized(page.summary, page.summary_dari) || localized(page.body, page.body_dari)}
