@@ -2,21 +2,24 @@
 
 import Link from "next/link";
 import { useLocale } from "./LocaleProvider";
+import styles from "./UtilityDocument.module.css";
 
 export function InfoPage({
   eyebrow,
   title,
   intro,
-  children
+  children,
+  utility = false
 }: {
   eyebrow: string;
   title: string;
   intro: string;
   children: React.ReactNode;
+  utility?: boolean;
 }) {
-  const { t } = useLocale();
+  const { locale, t } = useLocale();
   return (
-    <section className="info-page">
+    <section className={`info-page${utility && locale === "fa-AF" ? ` ${styles.document}` : ""}`}>
       <div className="info-page-heading">
         <p className="eyebrow">{eyebrow}</p>
         <h1>{title}</h1>

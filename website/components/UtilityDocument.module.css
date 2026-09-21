@@ -1,0 +1,43 @@
+/* Opt-in Dari utility documents; generic CMS/articles retain their own treatment. */
+.document:global(.info-page) {
+  width: min(880px, calc(100% - 48px));
+  margin: 22px auto 32px;
+  padding: 0;
+  color: #263d38;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow-wrap: anywhere;
+}
+.document :global(.info-page-heading) { max-width: none; margin: 0 0 20px; padding-block-end: 18px; border-bottom: 1px solid #dfe7e2; }
+.document :global(.info-page-heading .eyebrow) { margin: 0 0 5px; color: #46755f; font-size: 11px; line-height: 1.8; letter-spacing: 0; }
+.document :global(.info-page-heading) h1 { margin: 0 0 8px; font-size: 24px; line-height: 1.7; color: #263d38; }
+.document :global(.info-page-heading) > p:last-child { margin: 0; font-size: 13px; line-height: 2.1; color: #61756a; }
+.document :global(.info-document) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; max-width: none; margin: 0; }
+.document :global(.info-document) > section { min-height: 0; margin: 0; padding: 16px 18px; border: 1px solid #e0e8e2; border-inline-start: 3px solid #80a792; border-radius: 4px; background: #f3f8f4; }
+.document :global(.info-document) h2 { margin: 0 0 5px; font-size: 15px; line-height: 1.9; }
+.document :global(.info-document) p { margin: 0; color: #526b5e; font-size: 13px; line-height: 2.1; }
+.document:global(.info-page-help) :global(.info-document) > section { padding-inline-start: 58px; }
+.document :global(.info-step) { inset-inline-start: 16px; top: 17px; width: 28px; height: 28px; border-radius: 4px; background: #e3eee6; color: #28664e; font-size: 12px; }
+.document :global(.info-accordion) { margin: 0; gap: 10px; }
+.document :global(.info-accordion) details { padding: 0 16px; border: 1px solid #dfe7e2; border-radius: 4px; background: #fff; }
+.document :global(.info-accordion) details[open] { border-color: #8eaf9d; }
+.document :global(.info-accordion) summary { min-height: 48px; padding-block: 11px; gap: 12px; font-size: 14px; line-height: 1.9; }
+.document :global(.info-accordion) summary span { flex-shrink: 0; font-size: 18px; }
+.document :global(.info-accordion) p { margin: 0; padding: 0 0 14px; font-size: 13px; line-height: 2.1; color: #526b5e; }
+.document > :global(.button) { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; max-width: 100%; margin-top: 18px; padding: 9px 16px; border: 1px solid #d5e2d9; border-radius: 4px; background: #f3f8f4; color: #23694f; font-size: 12px; box-shadow: none; }
+.document :focus-visible { outline: 2px solid #28795e; outline-offset: 3px; }
+.document :global(.cms-rich-text) { font-size: 13px; line-height: 2.1; }
+.document :global(.cms-info-image) { max-width: 100%; overflow: hidden; }
+.document :global(.cms-info-image) img { max-width: 100%; height: auto; }
+@media (max-width: 767px) {
+  .document:global(.info-page) { width: calc(100% - 28px); margin-block: 14px 24px; padding: 0; }
+  .document :global(.info-page-heading) { margin-bottom: 14px; padding-bottom: 14px; }
+  .document :global(.info-page-heading) h1 { font-size: 21px; margin-bottom: 6px; }
+  .document :global(.info-document) > section { padding: 13px 14px; }
+  .document:global(.info-page-help) :global(.info-document) > section { padding-inline-start: 52px; }
+  .document :global(.info-step) { inset-inline-start: 12px; top: 15px; }
+  .document :global(.info-accordion) details { padding-inline: 12px; }
+  .document > :global(.button) { margin-top: 14px; }
+}

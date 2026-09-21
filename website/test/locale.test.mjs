@@ -14,3 +14,7 @@ test("money formatting does not depend on browser Intl support", () => {
   assert.equal(formatMoney("60", "fa-AF"), "۶۰ افغانی");
   assert.equal(formatMoney("60", "ps-AF"), "۶۰ افغانۍ");
 });
+
+test("Dari help step counters use localized digits without artificial leading zeroes", () => {
+  assert.deepEqual([1, 2].map(step => formatNumber(step, "fa-AF")), ["۱", "۲"]);
+});

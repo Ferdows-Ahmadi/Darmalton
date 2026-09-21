@@ -3,7 +3,8 @@
 import Link from "next/link";
 
 import { useLocale } from "./LocaleProvider";
-import type { Locale } from "@/lib/locale";
+import { formatNumber, type Locale } from "@/lib/locale";
+import styles from "./UtilityDocument.module.css";
 
 export type LocalizedCopy = Record<Locale, string>;
 
@@ -25,7 +26,7 @@ export function StaticInfoPage({
   const { locale, t } = useLocale();
 
   return (
-    <section className={`info-page info-page-${variant}`}>
+    <section className={`info-page info-page-${variant}${locale === "fa-AF" ? ` ${styles.document}` : ""}`}>
       <header className="info-page-heading">
         <p className="eyebrow">{eyebrow[locale]}</p>
         <h1>{title[locale]}</h1>
@@ -38,7 +39,7 @@ export function StaticInfoPage({
         </details>)}
       </div> : <article className="info-document">
         {sections.map((section, index) => <section key={section.title.en}>
-          {variant === "help" && <span className="info-step" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>}
+          {variant === "help" && <span className="info-step" aria-hidden="true">{locale === "fa-AF" ? formatNumber(index + 1, locale) : String(index + 1).padStart(2, "0")}</span>}
           <h2>{section.title[locale]}</h2>
           <p>{section.body[locale]}</p>
         </section>)}

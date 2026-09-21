@@ -6,16 +6,19 @@ import type { PublicContentPage } from "@/lib/types";
 export function CmsInfoPage({
   page,
   eyebrow,
-  locale = "fa-AF"
+  locale = "fa-AF",
+  utility = false
 }: {
   page: PublicContentPage;
   eyebrow: string;
   locale?: Locale;
+  utility?: boolean;
 }) {
   const localized = (english: string, dari: string) =>
     locale === "fa-AF" ? dari || english : english || dari;
   return (
     <InfoPage
+      utility={utility}
       eyebrow={eyebrow}
       title={localized(page.title, page.title_dari)}
       intro={localized(page.summary, page.summary_dari) || localized(page.body, page.body_dari)}

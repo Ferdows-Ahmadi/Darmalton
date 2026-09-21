@@ -12,6 +12,7 @@ export default async function PrivacyPage() {
   if (page)
     return (
       <CmsInfoPage
+        utility
         page={page}
         eyebrow={staticPages.privacy.eyebrow[locale]}
         locale={locale}

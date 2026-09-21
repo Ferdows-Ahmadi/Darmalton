@@ -12,6 +12,7 @@ export default async function ContactPage() {
   if (page)
     return (
       <CmsInfoPage
+        utility
         page={page}
         eyebrow={staticPages.contact.eyebrow[locale]}
         locale={locale}
