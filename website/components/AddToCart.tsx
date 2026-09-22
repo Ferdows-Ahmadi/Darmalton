@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { ApiError, apiFetch } from "@/lib/api";
 import { addGuestCartItem } from "@/lib/guest-cart";
+import { checkoutError } from "@/lib/checkout-feedback";
 import type { CartItem, Medicine } from "@/lib/types";
 
 export function AddToCart({
@@ -17,7 +18,7 @@ export function AddToCart({
   disabled: boolean;
   prescriptionRequired?: boolean;
 }) {
-  const {t}=useLocale();
+  const {t,locale}=useLocale();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const router = useRouter();
@@ -41,7 +42,7 @@ export function AddToCart({
         router.push("/cart");
       } else {
         setMessage(
-          error instanceof Error
+          locale === "fa-AF" ? checkoutError(error, locale, t("connection")) : error instanceof Error
             ? error.message
             : t("connection")
         );

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { Locale, TextKey } from "@/lib/locale";
+import { formatNumber, Locale, TextKey } from "@/lib/locale";
 import type { PublicAnnouncement } from "@/lib/types";
 import { isCustomerRoute, mobileCustomerSection } from "@/lib/customer-navigation";
 import { Header } from "./Header";
@@ -63,7 +63,7 @@ function CustomerChrome({
       </div>
       <div className="footer-grid wrap">
         <div><Image src="/brand/darmalton-logo.png" alt="درملتون" width={160} height={64} priority/><p>{t("footer")}</p></div>
-        {footer.map((group, index) => <nav aria-label={`${t("menu")} ${index + 1}`} key={index}>{group.map(([href, label]) => <Link key={href} href={href}>{t(label)}</Link>)}</nav>)}
+        {footer.map((group, index) => <nav aria-label={`${t("menu")} ${locale === "fa-AF" ? formatNumber(index + 1, locale) : index + 1}`} key={index}>{group.map(([href, label]) => <Link key={href} href={href}>{t(label)}</Link>)}</nav>)}
       </div>
       <div className="footer-bottom wrap"><span>© {new Date().getFullYear()} Darmalton</span><span>{t("privateRx")}</span></div>
     </footer>

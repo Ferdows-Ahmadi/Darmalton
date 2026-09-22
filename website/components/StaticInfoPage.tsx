@@ -33,7 +33,8 @@ export function StaticInfoPage({
         <p>{intro[locale]}</p>
       </header>
       {variant === "faq" ? <div className="info-accordion">
-        {sections.map((section, index) => <details key={section.title.en} open={index === 0}>
+        {/* Native disclosure can be toggled before React hydrates; preserve that browser-owned open state. */}
+        {sections.map((section, index) => <details key={section.title.en} open={index === 0} suppressHydrationWarning={locale === "fa-AF"}>
           <summary>{section.title[locale]}<span aria-hidden="true">＋</span></summary>
           <p>{section.body[locale]}</p>
         </details>)}

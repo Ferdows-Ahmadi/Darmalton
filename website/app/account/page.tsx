@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { ApiError, apiFetch } from "@/lib/api";
 import { loginPath } from "@/lib/auth-navigation";
+import { accountError } from "@/lib/account-feedback";
 import { AccountShell } from "@/components/AccountShell";
 import { useLocale } from "@/components/LocaleProvider";
 import { formatNumber } from "@/lib/locale";
@@ -15,6 +16,7 @@ export default function AccountPage() {
   const [user, setUser] = useState<User | null>(null);
   const [addressCount, setAddressCount] = useState(0);
   const [orderCount, setOrderCount] = useState(0);
+  const [error, setError] = useState("");
   const router = useRouter();
   const { locale, t } = useLocale();
 
@@ -28,13 +30,16 @@ export default function AccountPage() {
         setUser(currentUser);
         setAddressCount(addresses.count);
         setOrderCount(orders.count);
+        setError("");
       })
       .catch((err) => {
         if (err instanceof ApiError && err.status === 401) {
           router.push(loginPath("/account"));
+        } else if (locale === "fa-AF") {
+          setError(accountError(err, locale, t("connection")));
         }
       });
-  }, [router]);
+  }, [locale, router, t]);
 
   const name = user
     ? [user.first_name, user.last_name].filter(Boolean).join(" ") || t("account")
@@ -45,7 +50,7 @@ export default function AccountPage() {
       <p className="eyebrow">{t("secure")}</p>
       <h1>{t("account")}</h1>
       <AccountShell>{!user ? (
-        <div className="loading">{t("loading")}</div>
+        <div className={error ? "form-error" : "loading"} role={error ? "alert" : undefined}>{error || t("loading")}</div>
       ) : (
         <>
           <div className="panel profile-card">

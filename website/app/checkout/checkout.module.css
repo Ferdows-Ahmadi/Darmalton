@@ -29,7 +29,7 @@
 .checkout .summary { display: grid; gap: 14px; padding: 18px; border: 1px solid #dce8df; border-top: 3px solid #4e8a70; border-radius: 4px; background: #f6faf7; min-width: 0; }
 .checkout .summary h2 { margin: 0; }
 .checkout .items { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-.checkout .items li { display: flex; justify-content: space-between; align-items: start; gap: 12px; font-size: 11px; }
+.checkout .items li { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; font-size: 11px; }
 .checkout .items li > div { min-width: 0; }
 .checkout .items a { display: block; overflow-wrap: anywhere; line-height: 1.8; }
 .checkout .items strong { flex-shrink: 0; font-size: 11px; color: #285c45; }

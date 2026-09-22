@@ -11,6 +11,7 @@ import {
   postLoginPath
 } from "@/lib/auth-navigation";
 import { synchronizeGuestCart } from "@/lib/guest-cart";
+import { accountValidation } from "@/lib/account-feedback";
 import type { User } from "@/lib/types";
 import { useLocale } from "./LocaleProvider";
 import styles from "./AuthForm.module.css";
@@ -154,7 +155,14 @@ export function AuthForm({
 
   const register = mode === "register";
   return (
-    <form method="post" className={`auth-card${audience === "customer" && locale === "fa-AF" ? ` ${styles.card}` : ""}`} onSubmit={submit}>
+    <form method="post" className={`auth-card${audience === "customer" && locale === "fa-AF" ? ` ${styles.card}` : ""}`} onSubmit={submit}
+      onInvalidCapture={event => {
+        if (audience === "customer" && locale === "fa-AF" && event.target instanceof HTMLInputElement) event.target.setCustomValidity(accountValidation(event.target.validity));
+      }}
+      onInputCapture={event => {
+        if (audience === "customer" && locale === "fa-AF" && event.target instanceof HTMLInputElement) event.target.setCustomValidity("");
+      }}
+    >
       <Image
         className="auth-brand"
         src="/brand/darmalton-logo.png"

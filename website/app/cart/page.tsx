@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { ApiError, apiFetch } from "@/lib/api";
 import { loginPath } from "@/lib/auth-navigation";
+import { checkoutError } from "@/lib/checkout-feedback";
 import {
   guestCart,
   removeGuestCartItem,
@@ -51,10 +52,10 @@ export default function CartPage() {
         setCart(guestCart());
         setError("");
       } else {
-        setError(err instanceof Error ? err.message : copy.load);
+        setError(locale === "fa-AF" ? checkoutError(err, locale, copy.load) : err instanceof Error ? err.message : copy.load);
       }
     }
-  }, [authenticated, copy.load]);
+  }, [authenticated, copy.load, locale]);
 
   useEffect(() => {
     void load();
@@ -81,7 +82,7 @@ export default function CartPage() {
       });
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : copy.update);
+      setError(locale === "fa-AF" ? checkoutError(err, locale, copy.update) : err instanceof Error ? err.message : copy.update);
     }
   }
 
@@ -95,7 +96,7 @@ export default function CartPage() {
       await apiFetch(`cart/items/${id}/`, { method: "DELETE" });
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : copy.remove);
+      setError(locale === "fa-AF" ? checkoutError(err, locale, copy.remove) : err instanceof Error ? err.message : copy.remove);
     }
   }
 
