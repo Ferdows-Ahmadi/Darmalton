@@ -22,11 +22,11 @@ export default async function Home() {
   const locale = await serverLocale();
   const [cms, pages] = await Promise.all([publicHomeCms(), publicMedicinePages()]);
   const legacy = <LegacyHome locale={locale} cms={cms} pages={pages} />;
-  if (locale !== "fa-AF") return legacy;
+  if (locale === "en") return legacy;
   const [categories, manufacturers] = await Promise.all([
     publicApi<Category[]>("categories/").catch(() => []),
     publicApi<Manufacturer[]>("manufacturers/").catch(() => [])
   ]);
-  return <MarketplaceHome cms={cms} medicines={pages.flatMap(page => page.results)}
+  return <MarketplaceHome locale={locale} cms={cms} medicines={pages.flatMap(page => page.results)}
     categories={categories} manufacturers={manufacturers} />;
 }

@@ -12,11 +12,13 @@ import type { CartItem, Medicine } from "@/lib/types";
 export function AddToCart({
   medicine,
   disabled,
-  prescriptionRequired = false
+  prescriptionRequired = false,
+  localizedFeedback = false
 }: {
   medicine: Medicine;
   disabled: boolean;
   prescriptionRequired?: boolean;
+  localizedFeedback?: boolean;
 }) {
   const {t,locale}=useLocale();
   const [busy, setBusy] = useState(false);
@@ -42,7 +44,7 @@ export function AddToCart({
         router.push("/cart");
       } else {
         setMessage(
-          locale === "fa-AF" ? checkoutError(error, locale, t("connection")) : error instanceof Error
+          locale === "fa-AF" || localizedFeedback ? checkoutError(error, locale, t("connection")) : error instanceof Error
             ? error.message
             : t("connection")
         );

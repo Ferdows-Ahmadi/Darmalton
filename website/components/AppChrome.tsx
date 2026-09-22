@@ -29,7 +29,7 @@ function CustomerChrome({
 }) {
   const { t, locale } = useLocale();
   const pathname = usePathname();
-  const approvedChrome = locale === "fa-AF" && isCustomerRoute(pathname);
+  const approvedChrome = locale !== "en" && isCustomerRoute(pathname);
   const mobileSection = approvedChrome ? mobileCustomerSection(pathname) : undefined;
   const [offline, setOffline] = useState(false);
   useEffect(() => {
@@ -55,7 +55,7 @@ function CustomerChrome({
     <a className="skip-link" href="#main">{t("products")}</a>
     <Header authenticated={authenticated} hasHealthContent={hasHealthContent}/>
     {offline && <p className="offline" role="status">{t("offline")}</p>}
-    <PublicAnnouncements announcements={globalAnnouncements}/>
+    <PublicAnnouncements locale={locale} announcements={globalAnnouncements}/>
     <main id="main">{children}</main>
     <footer className="store-footer">
       <div className="service-strip wrap">
@@ -63,7 +63,7 @@ function CustomerChrome({
       </div>
       <div className="footer-grid wrap">
         <div><Image src="/brand/darmalton-logo.png" alt="درملتون" width={160} height={64} priority/><p>{t("footer")}</p></div>
-        {footer.map((group, index) => <nav aria-label={`${t("menu")} ${locale === "fa-AF" ? formatNumber(index + 1, locale) : index + 1}`} key={index}>{group.map(([href, label]) => <Link key={href} href={href}>{t(label)}</Link>)}</nav>)}
+        {footer.map((group, index) => <nav aria-label={`${t("menu")} ${locale !== "en" ? formatNumber(index + 1, locale) : index + 1}`} key={index}>{group.map(([href, label]) => <Link key={href} href={href}>{t(label)}</Link>)}</nav>)}
       </div>
       <div className="footer-bottom wrap"><span>© {new Date().getFullYear()} Darmalton</span><span>{t("privateRx")}</span></div>
     </footer>

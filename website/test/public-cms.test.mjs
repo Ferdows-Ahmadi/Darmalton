@@ -54,7 +54,7 @@ test("public CMS media remains behind the same-site guarded asset proxy", () => 
 test("Home uses CMS with curated zero-state fallbacks", () => {
   assert.match(home, /publicHomeCms/);
   assert.match(home, /<LegacyHome locale=\{locale\} cms=\{cms\}/);
-  assert.match(home, /<MarketplaceHome cms=\{cms\}/);
+  assert.match(home, /<MarketplaceHome\b[^>]*cms=\{cms\}/);
   assert.match(legacyHome, /<HeroCarousel slides=\{heroes\}/);
   assert.match(marketplaceHome, /<HeroCarousel slides=\{cms\.heroes\}/);
   assert.match(heroCarousel, /health-delivered\.webp/);

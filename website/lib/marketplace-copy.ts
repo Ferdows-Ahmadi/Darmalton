@@ -1,0 +1,65 @@
+import type { Locale } from "./locale";
+
+export type MarketplaceLocale = Exclude<Locale, "en">;
+
+// Approved Dari UI is the baseline; backend content is never translated here.
+export const marketplaceCopy = {
+  sendPrescription: { "fa-AF": "نسخه‌تان را بفرستید", "ps-AF": "خپله نسخه واستوئ" },
+  privateReview: { "fa-AF": "بررسی محرمانه توسط تیم داروخانه", "ps-AF": "د درملتون د ډلې محرمه کتنه" },
+  vitamins: { "fa-AF": "ویتامین‌ها و مکمل‌ها", "ps-AF": "ویټامینونه او بشپړوونکي" },
+  currentRange: { "fa-AF": "مجموعه فعلی درملتون", "ps-AF": "د درملتون اوسني توکي" },
+  pharmacyWithYou: { "fa-AF": "داروخانه، همیشه همراه", "ps-AF": "درملتون، تل درسره" },
+  browseAndroid: { "fa-AF": "محصولات را در اندروید ببینید", "ps-AF": "توکي په اندروید کې وګورئ" },
+  orderPharmacy: { "fa-AF": "سفارش از داروخانه", "ps-AF": "له درملتون څخه فرمایش" },
+  products: { "fa-AF": "داروها و محصولات صحی", "ps-AF": "درمل او روغتیایي توکي" },
+  view: { "fa-AF": "مشاهده", "ps-AF": "کتل" },
+  viewAll: { "fa-AF": "مشاهده همه", "ps-AF": "ټول وګورئ" },
+  rx: { "fa-AF": "ارسال نسخه", "ps-AF": "نسخه پورته کول" },
+  manufacturers: { "fa-AF": "تولیدکنندگان", "ps-AF": "جوړوونکي" },
+  trackOrder: { "fa-AF": "پیگیری سفارش", "ps-AF": "د فرمایش څارل" },
+  shoppingHelp: { "fa-AF": "راهنمای خرید", "ps-AF": "د پېرود لارښود" },
+  app: { "fa-AF": "اپلیکیشن درملتون", "ps-AF": "د درملتون اپ" },
+  allCategories: { "fa-AF": "همه دسته‌ها", "ps-AF": "ټولې کټګورۍ" },
+  shortcuts: { "fa-AF": "دسترسی سریع", "ps-AF": "چټک لاسرسی" },
+  fromRange: { "fa-AF": "از مجموعه درملتون", "ps-AF": "د درملتون له توکو څخه" },
+  haveRx: { "fa-AF": "نسخه دارید؟", "ps-AF": "نسخه لرئ؟" },
+  rxGuideBody: { "fa-AF": "راهنمای ارسال عکس یا PDF نسخه", "ps-AF": "د نسخې د انځور یا PDF لېږلو لارښود" },
+  delivery: { "fa-AF": "تحویل و سفارش", "ps-AF": "سپارل او فرمایش" },
+  deliveryBody: { "fa-AF": "شرایط ارسال و پرداخت را بخوانید", "ps-AF": "د سپارلو او تادیې شرایط ولولئ" },
+  orders: { "fa-AF": "سفارش‌های من", "ps-AF": "زما فرمایشونه" },
+  ordersBody: { "fa-AF": "وضعیت سفارش‌ها در حساب شما", "ps-AF": "ستاسو په حساب کې د فرمایشونو حالت" },
+  nonRx: { "fa-AF": "محصولات بدون نسخه", "ps-AF": "بې نسخې توکي" },
+  chooseProduct: { "fa-AF": "مشاهده و انتخاب محصول", "ps-AF": "توکي وګورئ او غوره یې کړئ" },
+  pharmacyCategories: { "fa-AF": "دسته‌های داروخانه", "ps-AF": "د درملتون کټګورۍ" },
+  browsePharmacy: { "fa-AF": "در داروخانه جستجو کنید", "ps-AF": "په درملتون کې ولټوئ" },
+  dailyCare: { "fa-AF": "مراقبت برای هر روز", "ps-AF": "د هرې ورځې پاملرنه" },
+  findByCategory: { "fa-AF": "محصولات داروخانه را بر اساس دسته‌بندی پیدا کنید", "ps-AF": "د درملتون توکي د کټګورۍ له مخې ومومئ" },
+  privatePrescription: { "fa-AF": "نسخه شما، با بررسی محرمانه", "ps-AF": "ستاسو نسخه، محرمه کتنه" },
+  sendClearPhoto: { "fa-AF": "عکس واضح یا PDF را برای تیم داروخانه بفرستید", "ps-AF": "روښانه انځور یا PDF د درملتون ډلې ته واستوئ" },
+  moreProducts: { "fa-AF": "بیشتر از داروخانه", "ps-AF": "د درملتون نور توکي" },
+  continuedProducts: { "fa-AF": "ادامه محصولات درملتون", "ps-AF": "د درملتون نور توکي وګورئ" },
+  supplementRange: { "fa-AF": "مجموعه مکمل‌های درملتون", "ps-AF": "د درملتون بشپړوونکي" },
+  findProduct: { "fa-AF": "محصول مورد نظر را پیدا کنید", "ps-AF": "خپل مطلوب توکی ومومئ" },
+  services: { "fa-AF": "خدمات درملتون", "ps-AF": "د درملتون خدمتونه" },
+  rxPharmacy: { "fa-AF": "نسخه و داروخانه", "ps-AF": "نسخه او درملتون" },
+  myPrescriptions: { "fa-AF": "نسخه‌های من", "ps-AF": "زما نسخې" },
+  rxHelp: { "fa-AF": "راهنمای نسخه", "ps-AF": "د نسخې لارښود" },
+  shoppingOrders: { "fa-AF": "خرید و سفارش", "ps-AF": "پېرود او فرمایش" },
+  searchProducts: { "fa-AF": "جستجوی محصولات", "ps-AF": "د توکو لټون" },
+  cart: { "fa-AF": "سبد خرید", "ps-AF": "ستاسو ټوکرۍ" },
+  yourAccount: { "fa-AF": "حساب شما", "ps-AF": "ستاسو حساب" },
+  signIn: { "fa-AF": "ورود به حساب", "ps-AF": "حساب ته ننوتل" },
+  myAddresses: { "fa-AF": "آدرس‌های من", "ps-AF": "زما پتې" },
+  answers: { "fa-AF": "پاسخ به پرسش‌ها", "ps-AF": "د پوښتنو ځوابونه" },
+  faq: { "fa-AF": "پرسش‌های متداول", "ps-AF": "ډېرې پوښتل شوې پوښتنې" },
+  contactUs: { "fa-AF": "تماس با ما", "ps-AF": "له موږ سره اړیکه" },
+  healthArticles: { "fa-AF": "مطالب صحی", "ps-AF": "روغتیایي لیکنې" },
+  mobileApp: { "fa-AF": "درملتون در موبایل شما", "ps-AF": "درملتون ستاسو په موبایل کې" },
+  appBody: { "fa-AF": "محصولات، نسخه‌ها و سفارش‌ها در یک‌جا", "ps-AF": "توکي، نسخې او فرمایشونه په یوه ځای کې" },
+  getAndroid: { "fa-AF": "دریافت اپ اندروید", "ps-AF": "د اندروید اپ ترلاسه کړئ" },
+} as const;
+
+export type MarketplaceTextKey = keyof typeof marketplaceCopy;
+export function marketplaceText(locale: MarketplaceLocale, key: MarketplaceTextKey): string {
+  return marketplaceCopy[key][locale];
+}

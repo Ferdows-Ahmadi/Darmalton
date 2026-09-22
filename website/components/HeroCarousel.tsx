@@ -61,7 +61,7 @@ export function HeroCarousel({ slides, imageSizes = "100vw" }: { slides: PublicB
   return (
     <section
       className={`hero-carousel hero-align-${current?.text_alignment?.toLowerCase() || "start"} hero-overlay-${current?.overlay_style?.toLowerCase() || "light"}`}
-      aria-roledescription={locale === "fa-AF" ? "نمایش اسلاید" : "carousel"}
+      aria-roledescription={locale === "fa-AF" ? "نمایش اسلاید" : locale === "ps-AF" ? "د سلایډونو ننداره" : "carousel"}
       aria-label={t("heroKicker")}
       tabIndex={0}
       onMouseEnter={() => setPaused(true)}
@@ -137,7 +137,7 @@ export function HeroCarousel({ slides, imageSizes = "100vw" }: { slides: PublicB
               <button
                 type="button"
                 key={slide.id}
-                aria-label={locale === "fa-AF" ? `${formatNumber(index + 1, locale)} / ${formatNumber(slides.length, locale)}` : `${index + 1} / ${slides.length}`}
+                aria-label={locale !== "en" ? `${formatNumber(index + 1, locale)} / ${formatNumber(slides.length, locale)}` : `${index + 1} / ${slides.length}`}
                 aria-current={index === activeIndex ? "true" : undefined}
                 onClick={() => go(index)}
               />

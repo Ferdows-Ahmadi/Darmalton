@@ -1,3 +1,5 @@
+import { marketplaceText, type MarketplaceLocale, type MarketplaceTextKey } from "@/lib/marketplace-copy";
+import { cmsText } from "@/lib/cms-locale";
 import Image from "next/image";
 import Link from "next/link";
 import { HeroCarousel } from "@/components/HeroCarousel";
@@ -11,31 +13,28 @@ import type { Category, Manufacturer, Medicine } from "@/lib/types";
 import styles from "./MarketplaceHome.module.css";
 
 type Campaign = { title: string; detail: string; href: string; image: string; tone?: string };
-const campaigns: Campaign[] = [
-  { title: "نسخه‌تان را بفرستید", detail: "بررسی محرمانه توسط تیم داروخانه", href: "/prescriptions/upload", image: "/campaigns/WEB-022_Prescription-Support_Campaign-Banner.webp", tone: "blue" },
-  { title: "ویتامین‌ها و مکمل‌ها", detail: "مجموعه فعلی درملتون", href: "/shop?shopper_category=vitamins-supplements", image: "/campaigns/WEB-021_Daily-Wellness_Campaign-Banner.webp", tone: "cream" },
-  { title: "داروخانه، همیشه همراه", detail: "محصولات را در اندروید ببینید", href: "/app", image: "/app/APP-01_Hero_Dual_Phones.png", tone: "navy" },
-  { title: "سفارش از داروخانه", detail: "داروها و محصولات صحی", href: "/shop", image: "/campaigns/WEB-023_Pharmacy-Essentials_Campaign-Banner.webp", tone: "rose" }
-];
 
-function CampaignTile({ campaign }: { campaign: Campaign }) {
+
+function CampaignTile({ campaign, locale }: { campaign: Campaign; locale: MarketplaceLocale }) {
+  const t = (key: MarketplaceTextKey) => marketplaceText(locale, key);
   return <Link href={campaign.href} className={`${styles.campaign} ${styles[campaign.tone || "cream"]}`}>
     <Image src={campaign.image} alt="" fill sizes="44vw" />
-    <span><strong>{campaign.title}</strong><small>{campaign.detail}</small><b aria-hidden="true">مشاهده ←</b></span>
+    <span><strong>{campaign.title}</strong><small>{campaign.detail}</small><b aria-hidden="true">{t("view")} ←</b></span>
   </Link>;
 }
 
-function Rail({ title, families, tone = "plain", href = "/shop", subtitle }: {
+function Rail({ title, families, tone = "plain", href = "/shop", subtitle, locale }: {
   title: string; families: MedicineFamily[]; tone?: "rose" | "cream" | "green" | "plain";
-  href?: string; subtitle?: string;
+  href?: string; subtitle?: string; locale: MarketplaceLocale;
 }) {
+  const t = (key: MarketplaceTextKey) => marketplaceText(locale, key);
   if (!families.length) return null;
   const band = tone === "rose" || tone === "green";
   return <section aria-label={title} className={`${styles.rail} ${styles[tone]} ${band ? styles.band : ""} ${families.length > 8 ? styles.nine : ""} ${families.length < 4 ? styles.sparse : ""}`}>
     <header className={styles.railHeading}>
       {band && <span className={styles.railSymbol} aria-hidden="true">✚</span>}
       <h2>{title}</h2>{subtitle && <p>{subtitle}</p>}
-      <Link href={href}>مشاهده همه <span aria-hidden="true">←</span></Link>
+      <Link href={href}>{t("viewAll")} <span aria-hidden="true">←</span></Link>
     </header>
     <div className={styles.track}>
       {families.map(family => <MedicineCard key={family.code} medicine={family.medicine}
@@ -44,10 +43,17 @@ function Rail({ title, families, tone = "plain", href = "/shop", subtitle }: {
   </section>;
 }
 
-export function MarketplaceHome({ cms, medicines, categories, manufacturers }: {
+export function MarketplaceHome({ cms, medicines, categories, manufacturers, locale }: {
   cms: Awaited<ReturnType<typeof publicHomeCms>>; medicines: Medicine[];
-  categories: Category[]; manufacturers: Manufacturer[];
+  categories: Category[]; manufacturers: Manufacturer[]; locale: MarketplaceLocale;
 }) {
+  const t = (key: MarketplaceTextKey) => marketplaceText(locale, key);
+  const campaigns: Campaign[] = [
+  { title: t("sendPrescription"), detail: t("privateReview"), href: "/prescriptions/upload", image: "/campaigns/WEB-022_Prescription-Support_Campaign-Banner.webp", tone: "blue" },
+  { title: t("vitamins"), detail: t("currentRange"), href: "/shop?shopper_category=vitamins-supplements", image: "/campaigns/WEB-021_Daily-Wellness_Campaign-Banner.webp", tone: "cream" },
+  { title: t("pharmacyWithYou"), detail: t("browseAndroid"), href: "/app", image: "/app/APP-01_Hero_Dual_Phones.png", tone: "navy" },
+  { title: t("orderPharmacy"), detail: t("products"), href: "/shop", image: "/campaigns/WEB-023_Pharmacy-Essentials_Campaign-Banner.webp", tone: "rose" }
+];
   const families = groupMedicineFamilies(medicines);
   const used = new Set<string>();
   const take = (source: MedicineFamily[], count: number) => {
@@ -65,23 +71,23 @@ export function MarketplaceHome({ cms, medicines, categories, manufacturers }: {
   const additional = take(families, families.length);
   const remainingRails = Array.from({ length: Math.ceil(additional.length / 9) }, (_, i) => additional.slice(i * 9, i * 9 + 9));
   const activeCategories = shopperCategories.filter(category => families.some(family => family.medicine.shopper_category === category.slug));
-  const needs = shopperHealthNeeds(categories, "fa-AF");
+  const needs = shopperHealthNeeds(categories, locale);
   const brands = manufacturers.filter(manufacturer => manufacturer.product_count > 0);
   const shortcuts = [
-    ...activeCategories.map(category => ({ title: shopperCategoryLabel(category, "fa-AF"), href: `/shop?shopper_category=${category.slug}`, image: category.image })),
-    { title: "ارسال نسخه", href: "/prescriptions/upload", image: "/icons/ICON-005_Prescription-Upload.webp" },
-    { title: "تولیدکنندگان", href: "/manufacturers", image: "/icons/ICON-006_Licensed-Pharmacy.webp" },
-    { title: "پیگیری سفارش", href: "/orders", image: "/icons/ICON-002_Account.webp" },
-    { title: "راهنمای خرید", href: "/help", image: "/icons/ICON-010_Customer-Support.webp" },
-    { title: "اپلیکیشن درملتون", href: "/app", image: "/brand/android-icon.png" },
-    { title: "همه دسته‌ها", href: "/categories", image: "/icons/ICON-001_Search.webp" }
+    ...activeCategories.map(category => ({ title: shopperCategoryLabel(category, locale), href: `/shop?shopper_category=${category.slug}`, image: category.image })),
+    { title: t("rx"), href: "/prescriptions/upload", image: "/icons/ICON-005_Prescription-Upload.webp" },
+    { title: t("manufacturers"), href: "/manufacturers", image: "/icons/ICON-006_Licensed-Pharmacy.webp" },
+    { title: t("trackOrder"), href: "/orders", image: "/icons/ICON-002_Account.webp" },
+    { title: t("shoppingHelp"), href: "/help", image: "/icons/ICON-010_Customer-Support.webp" },
+    { title: t("app"), href: "/app", image: "/brand/android-icon.png" },
+    { title: t("allCategories"), href: "/categories", image: "/icons/ICON-001_Search.webp" }
   ];
 
   return <div className={styles.home}>
-    <PublicAnnouncements announcements={cms.announcements} />
+    <PublicAnnouncements locale={locale} announcements={cms.announcements} />
     <div className={`${styles.hero} ${cms.heroes.length ? "" : styles.fallbackHero}`}><HeroCarousel slides={cms.heroes} imageSizes={cms.heroes.length ? "100vw" : "78vw"} /></div>
     <div className={styles.content}>
-      <nav className={styles.shortcuts} aria-label="دسترسی سریع">
+      <nav className={styles.shortcuts} aria-label={t("shortcuts")}>
         {shortcuts.map((item, i) => <Link href={item.href} key={item.href}>
           <span className={styles.shortcutIcon} data-tone={i % 4}><Image src={item.image} alt="" width={48} height={48} /></span>
           <strong>{item.title}</strong>
@@ -89,57 +95,57 @@ export function MarketplaceHome({ cms, medicines, categories, manufacturers }: {
       </nav>
 
       {families.length ? <>
-        <Rail title="داروها و محصولات صحی" subtitle="از مجموعه درملتون" families={featured} tone="rose" />
-        <div className={styles.fourBanners}>{campaigns.map(campaign => <CampaignTile key={campaign.href} campaign={campaign} />)}</div>
-        <Rail title="ویتامین‌ها و مکمل‌ها" href="/shop?shopper_category=vitamins-supplements" families={supplements} tone="cream" />
+        <Rail locale={locale} title={t("products")} subtitle={t("fromRange")} families={featured} tone="rose" />
+        <div className={styles.fourBanners}>{campaigns.map(campaign => <CampaignTile locale={locale} key={campaign.href} campaign={campaign} />)}</div>
+        <Rail locale={locale} title={t("vitamins")} href="/shop?shopper_category=vitamins-supplements" families={supplements} tone="cream" />
         <div className={styles.serviceBanners}>
-          <Link href="/prescription-help"><Image src="/icons/ICON-005_Prescription-Upload.webp" alt="" width={65} height={65} /><span><strong>نسخه دارید؟</strong><small>راهنمای ارسال عکس یا PDF نسخه</small></span><b aria-hidden="true">←</b></Link>
-          <Link href="/delivery-policy"><Image src="/icons/ICON-009_Secure-Checkout.webp" alt="" width={65} height={65} /><span><strong>تحویل و سفارش</strong><small>شرایط ارسال و پرداخت را بخوانید</small></span><b aria-hidden="true">←</b></Link>
-          <Link href="/account/orders"><Image src="/icons/ICON-002_Account.webp" alt="" width={65} height={65} /><span><strong>سفارش‌های من</strong><small>وضعیت سفارش‌ها در حساب شما</small></span><b aria-hidden="true">←</b></Link>
+          <Link href="/prescription-help"><Image src="/icons/ICON-005_Prescription-Upload.webp" alt="" width={65} height={65} /><span><strong>{t("haveRx")}</strong><small>{t("rxGuideBody")}</small></span><b aria-hidden="true">←</b></Link>
+          <Link href="/delivery-policy"><Image src="/icons/ICON-009_Secure-Checkout.webp" alt="" width={65} height={65} /><span><strong>{t("delivery")}</strong><small>{t("deliveryBody")}</small></span><b aria-hidden="true">←</b></Link>
+          <Link href="/account/orders"><Image src="/icons/ICON-002_Account.webp" alt="" width={65} height={65} /><span><strong>{t("orders")}</strong><small>{t("ordersBody")}</small></span><b aria-hidden="true">←</b></Link>
         </div>
-        <Rail title="محصولات بدون نسخه" subtitle="مشاهده و انتخاب محصول" families={nonRx} tone="green" />
+        <Rail locale={locale} title={t("nonRx")} subtitle={t("chooseProduct")} families={nonRx} tone="green" />
       </> : <State kind="error" title="unavailable" body="connection" />}
 
-      {needs.length > 0 && <section className={styles.discovery} aria-label="دسته‌های داروخانه">
-        <div className={styles.smallHeading}><h2>در داروخانه جستجو کنید</h2><Link href="/categories">همه دسته‌ها ←</Link></div>
+      {needs.length > 0 && <section className={styles.discovery} aria-label={t("pharmacyCategories")}>
+        <div className={styles.smallHeading}><h2>{t("browsePharmacy")}</h2><Link href="/categories">{t("allCategories")} ←</Link></div>
         <div>{needs.map(need => <Link href={need.href} key={need.key}><span><Image src={need.image} alt="" fill sizes="76px" /></span><strong>{need.label}</strong></Link>)}</div>
       </section>}
 
       <div className={styles.twoBanners}>
-        <CampaignTile campaign={{ title: "مراقبت برای هر روز", detail: "محصولات داروخانه را بر اساس دسته‌بندی پیدا کنید", href: "/categories", image: "/campaigns/WEB-024_Home-and-Family_Campaign-Banner.webp", tone: "cream" }} />
-        <CampaignTile campaign={{ ...campaigns[0], title: "نسخه شما، با بررسی محرمانه", detail: "عکس واضح یا PDF را برای تیم داروخانه بفرستید" }} />
+        <CampaignTile locale={locale} campaign={{ title: t("dailyCare"), detail: t("findByCategory"), href: "/categories", image: "/campaigns/WEB-024_Home-and-Family_Campaign-Banner.webp", tone: "cream" }} />
+        <CampaignTile locale={locale} campaign={{ ...campaigns[0], title: t("privatePrescription"), detail: t("sendClearPhoto") }} />
       </div>
 
       {remainingRails.map((rail, index) => <div className={styles.merchandiseGroup} key={rail[0].code}>
-        <Rail title={index === 0 ? "بیشتر از داروخانه" : "ادامه محصولات درملتون"} families={rail} />
-        {index === 0 && brands.length > 0 && <section className={styles.brands} aria-label="تولیدکنندگان">
-          <div className={styles.smallHeading}><h2>تولیدکنندگان</h2><Link href="/manufacturers">مشاهده همه ←</Link></div>
+        <Rail locale={locale} title={index === 0 ? t("moreProducts") : t("continuedProducts")} families={rail} />
+        {index === 0 && brands.length > 0 && <section className={styles.brands} aria-label={t("manufacturers")}>
+          <div className={styles.smallHeading}><h2>{t("manufacturers")}</h2><Link href="/manufacturers">{t("viewAll")} ←</Link></div>
           <div>{brands.slice(0, 8).map(brand => <Link href={`/manufacturers/${encodeURIComponent(brand.name)}`} key={brand.id}>
-            {brand.logo_url ? <Image src={brand.logo_url} alt="" width={75} height={35} /> : <bdi>{manufacturerName(brand, "fa-AF")}</bdi>}
+            {brand.logo_url ? <Image src={brand.logo_url} alt="" width={75} height={35} /> : <bdi>{manufacturerName(brand, locale)}</bdi>}
           </Link>)}</div>
         </section>}
         {index === 1 && <div className={styles.twoBanners}>
-          <CampaignTile campaign={{ ...campaigns[1], title: "مجموعه مکمل‌های درملتون" }} />
-          <CampaignTile campaign={{ ...campaigns[3], title: "محصول مورد نظر را پیدا کنید" }} />
+          <CampaignTile locale={locale} campaign={{ ...campaigns[1], title: t("supplementRange") }} />
+          <CampaignTile locale={locale} campaign={{ ...campaigns[3], title: t("findProduct") }} />
         </div>}
       </div>)}
 
-      <section className={styles.helpGrid} aria-label="خدمات درملتون">
+      <section className={styles.helpGrid} aria-label={t("services")}>
         {[
-          { title: "نسخه و داروخانه", links: [["ارسال نسخه", "/prescriptions/upload"], ["نسخه‌های من", "/account/prescriptions"], ["راهنمای نسخه", "/prescription-help"]] },
-          { title: "خرید و سفارش", links: [["جستجوی محصولات", "/shop"], ["سبد خرید", "/cart"], ["تحویل و سفارش", "/delivery-policy"]] },
-          { title: "حساب شما", links: [["ورود به حساب", "/login"], ["سفارش‌های من", "/account/orders"], ["آدرس‌های من", "/account/addresses"]] },
-          { title: "پاسخ به پرسش‌ها", links: [["راهنمای خرید", "/help"], ["پرسش‌های متداول", "/faq"], ["تماس با ما", "/contact"]] }
+          { title: t("rxPharmacy"), links: [[t("rx"), "/prescriptions/upload"], [t("myPrescriptions"), "/account/prescriptions"], [t("rxHelp"), "/prescription-help"]] },
+          { title: t("shoppingOrders"), links: [[t("searchProducts"), "/shop"], [t("cart"), "/cart"], [t("delivery"), "/delivery-policy"]] },
+          { title: t("yourAccount"), links: [[t("signIn"), "/login"], [t("orders"), "/account/orders"], [t("myAddresses"), "/account/addresses"]] },
+          { title: t("answers"), links: [[t("shoppingHelp"), "/help"], [t("faq"), "/faq"], [t("contactUs"), "/contact"]] }
         ].map(group => <div key={group.title}><h2>{group.title}</h2>{group.links.map(([label, href]) => <Link href={href} key={href}>{label}<span aria-hidden="true">←</span></Link>)}</div>)}
       </section>
 
-      {cms.articles.length > 0 && <section className={styles.articles} aria-label="مطالب صحی">
-        {cms.articles.map(article => <Link href={`/health/${article.slug}`} key={article.id}>{article.title_dari || article.title}<span aria-hidden="true">←</span></Link>)}
+      {cms.articles.length > 0 && <section className={styles.articles} aria-label={t("healthArticles")}>
+        {cms.articles.map(article => <Link href={`/health/${article.slug}`} key={article.id}>{cmsText(article.title, article.title_dari, locale)}<span aria-hidden="true">←</span></Link>)}
       </section>}
 
       <Link href="/app" className={styles.appBar}>
         <Image src="/brand/android-icon.png" alt="" width={44} height={44} />
-        <strong>درملتون در موبایل شما</strong><span>محصولات، نسخه‌ها و سفارش‌ها در یک‌جا</span><b>دریافت اپ اندروید ←</b>
+        <strong>{t("mobileApp")}</strong><span>{t("appBody")}</span><b>{t("getAndroid")} ←</b>
       </Link>
     </div>
   </div>;
