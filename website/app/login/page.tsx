@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { AuthForm } from "@/components/AuthForm";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await serverLocale()) === "ps-AF" ? "ننوتل" : "ورود" };
+  const locale = await serverLocale();
+  return { title: locale === "en" ? "Sign in" : locale === "ps-AF" ? "ننوتل" : "ورود" };
 }
 export const dynamic = "force-dynamic";
 

@@ -8,7 +8,7 @@ import { AccountShell } from "@/components/AccountShell";
 
 export default function PrescriptionSuccessPage() {
   const { id } = useParams<{ id: string }>();
-  const { t, locale } = useLocale();
+  const { t } = useLocale();
   const content = (
       <div className="state success-state">
         <span className="state-symbol" aria-hidden="true">✓</span>
@@ -19,5 +19,5 @@ export default function PrescriptionSuccessPage() {
         </Link>
       </div>
   );
-  return <section className="page-section narrow">{locale !== "en" ? <AccountShell>{content}</AccountShell> : content}</section>;
+  return <section className="page-section narrow">{<AccountShell>{content}</AccountShell>}</section>;
 }

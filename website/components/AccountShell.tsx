@@ -20,20 +20,18 @@ const accountLinks: [string, TextKey][] = [
 export function AccountShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { t, locale } = useLocale();
-  const activePath = locale !== "en"
-    ? pathname.replace(/^\/(orders|notifications|prescriptions)(?=\/|$)/, "/account/$1")
-    : pathname;
+  const activePath = pathname.replace(/^\/(orders|notifications|prescriptions)(?=\/|$)/, "/account/$1");
   return (
-    <div className={`account-layout${locale !== "en" ? ` ${styles.shell}` : ""}`}
+    <div className={`account-layout ${styles.shell}`}
       onInvalidCapture={(event) => {
         const field = event.target;
-        if (locale !== "en" && (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) {
+        if ((field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) {
           field.setCustomValidity(accountValidation(field.validity, locale));
         }
       }}
       onInputCapture={(event) => {
         const field = event.target;
-        if (locale !== "en" && (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) field.setCustomValidity("");
+        if ((field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) field.setCustomValidity("");
       }}
     >
       <nav className="account-nav" aria-label={t("account")}>

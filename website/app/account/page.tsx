@@ -35,7 +35,7 @@ export default function AccountPage() {
       .catch((err) => {
         if (err instanceof ApiError && err.status === 401) {
           router.push(loginPath("/account"));
-        } else if (locale !== "en") {
+        } else {
           setError(accountError(err, locale, t("connection")));
         }
       });
@@ -76,15 +76,15 @@ export default function AccountPage() {
           <div className="profile-menu">
             <Link href="/account/orders">
               <span>{t("orders")}</span>
-              <b aria-hidden="true">‹</b>
+              <b aria-hidden="true">{locale === "en" ? "›" : "‹"}</b>
             </Link>
             <Link href="/cart">
               <span>{t("cart")}</span>
-              <b aria-hidden="true">‹</b>
+              <b aria-hidden="true">{locale === "en" ? "›" : "‹"}</b>
             </Link>
             <Link href="/account/prescriptions">
               <span>{t("rxList")}</span>
-              <b aria-hidden="true">‹</b>
+              <b aria-hidden="true">{locale === "en" ? "›" : "‹"}</b>
             </Link>
           </div>
         </>

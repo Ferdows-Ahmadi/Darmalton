@@ -9,7 +9,7 @@ export default async function CategoriesPage() {
   const locale = await serverLocale();
   const categories = await publicApi<Category[]>("categories/").catch(() => []);
   return (
-    <div className={locale !== "en" ? styles.categories : undefined}>
+    <div className={styles.categories}>
     <CategoryDirectory
       categories={categories}
       locale={locale}

@@ -38,7 +38,7 @@ export function AddressBook() {
   }, [load]);
 
   async function remove(id: string) {
-    if (!window.confirm(locale !== "en" ? customerText(locale, "این آدرس حذف شود؟") : t("removeConfirm"))) return;
+    if (!window.confirm(customerText(locale, "این آدرس حذف شود؟"))) return;
     try {
       await apiFetch(`addresses/${id}/`, { method: "DELETE" });
       await load();

@@ -5,7 +5,8 @@ import { serverLocale } from "@/lib/server-locale";
 import { staticPages } from "@/lib/static-pages";
 
 export async function generateMetadata() {
-  return { title: (await serverLocale()) === "ps-AF" ? "له درملتون سره اړیکه" : "تماس با درملتون" };
+  const locale = await serverLocale();
+  return { title: locale === "en" ? "Contact Darmalton" : locale === "ps-AF" ? "له درملتون سره اړیکه" : "تماس با درملتون" };
 }
 
 export default async function ContactPage() {

@@ -57,8 +57,12 @@ test("Pashto reuses marketplace structure, destinations, assets and source medic
   const before = JSON.stringify(data);
   const fa = nodes(MarketplaceHome({ ...data, locale: "fa-AF" }));
   const ps = nodes(MarketplaceHome({ ...data, locale: "ps-AF" }));
+  const en = nodes(MarketplaceHome({ ...data, locale: "en" }));
   const geometry = tree => tree.map(({ type, props }) => ({ type, href: props.href, src: props.src, width: props.width, height: props.height, medicine: props.medicine, presentation: props.presentation }));
   assert.deepEqual(geometry(ps), geometry(fa));
+  assert.deepEqual(geometry(en), geometry(fa));
+  assert.equal(en.find(n => n.type === "nav").props["aria-label"], "Quick links");
+  assert.match(content(MarketplaceHome({ ...data, locale: "en" })), /Get the Android app\s*→/);
   assert.equal(JSON.stringify(data), before);
   const faHeadings = fa.filter(n => n.type === "h2").map(content);
   const psHeadings = ps.filter(n => n.type === "h2").map(content);

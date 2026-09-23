@@ -12,15 +12,16 @@ import "./polish.css";
 const estedad = localFont({src:"./fonts/Estedad.ttf", variable:"--font-estedad", display:"swap"});
 
 export async function generateMetadata(): Promise<Metadata> {
-  const pashto = (await serverLocale()) === "ps-AF";
+  const locale = await serverLocale();
+  const pashto = locale === "ps-AF";
   return {
   applicationName: "Darmalton",
   title: {
-    default: pashto ? "درملتون | آنلاین درملتون" : "درملتون | داروخانه آنلاین",
-    template: "%s | درملتون"
+    default: locale === "en" ? "Darmalton | Online pharmacy" : pashto ? "درملتون | آنلاین درملتون" : "درملتون | داروخانه آنلاین",
+    template: locale === "en" ? "%s | Darmalton" : "%s | درملتون"
   },
   description:
-    pashto ? "په درملتون کې درمل او روغتیایي توکي ولټوئ، نسخه په محرم ډول واستوئ او خپل فرمایشونه وڅارئ." : "جستجوی دارو و محصولات صحی، ارسال محرمانه نسخه و پیگیری سفارش در درملتون.",
+    locale === "en" ? "Find medicines and health essentials, send prescriptions privately and follow orders with Darmalton." : pashto ? "په درملتون کې درمل او روغتیایي توکي ولټوئ، نسخه په محرم ډول واستوئ او خپل فرمایشونه وڅارئ." : "جستجوی دارو و محصولات صحی، ارسال محرمانه نسخه و پیگیری سفارش در درملتون.",
   icons: {
     icon: "/brand/android-icon.png",
     apple: "/brand/android-icon.png"

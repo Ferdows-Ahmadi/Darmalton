@@ -219,3 +219,12 @@
   .campaign strong { font-size: 10px; }
   .shortcuts strong { font-size: 8px; }
 }
+
+/* Mirror only the directional hero composition, never the source image pixels. */
+:global([dir=ltr]) .hero :global(.hero-carousel-shade) { background: linear-gradient(90deg,#f1f5eef5 0%,#f1f5eec9 28%,transparent 56%); }
+:global([dir=ltr]) .fallbackHero :global(.hero-carousel-media img) { left: auto !important; right: 0 !important; mask-image: linear-gradient(270deg,#000 54%,transparent 100%); }
+:global([dir=ltr]) .fallbackHero :global(.hero-carousel-shade) { background: linear-gradient(90deg,#173f3c 3%,#173f3cdb 29%,#173f3c40 54%,transparent 74%); }
+@media (max-width:767px) {
+  :global([dir=ltr]) .fallbackHero :global(.hero-carousel-media img) { left: auto !important; right: -22% !important; object-position: 37% 25%; mask-image: linear-gradient(270deg,#000 40%,transparent 100%); }
+  :global([dir=ltr]) .fallbackHero :global(.hero-carousel-shade) { background: linear-gradient(90deg,#173f3c 2%,#173f3cee 35%,#173f3c40 65%,transparent 85%); }
+}

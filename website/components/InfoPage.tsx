@@ -19,9 +19,9 @@ export function InfoPage({
   utility?: boolean;
   className?: string;
 }) {
-  const { locale, t } = useLocale();
+  const { t } = useLocale();
   return (
-    <section className={`info-page${utility && locale !== "en" ? ` ${styles.document}` : ""}${className ? ` ${className}` : ""}`}>
+    <section className={`info-page${utility ? ` ${styles.document}` : ""}${className ? ` ${className}` : ""}`}>
       <div className="info-page-heading">
         <p className="eyebrow">{eyebrow}</p>
         <h1>{title}</h1>

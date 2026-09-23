@@ -7,7 +7,8 @@ import type { PublicContentPage } from "@/lib/types";
 import styles from "@/components/HealthContent.module.css";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await serverLocale()) === "ps-AF" ? "روغتیایي لیکنې" : "مقاله‌های سلامت" };
+  const locale = await serverLocale();
+  return { title: locale === "en" ? "Health articles" : locale === "ps-AF" ? "روغتیایي لیکنې" : "مقاله‌های سلامت" };
 }
 
 export default async function HealthArticlesPage() {
@@ -21,7 +22,7 @@ export default async function HealthArticlesPage() {
     "cms/health-articles/?ordering=display_order"
   );
   return (
-    <section className={`page-section public-content-index${locale !== "en" ? ` ${styles.index}` : ""}`}>
+    <section className={`page-section public-content-index ${styles.index}`}>
       <header className="public-content-heading">
         <p className="eyebrow">{copy.kicker}</p>
         <h1>{copy.title}</h1>

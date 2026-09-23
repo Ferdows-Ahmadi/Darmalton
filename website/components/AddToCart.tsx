@@ -12,8 +12,7 @@ import type { CartItem, Medicine } from "@/lib/types";
 export function AddToCart({
   medicine,
   disabled,
-  prescriptionRequired = false,
-  localizedFeedback = false
+  prescriptionRequired = false
 }: {
   medicine: Medicine;
   disabled: boolean;
@@ -44,9 +43,7 @@ export function AddToCart({
         router.push("/cart");
       } else {
         setMessage(
-          locale !== "en" || localizedFeedback ? checkoutError(error, locale, t("connection")) : error instanceof Error
-            ? error.message
-            : t("connection")
+          checkoutError(error, locale, t("connection"))
         );
       }
     } finally {

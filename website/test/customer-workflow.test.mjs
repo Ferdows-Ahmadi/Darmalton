@@ -18,7 +18,7 @@ const authState = readFileSync(new URL("../components/AuthStateProvider.tsx", im
 const cart = readFileSync(new URL("../app/cart/page.tsx", import.meta.url), "utf8");
 const medicineCard = readFileSync(new URL("../components/MedicineCard.tsx", import.meta.url), "utf8");
 const medicineDetail = readFileSync(
-  new URL("../app/medicines/[id]/page.tsx", import.meta.url),
+  new URL("../components/ProductDetail.tsx", import.meta.url),
   "utf8"
 );
 const header = readFileSync(new URL("../components/Header.tsx", import.meta.url), "utf8");

@@ -7,7 +7,7 @@ import type { Medicine } from "@/lib/types";
 import { MedicineMedia } from "./MedicineMedia";
 import { AddToCart } from "./AddToCart";
 import compact from "./home/MarketplaceCard.module.css";
-export function MedicineCard({medicine,variants=[medicine],presentation}:{medicine:Medicine;variants?:Medicine[];presentation?:"marketplace"}) {
+export function MedicineCard({medicine,variants=[medicine],presentation,priority=false}:{medicine:Medicine;variants?:Medicine[];presentation?:"marketplace";priority?:boolean}) {
   const {locale,t}=useLocale();
   const name=productName(medicine,locale);
   const generic=localizedGenericName(medicine,locale);
@@ -16,7 +16,7 @@ export function MedicineCard({medicine,variants=[medicine],presentation}:{medici
   const inStock=variants.some((variant)=>variant.in_stock);
   const requiresRx=variants.some((variant)=>variant.prescription_required);
   if(presentation==="marketplace") return <article className={compact.card} data-family={medicine.family_code || medicine.sku}>
-    <Link className={compact.photo} href={`/medicines/${medicine.id}`}><MedicineMedia imageUrl={medicine.image_url} alt={`${name} ${medicine.strength}`} fill sizes="150px" /></Link>
+    <Link className={compact.photo} href={`/medicines/${medicine.id}`}><MedicineMedia imageUrl={medicine.image_url} alt={`${name} ${medicine.strength}`} fill priority={priority} sizes="150px" /></Link>
     <h3><Link href={`/medicines/${medicine.id}`}>{name}</Link></h3>
     <strong className={compact.price}>{price}</strong>
     <div className={compact.action}>{variants.length>1?<Link href={`/medicines/${medicine.id}`}>{t("chooseStrength")}</Link>:<AddToCart localizedFeedback medicine={medicine} disabled={!inStock} prescriptionRequired={medicine.prescription_required}/>}</div>

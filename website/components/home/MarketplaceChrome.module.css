@@ -1,5 +1,5 @@
-/* Shared approved RTL customer chrome. Staff/internal routes and English retain
-   their existing presentation. Page-body selectors do not belong here. */
+/* Shared approved customer chrome. Staff/internal routes retain their existing
+   presentation. Page-body selectors do not belong here. */
 
 /* Content-following footer policy: preserve the viewport-height shell, but put
    spare short-page space AFTER the footer, not between content and footer.
@@ -101,3 +101,10 @@
   .chrome :global(.mobile-bottom a) { min-height: 50px; font-size: 9px; color: #50665e; }
   .chrome :global(.mobile-bottom a[aria-current=page]) { color: #087b64; background: #edf7f2; border-radius: 6px; }
 }
+
+/* English uses the same geometry with the search action at inline-end. */
+:global([dir=ltr]) .chrome :global(h1),
+:global([dir=ltr]) .chrome :global(h2),
+:global([dir=ltr]) .chrome :global(h3) { font-family: inherit; }
+:global([dir=ltr]) .chrome :global(.header-search input) { border-radius: 5px 0 0 5px; }
+:global([dir=ltr]) .chrome :global(.header-search button) { border-radius: 0 5px 5px 0; }

@@ -99,3 +99,5 @@
   .shell :global(.order-card) { flex-wrap: wrap; }
   .shell :global(.order-card > div:last-child) { text-align: start; }
 }
+
+:global([dir=ltr]) .shell :global(.account-nav a[aria-current=page]) { box-shadow: inset 3px 0 #3f8264; }

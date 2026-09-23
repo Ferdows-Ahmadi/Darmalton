@@ -16,6 +16,7 @@
 .manufacturers :global(.manufacturer-card strong) { min-width: 0; font-size: 14px; line-height: 1.65; font-weight: 700; overflow-wrap: anywhere; }
 .manufacturers :global(.manufacturer-card small) { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; padding-top: 7px; border-top: 1px solid #edf1ee; color: #577469; font-size: 11px; line-height: 1.7; }
 .manufacturers :global(.manufacturer-card small)::after { content: "←"; color: #34745f; font-size: 16px; }
+:global([dir=ltr]) .manufacturers :global(.manufacturer-card small)::after { content: "→"; }
 .manufacturers :global(.manufacturer-card:hover), .manufacturers :global(.manufacturer-card:focus-visible) { transform: none; border-color: #64947f !important; background: #edf6f0; color: #174e40; }
 .manufacturers :global(.state) { border: 1px solid #e1e9e5; border-radius: 4px; box-shadow: none; background: #f5f8f6; padding: 24px 14px; }
 .manufacturers :global(.state h2) { font-size: 18px; }

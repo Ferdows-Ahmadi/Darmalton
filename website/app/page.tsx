@@ -1,4 +1,3 @@
-import { LegacyHome } from "@/components/LegacyHome";
 import { MarketplaceHome } from "@/components/home/MarketplaceHome";
 import { publicHomeCms } from "@/lib/public-cms";
 import { publicApi } from "@/lib/server-api";
@@ -21,8 +20,6 @@ async function publicMedicinePages() {
 export default async function Home() {
   const locale = await serverLocale();
   const [cms, pages] = await Promise.all([publicHomeCms(), publicMedicinePages()]);
-  const legacy = <LegacyHome locale={locale} cms={cms} pages={pages} />;
-  if (locale === "en") return legacy;
   const [categories, manufacturers] = await Promise.all([
     publicApi<Category[]>("categories/").catch(() => []),
     publicApi<Manufacturer[]>("manufacturers/").catch(() => [])

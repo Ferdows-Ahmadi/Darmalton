@@ -16,9 +16,26 @@ const messages: Record<string, readonly [string, string]> = {
 
 // Map request failures only. Never display arbitrary server text or translate data.
 export function checkoutError(error: unknown, locale: Locale, fallback: string) {
-  if (locale === "en") return fallback;
   const failure = error instanceof Error ? error as Error & { status?: number; fields?: Record<string, string | string[]> } : undefined;
   const status = failure?.status;
+  if (locale === "en") {
+    if (status === 401) return "Sign in again to continue.";
+    if (status === 403) return "You do not have permission to do this.";
+    if (status === 429) return "Too many requests. Try again shortly.";
+    if (status && status >= 500) return "The service is temporarily unavailable. Try again shortly.";
+    for (const message of [failure?.message || "", ...Object.values(failure?.fields || {}).flat()]) {
+      if (Object.hasOwn(messages, message)) return message;
+      if (/^Insufficient stock for .+\.$/.test(message)) return "There is not enough stock for an item. Review your cart quantities.";
+      if (/^.+ is no longer available\.$/.test(message)) return "An item is no longer available. Review your cart.";
+      if (/^.+ requires an approved prescription\.$/.test(message)) return "An approved prescription is required.";
+      if (/^Price is not available for .+\.$/.test(message)) return "An item price is unavailable. Review your cart.";
+      if (/^Only \d+ units are authorized by this prescription\.$/.test(message)) return "The quantity exceeds the amount approved on this prescription.";
+    }
+    if (failure?.fields?.recipient_phone) return "Check the recipient phone number and enter it in the correct format.";
+    if (failure?.fields?.address_id) return "Select a valid delivery address.";
+    if (status === 400 || status === 422) return "Please check and correct the information entered.";
+    return fallback;
+  }
   if (status === 401) return locale === "ps-AF" ? "د دوام لپاره بیا خپل حساب ته ننوځئ." : "برای ادامه دوباره وارد حساب خود شوید.";
   if (status === 403) return locale === "ps-AF" ? "د دې غوښتنې د ترسره کولو اجازه نه لرئ." : "اجازه انجام این درخواست را ندارید.";
   if (status === 429) return locale === "ps-AF" ? "ډېرې غوښتنې لېږل شوې دي. لږ وروسته بیا هڅه وکړئ." : "درخواست‌های زیادی فرستاده شده است. کمی بعد دوباره کوشش کنید.";

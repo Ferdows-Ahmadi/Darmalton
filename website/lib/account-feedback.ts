@@ -14,7 +14,18 @@ const messages: Record<string, readonly [string, string]> = {
 
 // Use only for failed requests, never for stored customer or pharmacy content.
 export function accountError(error: unknown, locale: Locale, fallback: string): string {
-  if (locale === "en") return error instanceof Error ? error.message : fallback;
+  if (locale === "en") {
+    const failure = error instanceof Error ? error as Error & { status?: number } : undefined;
+    if (failure?.status === 401) return "Sign in again to continue.";
+    if (failure?.status === 403) return "You do not have permission to do this.";
+    if (failure?.status === 404) return "This item was not found or is not available to your account.";
+    if (failure?.status === 413) return "The file is too large. Choose a smaller file.";
+    if (failure?.status === 429) return "Too many requests. Try again shortly.";
+    if (failure?.status && failure.status >= 500) return "The service is temporarily unavailable. Try again shortly.";
+    if (failure && Object.hasOwn(messages, failure.message) && !["Failed to fetch", "NetworkError when attempting to fetch resource."].includes(failure.message)) return failure.message;
+    if (failure?.status === 400 || failure?.status === 422) return "Please correct the highlighted fields.";
+    return fallback;
+  }
   const message = error instanceof Error ? error.message : "";
   if (messages[message]) return messages[message][locale === "ps-AF" ? 1 : 0];
   const status = error instanceof Error && "status" in error ? error.status : undefined;
@@ -31,6 +42,13 @@ export function accountError(error: unknown, locale: Locale, fallback: string): 
 }
 
 export function accountValidation(validity: Pick<ValidityState, "valueMissing" | "typeMismatch" | "tooLong" | "tooShort">, locale: Locale = "fa-AF"): string {
+  if (locale === "en") {
+    if (validity.valueMissing) return "Complete this field.";
+    if (validity.typeMismatch) return "Enter a value in the correct format.";
+    if (validity.tooLong) return "This text is too long.";
+    if (validity.tooShort) return "This text is too short.";
+    return "Check and correct this value.";
+  }
   if (validity.valueMissing) return locale === "ps-AF" ? "دا برخه بشپړه کړئ." : "این بخش را تکمیل کنید.";
   if (validity.typeMismatch) return locale === "ps-AF" ? "معلومات په سمه بڼه ولیکئ." : "معلومات را با قالب درست وارد کنید.";
   if (validity.tooLong) return locale === "ps-AF" ? "لیکل شوی متن ډېر اوږد دی." : "متن واردشده بیش از حد طولانی است.";

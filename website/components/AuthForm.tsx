@@ -155,18 +155,18 @@ export function AuthForm({
 
   const register = mode === "register";
   return (
-    <form method="post" className={`auth-card${audience === "customer" && locale !== "en" ? ` ${styles.card}` : ""}`} onSubmit={submit}
+    <form method="post" className={`auth-card${audience === "customer" ? ` ${styles.card}` : ""}`} onSubmit={submit}
       onInvalidCapture={event => {
-        if (audience === "customer" && locale !== "en" && event.target instanceof HTMLInputElement) event.target.setCustomValidity(accountValidation(event.target.validity, locale));
+        if (audience === "customer" && event.target instanceof HTMLInputElement) event.target.setCustomValidity(accountValidation(event.target.validity, locale));
       }}
       onInputCapture={event => {
-        if (audience === "customer" && locale !== "en" && event.target instanceof HTMLInputElement) event.target.setCustomValidity("");
+        if (audience === "customer" && event.target instanceof HTMLInputElement) event.target.setCustomValidity("");
       }}
     >
       <Image
         className="auth-brand"
         src="/brand/darmalton-logo.png"
-        alt="درملتون"
+        alt={locale === "en" ? "Darmalton" : "درملتون"}
         width={160}
         height={64}
         priority

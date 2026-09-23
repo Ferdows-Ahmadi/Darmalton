@@ -5,7 +5,8 @@ import { serverLocale } from "@/lib/server-locale";
 import { staticPages } from "@/lib/static-pages";
 
 export async function generateMetadata() {
-  return { title: (await serverLocale()) === "ps-AF" ? "د کارولو شرایط" : "شرایط استفاده" };
+  const locale = await serverLocale();
+  return { title: locale === "en" ? "Terms of use" : locale === "ps-AF" ? "د کارولو شرایط" : "شرایط استفاده" };
 }
 
 export default async function TermsPage() {

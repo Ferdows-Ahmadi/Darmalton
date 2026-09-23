@@ -9,7 +9,7 @@ import { MedicineMedia } from "./MedicineMedia";
 import styles from "./ProductDetail.module.css";
 
 // Presentation only: selection remains a route to the exact server-provided SKU.
-export function ProductDetail({ medicine, variants, locale }: { medicine: Medicine; variants: Medicine[]; locale: Exclude<Locale, "en"> }) {
+export function ProductDetail({ medicine, variants, locale }: { medicine: Medicine; variants: Medicine[]; locale: Locale }) {
   const name = productName(medicine, locale);
   const generic = localizedGenericName(medicine, locale);
   const manufacturer = medicine.manufacturer ? manufacturerName(medicine.manufacturer, locale) : textFor(locale, "unspecified");
@@ -51,7 +51,7 @@ export function ProductDetail({ medicine, variants, locale }: { medicine: Medici
         <div className={styles.purchase}>
           <p className={medicine.prescription_required ? styles.rx : styles.nonRx}>
             <span aria-hidden="true">{medicine.prescription_required ? "Rx" : "✓"}</span>
-            <span>{textFor(locale, "requiresRx")} <strong>{medicine.prescription_required ? customerText(locale, "الزامی است") : customerText(locale, "لازم نیست")}</strong></span>
+            <span>{locale === "en" ? "Prescription" : textFor(locale, "requiresRx")} <strong>{medicine.prescription_required ? customerText(locale, "الزامی است") : customerText(locale, "لازم نیست")}</strong></span>
           </p>
           <AddToCart medicine={medicine} disabled={!medicine.in_stock} prescriptionRequired={medicine.prescription_required}/>
         </div>
@@ -65,7 +65,7 @@ export function ProductDetail({ medicine, variants, locale }: { medicine: Medici
     </div>
     <section className={styles.description} aria-labelledby="product-information">
       <h2 id="product-information">{customerText(locale, "معلومات محصول")}</h2>
-      <p>{(locale === "ps-AF" ? medicine.description_pashto || medicine.description_dari : medicine.description_dari) || customerText(locale, "معلومات این محصول هنوز ثبت نشده است.")}</p>
+      <p>{(locale === "en" ? medicine.description : locale === "ps-AF" ? medicine.description_pashto || medicine.description_dari : medicine.description_dari) || customerText(locale, "معلومات این محصول هنوز ثبت نشده است.")}</p>
     </section>
   </section>;
 }

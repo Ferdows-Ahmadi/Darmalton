@@ -182,7 +182,7 @@ export default function PrescriptionsPage() {
         <span aria-hidden="true">Rx</span>
       </div>
 
-      {locale !== "en" && <nav className="account-jump" aria-label={t("rxList")}><a href="#prescription-upload">{copy.new}</a><a href="#prescription-history">{copy.history}</a></nav>}
+      {<nav className="account-jump" aria-label={t("rxList")}><a href="#prescription-upload">{copy.new}</a><a href="#prescription-history">{copy.history}</a></nav>}
       <form id="prescription-upload" ref={formRef} className="panel prescription-form" onSubmit={submit}>
         <h2>{copy.new}</h2>
         <p className="muted">{t("uploadHint")}</p>
@@ -268,16 +268,10 @@ export default function PrescriptionsPage() {
                   {formatDateTime(item.created_at, locale)}
                 </small>
               </div>
-              {locale !== "en" ? <div className="actions">
+              {<div className="actions">
                 <Link className="secondary button" href={`/account/prescriptions/${item.id}`}>{t("view")}</Link>
                 <Link className="secondary button" href={`/api/backend/prescriptions/${item.id}/file/?download=1`}>{t("file")}</Link>
-              </div> :
-              <Link
-                className="secondary button"
-                href={`/api/backend/prescriptions/${item.id}/file/?download=1`}
-              >
-                {t("file")}
-              </Link>}
+              </div>}
             </div>
             {item.customer_visible_note && <p>{item.customer_visible_note}</p>}
             {item.clarification_request && (

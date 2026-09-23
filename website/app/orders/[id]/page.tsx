@@ -54,12 +54,12 @@ export default function OrderPage() {
           <p>{error}</p>
         </div>
     );
-    return <section className="page-section narrow">{locale !== "en" ? <AccountShell>{content}</AccountShell> : content}</section>;
+    return <section className="page-section narrow">{<AccountShell>{content}</AccountShell>}</section>;
   }
   if (!order) {
     return (
       <section className="page-section narrow">
-        {locale !== "en" ? <AccountShell><div className="loading">{t("loading")}</div></AccountShell> : <div className="loading">{t("loading")}</div>}
+        {<AccountShell><div className="loading">{t("loading")}</div></AccountShell>}
       </section>
     );
   }

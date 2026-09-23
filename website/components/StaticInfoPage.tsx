@@ -26,7 +26,7 @@ export function StaticInfoPage({
   const { locale, t } = useLocale();
 
   return (
-    <section className={`info-page info-page-${variant}${locale !== "en" ? ` ${styles.document}` : ""}`}>
+    <section className={`info-page info-page-${variant} ${styles.document}`}>
       <header className="info-page-heading">
         <p className="eyebrow">{eyebrow[locale]}</p>
         <h1>{title[locale]}</h1>
@@ -34,7 +34,7 @@ export function StaticInfoPage({
       </header>
       {variant === "faq" ? <div className="info-accordion">
         {/* Native disclosure can be toggled before React hydrates; preserve that browser-owned open state. */}
-        {sections.map((section, index) => <details key={section.title.en} open={index === 0} suppressHydrationWarning={locale !== "en"}>
+        {sections.map((section, index) => <details key={section.title.en} open={index === 0} suppressHydrationWarning>
           <summary>{section.title[locale]}<span aria-hidden="true">＋</span></summary>
           <p>{section.body[locale]}</p>
         </details>)}

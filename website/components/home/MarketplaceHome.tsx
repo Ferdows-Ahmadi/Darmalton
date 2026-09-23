@@ -19,7 +19,7 @@ function CampaignTile({ campaign, locale }: { campaign: Campaign; locale: Market
   const t = (key: MarketplaceTextKey) => marketplaceText(locale, key);
   return <Link href={campaign.href} className={`${styles.campaign} ${styles[campaign.tone || "cream"]}`}>
     <Image src={campaign.image} alt="" fill sizes="44vw" />
-    <span><strong>{campaign.title}</strong><small>{campaign.detail}</small><b aria-hidden="true">{t("view")} ←</b></span>
+    <span><strong>{campaign.title}</strong><small>{campaign.detail}</small><b aria-hidden="true">{t("view")} {locale === "en" ? "→" : "←"}</b></span>
   </Link>;
 }
 
@@ -34,7 +34,7 @@ function Rail({ title, families, tone = "plain", href = "/shop", subtitle, local
     <header className={styles.railHeading}>
       {band && <span className={styles.railSymbol} aria-hidden="true">✚</span>}
       <h2>{title}</h2>{subtitle && <p>{subtitle}</p>}
-      <Link href={href}>{t("viewAll")} <span aria-hidden="true">←</span></Link>
+      <Link href={href}>{t("viewAll")} <span aria-hidden="true">{locale === "en" ? "→" : "←"}</span></Link>
     </header>
     <div className={styles.track}>
       {families.map(family => <MedicineCard key={family.code} medicine={family.medicine}
@@ -99,15 +99,15 @@ export function MarketplaceHome({ cms, medicines, categories, manufacturers, loc
         <div className={styles.fourBanners}>{campaigns.map(campaign => <CampaignTile locale={locale} key={campaign.href} campaign={campaign} />)}</div>
         <Rail locale={locale} title={t("vitamins")} href="/shop?shopper_category=vitamins-supplements" families={supplements} tone="cream" />
         <div className={styles.serviceBanners}>
-          <Link href="/prescription-help"><Image src="/icons/ICON-005_Prescription-Upload.webp" alt="" width={65} height={65} /><span><strong>{t("haveRx")}</strong><small>{t("rxGuideBody")}</small></span><b aria-hidden="true">←</b></Link>
-          <Link href="/delivery-policy"><Image src="/icons/ICON-009_Secure-Checkout.webp" alt="" width={65} height={65} /><span><strong>{t("delivery")}</strong><small>{t("deliveryBody")}</small></span><b aria-hidden="true">←</b></Link>
-          <Link href="/account/orders"><Image src="/icons/ICON-002_Account.webp" alt="" width={65} height={65} /><span><strong>{t("orders")}</strong><small>{t("ordersBody")}</small></span><b aria-hidden="true">←</b></Link>
+          <Link href="/prescription-help"><Image src="/icons/ICON-005_Prescription-Upload.webp" alt="" width={65} height={65} /><span><strong>{t("haveRx")}</strong><small>{t("rxGuideBody")}</small></span><b aria-hidden="true">{locale === "en" ? "→" : "←"}</b></Link>
+          <Link href="/delivery-policy"><Image src="/icons/ICON-009_Secure-Checkout.webp" alt="" width={65} height={65} /><span><strong>{t("delivery")}</strong><small>{t("deliveryBody")}</small></span><b aria-hidden="true">{locale === "en" ? "→" : "←"}</b></Link>
+          <Link href="/account/orders"><Image src="/icons/ICON-002_Account.webp" alt="" width={65} height={65} /><span><strong>{t("orders")}</strong><small>{t("ordersBody")}</small></span><b aria-hidden="true">{locale === "en" ? "→" : "←"}</b></Link>
         </div>
         <Rail locale={locale} title={t("nonRx")} subtitle={t("chooseProduct")} families={nonRx} tone="green" />
       </> : <State kind="error" title="unavailable" body="connection" />}
 
       {needs.length > 0 && <section className={styles.discovery} aria-label={t("pharmacyCategories")}>
-        <div className={styles.smallHeading}><h2>{t("browsePharmacy")}</h2><Link href="/categories">{t("allCategories")} ←</Link></div>
+        <div className={styles.smallHeading}><h2>{t("browsePharmacy")}</h2><Link href="/categories">{t("allCategories")} {locale === "en" ? "→" : "←"}</Link></div>
         <div>{needs.map(need => <Link href={need.href} key={need.key}><span><Image src={need.image} alt="" fill sizes="76px" /></span><strong>{need.label}</strong></Link>)}</div>
       </section>}
 
@@ -119,7 +119,7 @@ export function MarketplaceHome({ cms, medicines, categories, manufacturers, loc
       {remainingRails.map((rail, index) => <div className={styles.merchandiseGroup} key={rail[0].code}>
         <Rail locale={locale} title={index === 0 ? t("moreProducts") : t("continuedProducts")} families={rail} />
         {index === 0 && brands.length > 0 && <section className={styles.brands} aria-label={t("manufacturers")}>
-          <div className={styles.smallHeading}><h2>{t("manufacturers")}</h2><Link href="/manufacturers">{t("viewAll")} ←</Link></div>
+          <div className={styles.smallHeading}><h2>{t("manufacturers")}</h2><Link href="/manufacturers">{t("viewAll")} {locale === "en" ? "→" : "←"}</Link></div>
           <div>{brands.slice(0, 8).map(brand => <Link href={`/manufacturers/${encodeURIComponent(brand.name)}`} key={brand.id}>
             {brand.logo_url ? <Image src={brand.logo_url} alt="" width={75} height={35} /> : <bdi>{manufacturerName(brand, locale)}</bdi>}
           </Link>)}</div>
@@ -136,16 +136,16 @@ export function MarketplaceHome({ cms, medicines, categories, manufacturers, loc
           { title: t("shoppingOrders"), links: [[t("searchProducts"), "/shop"], [t("cart"), "/cart"], [t("delivery"), "/delivery-policy"]] },
           { title: t("yourAccount"), links: [[t("signIn"), "/login"], [t("orders"), "/account/orders"], [t("myAddresses"), "/account/addresses"]] },
           { title: t("answers"), links: [[t("shoppingHelp"), "/help"], [t("faq"), "/faq"], [t("contactUs"), "/contact"]] }
-        ].map(group => <div key={group.title}><h2>{group.title}</h2>{group.links.map(([label, href]) => <Link href={href} key={href}>{label}<span aria-hidden="true">←</span></Link>)}</div>)}
+        ].map(group => <div key={group.title}><h2>{group.title}</h2>{group.links.map(([label, href]) => <Link href={href} key={href}>{label}<span aria-hidden="true">{locale === "en" ? "→" : "←"}</span></Link>)}</div>)}
       </section>
 
       {cms.articles.length > 0 && <section className={styles.articles} aria-label={t("healthArticles")}>
-        {cms.articles.map(article => <Link href={`/health/${article.slug}`} key={article.id}>{cmsText(article.title, article.title_dari, locale)}<span aria-hidden="true">←</span></Link>)}
+        {cms.articles.map(article => <Link href={`/health/${article.slug}`} key={article.id}>{cmsText(article.title, article.title_dari, locale)}<span aria-hidden="true">{locale === "en" ? "→" : "←"}</span></Link>)}
       </section>}
 
       <Link href="/app" className={styles.appBar}>
         <Image src="/brand/android-icon.png" alt="" width={44} height={44} />
-        <strong>{t("mobileApp")}</strong><span>{t("appBody")}</span><b>{t("getAndroid")} ←</b>
+        <strong>{t("mobileApp")}</strong><span>{t("appBody")}</span><b>{t("getAndroid")} {locale === "en" ? "→" : "←"}</b>
       </Link>
     </div>
   </div>;

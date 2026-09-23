@@ -8,7 +8,7 @@ const addressBook = read("../components/AddressBook.tsx");
 const addressEditor = read("../components/AddressEditor.tsx");
 const infoPage = read("../components/StaticInfoPage.tsx");
 const appPage = read("../app/app/page.tsx");
-const medicineDetail = read("../app/medicines/[id]/page.tsx");
+const medicineDetail = read("../components/ProductDetail.tsx");
 const polish = read("../app/polish.css");
 
 test("saved-address empty state points to the address form", () => {
@@ -39,8 +39,8 @@ test("app page uses the supplied visual asset family", () => {
 });
 
 test("localized product pages do not expose untranslated descriptions", () => {
-  assert.match(medicineDetail, /\? medicine\.description_pashto\s*:\s*medicine\.description_dari/);
-  assert.doesNotMatch(medicineDetail, /description_pashto \|\| medicine\.description/);
+  assert.match(medicineDetail, /locale === "en" \? medicine\.description : locale === "ps-AF" \? medicine\.description_pashto \|\| medicine\.description_dari : medicine\.description_dari/);
+  assert.doesNotMatch(medicineDetail, /description_pashto \|\| medicine\.description\s*[:)]/);
 });
 
 test("mobile account navigation stays scrollable without a visible scrollbar", () => {

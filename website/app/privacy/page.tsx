@@ -5,7 +5,8 @@ import { serverLocale } from "@/lib/server-locale";
 import { staticPages } from "@/lib/static-pages";
 
 export async function generateMetadata() {
-  return { title: (await serverLocale()) === "ps-AF" ? "د محرمیت تګلاره" : "حریم خصوصی" };
+  const locale = await serverLocale();
+  return { title: locale === "en" ? "Privacy policy" : locale === "ps-AF" ? "د محرمیت تګلاره" : "حریم خصوصی" };
 }
 
 export default async function PrivacyPage() {
