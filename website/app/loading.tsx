@@ -6,7 +6,7 @@ import styles from "@/components/ApplicationState.module.css";
 export default function LoadingPage() {
   const { locale, t } = useLocale();
   return (
-    <div className={`page-section page-skeleton${locale === "fa-AF" ? ` ${styles.loading}` : ""}`} role="status" aria-label={t("loading")}>
+    <div className={`page-section page-skeleton${locale !== "en" ? ` ${styles.loading}` : ""}`} role="status" aria-label={t("loading")}>
       <p>{t("loading")}</p>
       <div aria-hidden="true">
         <span className="skeleton skeleton-heading" />

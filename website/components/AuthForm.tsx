@@ -155,12 +155,12 @@ export function AuthForm({
 
   const register = mode === "register";
   return (
-    <form method="post" className={`auth-card${audience === "customer" && locale === "fa-AF" ? ` ${styles.card}` : ""}`} onSubmit={submit}
+    <form method="post" className={`auth-card${audience === "customer" && locale !== "en" ? ` ${styles.card}` : ""}`} onSubmit={submit}
       onInvalidCapture={event => {
-        if (audience === "customer" && locale === "fa-AF" && event.target instanceof HTMLInputElement) event.target.setCustomValidity(accountValidation(event.target.validity));
+        if (audience === "customer" && locale !== "en" && event.target instanceof HTMLInputElement) event.target.setCustomValidity(accountValidation(event.target.validity, locale));
       }}
       onInputCapture={event => {
-        if (audience === "customer" && locale === "fa-AF" && event.target instanceof HTMLInputElement) event.target.setCustomValidity("");
+        if (audience === "customer" && locale !== "en" && event.target instanceof HTMLInputElement) event.target.setCustomValidity("");
       }}
     >
       <Image

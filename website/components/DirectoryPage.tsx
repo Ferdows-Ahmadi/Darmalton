@@ -75,7 +75,7 @@ export function ManufacturerDirectory({
           {manufacturer.logo_url
             ? <span className="manufacturer-logo"><Image className="media-logo" src={manufacturer.logo_url} alt="" fill sizes="52px"/></span>
             : <span className="manufacturer-mark" aria-hidden="true">{manufacturer.name.slice(0, 1).toUpperCase()}</span>}
-          <span><strong><bdi>{manufacturerName(manufacturer, locale)}</bdi></strong><small>{locale === "fa-AF" ? formatNumber(manufacturer.product_count, locale) : manufacturer.product_count} {textFor(locale, "results")}</small></span>
+          <span><strong><bdi>{manufacturerName(manufacturer, locale)}</bdi></strong><small>{locale !== "en" ? formatNumber(manufacturer.product_count, locale) : manufacturer.product_count} {textFor(locale, "results")}</small></span>
         </Link>)}
       </div> : <State title="noResults" body="trySearch"/>}
     </section>

@@ -6,6 +6,7 @@ import ts from "typescript";
 import { checkoutError } from "../lib/checkout-feedback.ts";
 import { textFor } from "../lib/locale.ts";
 import { accountError } from "../lib/account-feedback.ts";
+import { customerText } from "../lib/customer-copy.ts";
 
 const require = createRequire(import.meta.url);
 function component(path, dependencies) {
@@ -71,6 +72,7 @@ test("real authenticated cart update and remove handlers suppress raw request fa
     "@/components/AuthStateProvider": { useAuthenticated: () => true },
     "@/lib/locale": { formatMoney: value => value, formatNumber: value => String(value), productName: item => item.brand_name },
     "@/lib/storefront": { localizedPackSize: value => value },
+    "@/lib/customer-copy": { customerText },
     "@/lib/api": { ApiError, apiFetch: async (path, options) => { requests.push([path, options.method]); throw new ApiError(500, "PRIVATE_DEBUG_SENTINEL"); } },
     "@/lib/checkout-feedback": { checkoutError }
   });

@@ -9,6 +9,7 @@ import { useLocale } from "./LocaleProvider";
 import { State } from "./StoreUI";
 import { ApiError, apiFetch } from "@/lib/api";
 import { accountError } from "@/lib/account-feedback";
+import { customerText } from "@/lib/customer-copy";
 import { loginPath } from "@/lib/auth-navigation";
 import type { Address, PageResult } from "@/lib/types";
 
@@ -37,7 +38,7 @@ export function AddressBook() {
   }, [load]);
 
   async function remove(id: string) {
-    if (!window.confirm(locale === "fa-AF" ? "این آدرس حذف شود؟" : t("removeConfirm"))) return;
+    if (!window.confirm(locale !== "en" ? customerText(locale, "این آدرس حذف شود؟") : t("removeConfirm"))) return;
     try {
       await apiFetch(`addresses/${id}/`, { method: "DELETE" });
       await load();

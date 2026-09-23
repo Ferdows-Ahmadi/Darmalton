@@ -12,7 +12,7 @@ import { useAuthenticated } from "@/components/AuthStateProvider";
 import { useLocale } from "@/components/LocaleProvider";
 import { Toast } from "@/components/Toast";
 import { prescriptionStatus } from "@/lib/status";
-import { formatNumber } from "@/lib/locale";
+import { formatDateTime, formatNumber } from "@/lib/locale";
 import type { PageResult, Prescription } from "@/lib/types";
 
 function uploadWithProgress(
@@ -182,7 +182,7 @@ export default function PrescriptionsPage() {
         <span aria-hidden="true">Rx</span>
       </div>
 
-      {locale === "fa-AF" && <nav className="account-jump" aria-label={t("rxList")}><a href="#prescription-upload">{copy.new}</a><a href="#prescription-history">{copy.history}</a></nav>}
+      {locale !== "en" && <nav className="account-jump" aria-label={t("rxList")}><a href="#prescription-upload">{copy.new}</a><a href="#prescription-history">{copy.history}</a></nav>}
       <form id="prescription-upload" ref={formRef} className="panel prescription-form" onSubmit={submit}>
         <h2>{copy.new}</h2>
         <p className="muted">{t("uploadHint")}</p>
@@ -265,10 +265,10 @@ export default function PrescriptionsPage() {
                 </span>
                 <h3>{item.patient_name || copy.customer}</h3>
                 <small>
-                  {new Date(item.created_at).toLocaleString(locale)}
+                  {formatDateTime(item.created_at, locale)}
                 </small>
               </div>
-              {locale === "fa-AF" ? <div className="actions">
+              {locale !== "en" ? <div className="actions">
                 <Link className="secondary button" href={`/account/prescriptions/${item.id}`}>{t("view")}</Link>
                 <Link className="secondary button" href={`/api/backend/prescriptions/${item.id}/file/?download=1`}>{t("file")}</Link>
               </div> :

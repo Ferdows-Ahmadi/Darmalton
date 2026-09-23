@@ -5,5 +5,5 @@ import styles from "./shop.module.css";
 
 export default function ShopLayout({ children }: { children: React.ReactNode }) {
   const { locale } = useLocale();
-  return <div className={locale === "fa-AF" ? styles.shop : undefined}>{children}</div>;
+  return <div className={locale !== "en" ? styles.shop : undefined}>{children}</div>;
 }

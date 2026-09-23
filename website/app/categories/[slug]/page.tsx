@@ -29,7 +29,7 @@ export default async function DetailPage({ params, searchParams }: {
     `medicines/?${catalogueApiQuery(query, context)}`
   ).catch(() => null);
 
-  return <div className={locale === "fa-AF" ? styles.shop : undefined}>
+  return <div className={locale !== "en" ? styles.shop : undefined}>
     <CatalogueHeading title={title} parent="categories" count={medicines?.count} locale={locale}/>
     <section className="page-section">
       {categories && medicines ? <Catalogue

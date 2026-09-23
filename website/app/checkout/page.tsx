@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { customerText } from "@/lib/customer-copy";
 
 import { ApiError, apiFetch } from "@/lib/api";
 import { useAuthenticated } from "@/components/AuthStateProvider";
@@ -77,9 +78,9 @@ export default function CheckoutPage() {
     setError("");
     const data = Object.fromEntries(new FormData(event.currentTarget).entries());
     const missing = missingCheckoutFields(data);
-    if (locale === "fa-AF" && missing.length) {
+    if (locale !== "en" && missing.length) {
       setInvalidFields(missing);
-      setError("بخش‌های مشخص‌شده را برای آدرس تحویل تکمیل کنید.");
+      setError(customerText(locale, "بخش‌های مشخص‌شده را برای آدرس تحویل تکمیل کنید."));
       event.currentTarget.querySelector<HTMLInputElement>(`[name="${missing[0]}"]`)?.focus();
       return;
     }
@@ -88,7 +89,7 @@ export default function CheckoutPage() {
     try {
       const address = await apiFetch<Address>("addresses/", {
         method: "POST",
-        body: JSON.stringify({ ...emptyAddress, ...data, is_default: true })
+        body: JSON.stringify({ ...emptyAddress, label: locale === "ps-AF" ? copy.home : emptyAddress.label, ...data, is_default: true })
       });
       setShowForm(false);
       await load();
@@ -124,7 +125,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <section className={`page-section${locale === "fa-AF" ? ` ${styles.checkout}` : " narrow"}`}>
+    <section className={`page-section${locale !== "en" ? ` ${styles.checkout}` : " narrow"}`}>
       <nav className={styles.breadcrumb} aria-label={t("checkout")}>
         <Link href="/">{t("home")}</Link><span aria-hidden="true">/</span>
         <Link href="/cart">{t("cart")}</Link><span aria-hidden="true">/</span><span>{t("checkout")}</span>
@@ -148,7 +149,7 @@ export default function CheckoutPage() {
                   </label>)}
                 </div>
                 <button className="secondary" onClick={() => { setShowForm(true); setError(""); setInvalidFields([]); }}>{copy.other}</button>
-              </> : <form className={styles.addressForm} onSubmit={createAddress} noValidate={locale === "fa-AF"}>
+              </> : <form className={styles.addressForm} onSubmit={createAddress} noValidate={locale !== "en"}>
                 <h3>{copy.new}</h3>
                 <div className="form-grid">
                   {Object.entries({
@@ -164,7 +165,7 @@ export default function CheckoutPage() {
                       aria-invalid={invalidFields.includes(name) || undefined}
                       aria-describedby={invalidFields.includes(name) ? `${name}-error` : undefined}
                       onInput={() => setInvalidFields(current => current.filter(field => field !== name))}/>
-                    {invalidFields.includes(name) && <small id={`${name}-error`} className={styles.fieldError}>این بخش را تکمیل کنید.</small>}
+                    {invalidFields.includes(name) && <small id={`${name}-error`} className={styles.fieldError}>{customerText(locale, "این بخش را تکمیل کنید.")}</small>}
                   </label>)}
                 </div>
                 <div className="actions">
@@ -189,7 +190,7 @@ export default function CheckoutPage() {
             {!cart.items.length && <p>{t("emptyCart")}</p>}
             <div className={styles.total}><span>{t("subtotal")}</span><strong>{formatMoney(cart.subtotal, locale)}</strong></div>
             <small>{t("finalPrice")}</small>
-            {showForm && locale === "fa-AF" && <small>ابتدا آدرس تحویل را ذخیره کنید.</small>}
+            {showForm && locale !== "en" && <small>{customerText(locale, "ابتدا آدرس تحویل را ذخیره کنید.")}</small>}
             <button className="primary wide checkout-button" disabled={showForm || !selected || !cart.items.length || busy} onClick={placeOrder}>{busy ? copy.placing : t("placeOrder")}</button>
             <Link className={styles.cartLink} href="/cart">{t("cart")}</Link>
           </aside>

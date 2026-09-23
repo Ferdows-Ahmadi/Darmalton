@@ -20,20 +20,20 @@ const accountLinks: [string, TextKey][] = [
 export function AccountShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { t, locale } = useLocale();
-  const activePath = locale === "fa-AF"
+  const activePath = locale !== "en"
     ? pathname.replace(/^\/(orders|notifications|prescriptions)(?=\/|$)/, "/account/$1")
     : pathname;
   return (
-    <div className={`account-layout${locale === "fa-AF" ? ` ${styles.shell}` : ""}`}
+    <div className={`account-layout${locale !== "en" ? ` ${styles.shell}` : ""}`}
       onInvalidCapture={(event) => {
         const field = event.target;
-        if (locale === "fa-AF" && (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) {
-          field.setCustomValidity(accountValidation(field.validity));
+        if (locale !== "en" && (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) {
+          field.setCustomValidity(accountValidation(field.validity, locale));
         }
       }}
       onInputCapture={(event) => {
         const field = event.target;
-        if (locale === "fa-AF" && (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) field.setCustomValidity("");
+        if (locale !== "en" && (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) field.setCustomValidity("");
       }}
     >
       <nav className="account-nav" aria-label={t("account")}>

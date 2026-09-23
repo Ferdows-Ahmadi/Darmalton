@@ -44,7 +44,7 @@ export default async function MedicinePage({ params }: { params: Promise<{ id: s
       ? medicine.description_pashto
       : medicine.description_dari;
 
-  if (locale === "fa-AF") return <ProductDetail medicine={medicine} variants={variants}/>;
+  if (locale !== "en") return <ProductDetail locale={locale} medicine={medicine} variants={variants}/>;
 
   return <section className="page-section product-detail-page">
     <div className="product-detail">

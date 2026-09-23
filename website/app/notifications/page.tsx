@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatDateTime } from "@/lib/locale";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -77,6 +78,6 @@ export default function NotificationsPage() {
       onClick={async (event) => { event.preventDefault(); try { router.push(await destination(item)); } catch (caught) { setError(accountError(caught, locale, t("connection"))); } }}
       className={`notification-card ${item.read_at ? "is-read" : "is-unread"}`}
       key={item.id}
-    ><span aria-hidden="true">{item.order_id ? "🚚" : "Rx"}</span><div><strong>{item.title}</strong><p>{item.message}</p><small>{new Date(item.created_at).toLocaleString(locale)}</small></div>{!item.read_at && <i aria-label={copy.unread}/>}</Link>)}</div>
+    ><span aria-hidden="true">{item.order_id ? "🚚" : "Rx"}</span><div><strong>{item.title}</strong><p>{item.message}</p><small>{formatDateTime(item.created_at, locale)}</small></div>{!item.read_at && <i aria-label={copy.unread}/>}</Link>)}</div>
   </AccountShell></section>;
 }

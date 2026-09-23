@@ -11,7 +11,7 @@ import { ApiError, apiFetch } from "@/lib/api";
 import { accountError } from "@/lib/account-feedback";
 import { loginPath } from "@/lib/auth-navigation";
 import { prescriptionStatus } from "@/lib/status";
-import { formatNumber } from "@/lib/locale";
+import { formatDateTime, formatNumber } from "@/lib/locale";
 import type { Prescription } from "@/lib/types";
 
 export function PrescriptionDetail({ id }: { id: string }) {
@@ -80,7 +80,7 @@ export function PrescriptionDetail({ id }: { id: string }) {
             <div className="panel">
               <div className="summary-row">
                 <span>{t("date")}</span>
-                <time>{new Date(item.created_at).toLocaleString(locale)}</time>
+                <time>{formatDateTime(item.created_at, locale)}</time>
               </div>
               <Link
                 className="button secondary"

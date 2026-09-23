@@ -13,8 +13,8 @@ export function ApplicationState({ title, body, retry, href = "/", action = "bac
   action?: TextKey;
 }) {
   const { locale, t } = useLocale();
-  return <section className={`page-section narrow${locale === "fa-AF" ? ` ${styles.page}` : ""}`}>
-    <div className={locale === "fa-AF" ? styles.panel : "empty-state"} role={retry ? "alert" : undefined}>
+  return <section className={`page-section narrow${locale !== "en" ? ` ${styles.page}` : ""}`}>
+    <div className={locale !== "en" ? styles.panel : "empty-state"} role={retry ? "alert" : undefined}>
       <h1>{t(title)}</h1>
       <p>{t(body)}</p>
       {retry ? <button onClick={retry}>{t("retry")}</button> : <Link className="button" href={href}>{t(action)}</Link>}

@@ -1,7 +1,10 @@
+import { serverLocale } from "@/lib/server-locale";
 import type { Metadata } from "next";
 import { AuthForm } from "@/components/AuthForm";
 
-export const metadata: Metadata = { title: "ایجاد حساب" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await serverLocale()) === "ps-AF" ? "حساب جوړول" : "ایجاد حساب" };
+}
 export const dynamic = "force-dynamic";
 
 export default async function RegisterPage({

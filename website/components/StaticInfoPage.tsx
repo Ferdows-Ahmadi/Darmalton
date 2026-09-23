@@ -26,7 +26,7 @@ export function StaticInfoPage({
   const { locale, t } = useLocale();
 
   return (
-    <section className={`info-page info-page-${variant}${locale === "fa-AF" ? ` ${styles.document}` : ""}`}>
+    <section className={`info-page info-page-${variant}${locale !== "en" ? ` ${styles.document}` : ""}`}>
       <header className="info-page-heading">
         <p className="eyebrow">{eyebrow[locale]}</p>
         <h1>{title[locale]}</h1>
@@ -34,13 +34,13 @@ export function StaticInfoPage({
       </header>
       {variant === "faq" ? <div className="info-accordion">
         {/* Native disclosure can be toggled before React hydrates; preserve that browser-owned open state. */}
-        {sections.map((section, index) => <details key={section.title.en} open={index === 0} suppressHydrationWarning={locale === "fa-AF"}>
+        {sections.map((section, index) => <details key={section.title.en} open={index === 0} suppressHydrationWarning={locale !== "en"}>
           <summary>{section.title[locale]}<span aria-hidden="true">＋</span></summary>
           <p>{section.body[locale]}</p>
         </details>)}
       </div> : <article className="info-document">
         {sections.map((section, index) => <section key={section.title.en}>
-          {variant === "help" && <span className="info-step" aria-hidden="true">{locale === "fa-AF" ? formatNumber(index + 1, locale) : String(index + 1).padStart(2, "0")}</span>}
+          {variant === "help" && <span className="info-step" aria-hidden="true">{locale !== "en" ? formatNumber(index + 1, locale) : String(index + 1).padStart(2, "0")}</span>}
           <h2>{section.title[locale]}</h2>
           <p>{section.body[locale]}</p>
         </section>)}

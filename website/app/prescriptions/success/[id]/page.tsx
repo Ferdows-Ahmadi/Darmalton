@@ -19,5 +19,5 @@ export default function PrescriptionSuccessPage() {
         </Link>
       </div>
   );
-  return <section className="page-section narrow">{locale === "fa-AF" ? <AccountShell>{content}</AccountShell> : content}</section>;
+  return <section className="page-section narrow">{locale !== "en" ? <AccountShell>{content}</AccountShell> : content}</section>;
 }

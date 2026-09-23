@@ -4,7 +4,9 @@ import { publicContentPage } from "@/lib/public-cms";
 import { serverLocale } from "@/lib/server-locale";
 import { staticPages } from "@/lib/static-pages";
 
-export const metadata = { title: "درباره درملتون" };
+export async function generateMetadata() {
+  return { title: (await serverLocale()) === "ps-AF" ? "د درملتون په اړه" : "درباره درملتون" };
+}
 
 export default async function AboutPage() {
   const locale = await serverLocale();

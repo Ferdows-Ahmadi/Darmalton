@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useLocale } from "./LocaleProvider";
-import { formatMoney, formatNumber } from "@/lib/locale";
+import { formatDateTime, formatMoney, formatNumber } from "@/lib/locale";
 import { orderStatus } from "@/lib/status";
 import type { Order } from "@/lib/types";
 
@@ -16,7 +16,7 @@ export function OrderCard({ order }: { order: Order }) {
         </span>
         <h2>{orderStatus(order.status, locale)}</h2>
         <p>
-          {new Date(order.placed_at).toLocaleString(locale, {
+          {formatDateTime(order.placed_at, locale, {
             dateStyle: "medium",
             timeStyle: "short"
           })}

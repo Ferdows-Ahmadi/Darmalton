@@ -113,6 +113,18 @@ export function formatNumber(value: number | string, locale: Locale) {
   return locale === "en" ? ascii : ascii.replace(/\d/g, digit => easternArabicDigits[Number(digit)]);
 }
 export function formatMoney(value: string | null, locale: Locale) { return value === null ? textFor(locale,"noPrice") : `${formatNumber(value,locale)} ${textFor(locale,"afn")}`; }
+export function formatDateTime(value: string, locale: Locale, options?: Intl.DateTimeFormatOptions) {
+  const date = new Date(value);
+  if (locale !== "ps-AF") return date.toLocaleString(locale, options);
+  // Pashto is absent from some browser ICU bundles. Numeric Gregorian dates
+  // avoid falling back to English month names and AM/PM in account history.
+  return date.toLocaleString("en-GB", {
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit",
+    ...(options?.timeStyle === "short" ? {} : { second: "2-digit" }),
+    hourCycle: "h23", timeZone: options?.timeZone
+  }).replace(/\d/g, digit => easternArabicDigits[Number(digit)]);
+}
 export function productName(m: {brand_name: string; brand_name_dari: string; brand_name_pashto?: string}, locale: Locale) {
   if (locale === "en") return m.brand_name;
   if (locale === "ps-AF") return m.brand_name_pashto || m.brand_name_dari || m.brand_name;

@@ -38,7 +38,9 @@ export function ProfileEditor() {
       setUser(
         await apiFetch<User>("auth/me/", {
           method: "PATCH",
-          body: JSON.stringify({ ...body, preferred_language: locale === "fa-AF" ? "fa" : locale })
+          // The API currently stores only fa/en. Keep its saved preference in
+          // Pashto; the storefront locale is independently retained by cookie.
+          body: JSON.stringify({ ...body, ...(locale === "ps-AF" ? {} : { preferred_language: locale === "fa-AF" ? "fa" : locale }) })
         })
       );
       setMessage(t("saved"));

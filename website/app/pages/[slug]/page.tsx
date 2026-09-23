@@ -26,5 +26,5 @@ export default async function PublicCmsPage({
   const page = await publicContentPage((await params).slug);
   if (!page) notFound();
   const locale = await serverLocale();
-  return <CmsInfoPage utility className={locale === "fa-AF" ? styles.cmsDocument : undefined} page={page} locale={locale} eyebrow={textFor(locale, "cmsContext")} />;
+  return <CmsInfoPage utility className={locale !== "en" ? styles.cmsDocument : undefined} page={page} locale={locale} eyebrow={textFor(locale, "cmsContext")} />;
 }

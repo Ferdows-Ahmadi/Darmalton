@@ -44,7 +44,7 @@ export function AddToCart({
         router.push("/cart");
       } else {
         setMessage(
-          locale === "fa-AF" || localizedFeedback ? checkoutError(error, locale, t("connection")) : error instanceof Error
+          locale !== "en" || localizedFeedback ? checkoutError(error, locale, t("connection")) : error instanceof Error
             ? error.message
             : t("connection")
         );

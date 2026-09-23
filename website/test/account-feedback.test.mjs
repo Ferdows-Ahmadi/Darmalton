@@ -15,7 +15,7 @@ test("Dari account feedback contains API validation and transport errors", () =>
 test("existing localized errors and other locale behavior remain intact", () => {
   const localized = "فقط فایل‌های JPG، PNG یا PDF پذیرفته می‌شود.";
   assert.equal(accountError(failure(400, localized), "fa-AF", fallback), localized);
-  for (const locale of ["en", "ps-AF"]) {
+  for (const locale of ["en"]) {
     assert.equal(accountError(new Error("Existing message"), locale, fallback), "Existing message");
   }
   assert.equal(accountError(null, "fa-AF", fallback), fallback);

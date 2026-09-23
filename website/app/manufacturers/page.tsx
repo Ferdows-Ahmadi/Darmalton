@@ -11,7 +11,7 @@ export default async function ManufacturersPage() {
     () => []
   );
   return (
-    <div className={locale === "fa-AF" ? styles.manufacturers : undefined}>
+    <div className={locale !== "en" ? styles.manufacturers : undefined}>
     <ManufacturerDirectory
       manufacturers={manufacturers}
       locale={locale}

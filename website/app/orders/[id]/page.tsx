@@ -9,7 +9,7 @@ import { loginPath } from "@/lib/auth-navigation";
 import { AccountShell } from "@/components/AccountShell";
 import { useAuthenticated } from "@/components/AuthStateProvider";
 import { useLocale } from "@/components/LocaleProvider";
-import { formatMoney, formatNumber } from "@/lib/locale";
+import { formatDateTime, formatMoney, formatNumber } from "@/lib/locale";
 import { orderStatus } from "@/lib/status";
 import type { Order } from "@/lib/types";
 
@@ -54,12 +54,12 @@ export default function OrderPage() {
           <p>{error}</p>
         </div>
     );
-    return <section className="page-section narrow">{locale === "fa-AF" ? <AccountShell>{content}</AccountShell> : content}</section>;
+    return <section className="page-section narrow">{locale !== "en" ? <AccountShell>{content}</AccountShell> : content}</section>;
   }
   if (!order) {
     return (
       <section className="page-section narrow">
-        {locale === "fa-AF" ? <AccountShell><div className="loading">{t("loading")}</div></AccountShell> : <div className="loading">{t("loading")}</div>}
+        {locale !== "en" ? <AccountShell><div className="loading">{t("loading")}</div></AccountShell> : <div className="loading">{t("loading")}</div>}
       </section>
     );
   }
@@ -80,7 +80,7 @@ export default function OrderPage() {
           <h1>{orderStatus(order.status, locale)}</h1>
           <p>
             {copy.placedOn}{" "}
-            {new Date(order.placed_at).toLocaleString(locale, {
+            {formatDateTime(order.placed_at, locale, {
               dateStyle: "medium",
               timeStyle: "short"
             })}
@@ -97,7 +97,7 @@ export default function OrderPage() {
             <p>
               <strong>{orderStatus(item.to_status, locale)}</strong>
               <small>
-                {new Date(item.created_at).toLocaleString(locale)}{" "}
+                {formatDateTime(item.created_at, locale)}{" "}
                 {item.note &&
                   `· ${item.note === "Order placed" ? copy.placedNote : item.note}`}
               </small>

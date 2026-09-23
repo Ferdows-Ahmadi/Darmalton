@@ -4,7 +4,9 @@ import { publicContentPage } from "@/lib/public-cms";
 import { serverLocale } from "@/lib/server-locale";
 import { staticPages } from "@/lib/static-pages";
 
-export const metadata = { title: "شرایط استفاده" };
+export async function generateMetadata() {
+  return { title: (await serverLocale()) === "ps-AF" ? "د کارولو شرایط" : "شرایط استفاده" };
+}
 
 export default async function TermsPage() {
   const locale = await serverLocale();

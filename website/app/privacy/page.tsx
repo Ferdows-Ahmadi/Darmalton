@@ -4,7 +4,9 @@ import { publicContentPage } from "@/lib/public-cms";
 import { serverLocale } from "@/lib/server-locale";
 import { staticPages } from "@/lib/static-pages";
 
-export const metadata = { title: "حریم خصوصی" };
+export async function generateMetadata() {
+  return { title: (await serverLocale()) === "ps-AF" ? "د محرمیت تګلاره" : "حریم خصوصی" };
+}
 
 export default async function PrivacyPage() {
   const locale = await serverLocale();

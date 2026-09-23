@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { customerText } from "@/lib/customer-copy";
 import { useCallback, useEffect, useState } from "react";
 
 import { ApiError, apiFetch } from "@/lib/api";
@@ -52,7 +53,7 @@ export default function CartPage() {
         setCart(guestCart());
         setError("");
       } else {
-        setError(locale === "fa-AF" ? checkoutError(err, locale, copy.load) : err instanceof Error ? err.message : copy.load);
+        setError(locale !== "en" ? checkoutError(err, locale, copy.load) : err instanceof Error ? err.message : copy.load);
       }
     }
   }, [authenticated, copy.load, locale]);
@@ -82,7 +83,7 @@ export default function CartPage() {
       });
       await load();
     } catch (err) {
-      setError(locale === "fa-AF" ? checkoutError(err, locale, copy.update) : err instanceof Error ? err.message : copy.update);
+      setError(locale !== "en" ? checkoutError(err, locale, copy.update) : err instanceof Error ? err.message : copy.update);
     }
   }
 
@@ -96,13 +97,13 @@ export default function CartPage() {
       await apiFetch(`cart/items/${id}/`, { method: "DELETE" });
       await load();
     } catch (err) {
-      setError(locale === "fa-AF" ? checkoutError(err, locale, copy.remove) : err instanceof Error ? err.message : copy.remove);
+      setError(locale !== "en" ? checkoutError(err, locale, copy.remove) : err instanceof Error ? err.message : copy.remove);
     }
   }
 
   return (
-    <section className={`page-section${locale === "fa-AF" ? ` ${styles.cart}` : ""}`}>
-      {locale === "fa-AF" && <nav className={styles.breadcrumb} aria-label="مسیر صفحه"><Link href="/">{t("home")}</Link><span aria-hidden="true">/</span><span aria-current="page">{t("cart")}</span></nav>}
+    <section className={`page-section${locale !== "en" ? ` ${styles.cart}` : ""}`}>
+      {locale !== "en" && <nav className={styles.breadcrumb} aria-label={customerText(locale, "مسیر صفحه")}><Link href="/">{t("home")}</Link><span aria-hidden="true">/</span><span aria-current="page">{t("cart")}</span></nav>}
       <p className="eyebrow">{copy.kicker}</p>
       <h1>{t("cart")}</h1>
       <p className="muted">
@@ -120,7 +121,7 @@ export default function CartPage() {
       {cart && !cart.items.length && (
         <>
           <div className="empty-state cart-empty-state">
-            {locale === "fa-AF" ? <span className={styles.emptyIcon} aria-hidden="true"><Icon name="ICON-004_Cart" size={48}/></span> : <span className="empty-cart-illustration" aria-hidden="true"><span>＋</span></span>}
+            {locale !== "en" ? <span className={styles.emptyIcon} aria-hidden="true"><Icon name="ICON-004_Cart" size={48}/></span> : <span className="empty-cart-illustration" aria-hidden="true"><span>＋</span></span>}
             <div><p className="eyebrow">Darmalton</p><h2>{t("emptyCart")}</h2><p>{copy.choose}</p>
               <Link className="button" href="/shop">{t("continueShopping")}</Link>
             </div>
@@ -128,7 +129,7 @@ export default function CartPage() {
           {recommendations.length > 0 && <section className="section empty-cart-recommendations">
             <div className="section-heading"><h2>{t("popularMedicines")}</h2><Link href="/shop">{t("viewAll")}</Link></div>
             <div className="product-rail">
-              {groupMedicineFamilies(recommendations).slice(0, 6).map((family) => <MedicineCard key={family.code} medicine={family.medicine} variants={family.variants} presentation={locale === "fa-AF" ? "marketplace" : undefined} />)}
+              {groupMedicineFamilies(recommendations).slice(0, 6).map((family) => <MedicineCard key={family.code} medicine={family.medicine} variants={family.variants} presentation={locale !== "en" ? "marketplace" : undefined} />)}
             </div>
           </section>}
         </>
@@ -141,16 +142,16 @@ export default function CartPage() {
               const media = <MedicineMedia imageUrl={item.medicine.image_url} alt={name} width={92} height={92} sizes="92px"/>;
               return (
                 <article key={item.id} className="cart-row">
-                  {locale === "fa-AF" ? <Link className={styles.photo} href={`/medicines/${item.medicine.id}`}>{media}</Link> : media}
+                  {locale !== "en" ? <Link className={styles.photo} href={`/medicines/${item.medicine.id}`}>{media}</Link> : media}
                   <div className="cart-item-copy">
-                    <h2>{locale === "fa-AF" ? <Link href={`/medicines/${item.medicine.id}`}>{name}</Link> : name}</h2>
+                    <h2>{locale !== "en" ? <Link href={`/medicines/${item.medicine.id}`}>{name}</Link> : name}</h2>
                     <p dir="ltr">
                       {item.medicine.brand_name} · {item.medicine.strength}
                     </p>
-                    {locale === "fa-AF" && <>
+                    {locale !== "en" && <>
                       <p>{localizedPackSize(item.medicine.pack_size, locale)}</p>
                       {item.medicine.prescription_required && <span className={styles.rx}>{t("requiresRx")}</span>}
-                      <p className={styles.unitPrice}>قیمت واحد <b>{formatMoney(item.unit_price, locale)}</b></p>
+                      <p className={styles.unitPrice}>{customerText(locale, "قیمت واحد")} <b>{formatMoney(item.unit_price, locale)}</b></p>
                     </>}
                   </div>
                   <div
@@ -174,7 +175,7 @@ export default function CartPage() {
                       +
                     </button>
                   </div>
-                  <strong className="cart-line-total">{locale === "fa-AF" && <small>مجموع</small>}{formatMoney(item.line_total, locale)}</strong>
+                  <strong className="cart-line-total">{locale !== "en" && <small>{customerText(locale, "مجموع")}</small>}{formatMoney(item.line_total, locale)}</strong>
                   <button
                     className="danger-link"
                     onClick={() => remove(item.id)}

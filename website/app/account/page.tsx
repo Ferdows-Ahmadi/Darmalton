@@ -35,7 +35,7 @@ export default function AccountPage() {
       .catch((err) => {
         if (err instanceof ApiError && err.status === 401) {
           router.push(loginPath("/account"));
-        } else if (locale === "fa-AF") {
+        } else if (locale !== "en") {
           setError(accountError(err, locale, t("connection")));
         }
       });

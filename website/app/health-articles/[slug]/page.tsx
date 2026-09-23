@@ -39,7 +39,7 @@ export default async function HealthArticlePage({
   const body = cmsText(article.body, article.body_dari, locale);
   const copy = locale === "en" ? { article: "Health article", source: "Source" } : locale === "fa-AF" ? { article: "مقاله سلامت", source: "منبع" } : { article: "روغتیایي لیکنه", source: "سرچینه" };
   return (
-    <article className={`public-article${locale === "fa-AF" ? ` ${styles.article}` : ""}`}>
+    <article className={`public-article${locale !== "en" ? ` ${styles.article}` : ""}`}>
       <header>
         <p className="eyebrow">{copy.article}</p>
         <h1>{title}</h1>

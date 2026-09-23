@@ -11,19 +11,22 @@ import "./polish.css";
 
 const estedad = localFont({src:"./fonts/Estedad.ttf", variable:"--font-estedad", display:"swap"});
 
-export const metadata: Metadata = {
+export async function generateMetadata(): Promise<Metadata> {
+  const pashto = (await serverLocale()) === "ps-AF";
+  return {
   applicationName: "Darmalton",
   title: {
-    default: "درملتون | داروخانه آنلاین",
+    default: pashto ? "درملتون | آنلاین درملتون" : "درملتون | داروخانه آنلاین",
     template: "%s | درملتون"
   },
   description:
-    "جستجوی دارو و محصولات صحی، ارسال محرمانه نسخه و پیگیری سفارش در درملتون.",
+    pashto ? "په درملتون کې درمل او روغتیایي توکي ولټوئ، نسخه په محرم ډول واستوئ او خپل فرمایشونه وڅارئ." : "جستجوی دارو و محصولات صحی، ارسال محرمانه نسخه و پیگیری سفارش در درملتون.",
   icons: {
     icon: "/brand/android-icon.png",
     apple: "/brand/android-icon.png"
   }
-};
+  };
+}
 
 export default async function RootLayout({
   children
